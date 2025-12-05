@@ -1,3 +1,5 @@
+import { normalizeUrl } from '../utils/urlHelper';
+
 const url = import.meta.env.VITE_BACKEND_URL;
 
 export const emailServices = {};
@@ -8,7 +10,7 @@ emailServices.updatePassword = async (password, token) => {
   console.log("👉 password:", password);
   console.log("👉 token:", token);
   try {
-    const resp = await fetch(url + "/api/password_update", {
+    const resp = await fetch(normalizeUrl(url, "/api/password_update"), {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -28,7 +30,7 @@ emailServices.updatePassword = async (password, token) => {
 emailServices.sendResetEmail = async (email) => {
   //recibimos el correo al que le vamos a enviar el reset del password
   try {
-    const resp = await fetch(url + "/api/check_mail", {
+    const resp = await fetch(normalizeUrl(url, "/api/check_mail"), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -47,7 +49,7 @@ emailServices.sendResetEmail = async (email) => {
 emailServices.checkAuth = async (token) => {
   try {
     // fetching data from the backend
-    const resp = await fetch(url + "/api/token", {
+    const resp = await fetch(normalizeUrl(url, "/api/token"), {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,

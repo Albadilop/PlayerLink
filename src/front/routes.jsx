@@ -44,5 +44,10 @@ export const router = createBrowserRouter(
       </Route>
       <Route path="/reset" element={<Reset/>} />
     </Route >
-  )
+  ),
+  {
+    future: {
+      v7_startTransition: true,
+    },
+  }
 );

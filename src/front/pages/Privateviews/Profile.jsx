@@ -10,6 +10,7 @@ import useGlobalReducer from "../../hooks/useGlobalReducer";                  //
 import userServices from "../../services/userServices.js";                   // Servicios relacionados con usuario (fetch, update)
 import reviewServices from "../../services/reviewServices.js";               // Servicios para gestión de reviews (comentarios)
 import gameServices from "../../services/gameServices.js"
+import { normalizeUrl } from "../../utils/urlHelper";
 
 // Assets - Medallas de juego
 import goldMedal from "../../assets/img/medals/gold-medal.png";
@@ -248,6 +249,10 @@ const Profile = () => {
 
   // Cambiar avatar en backend y estado local
   const handlePicChange = async (fileName) => {
+    if (!store.user?.id) {
+      console.error('User not available');
+      return;
+    }
     const newKey = picMap[fileName] || 'photo1';
     try {
       await userServices.changeUserPhoto(store.user.id, { photo: newKey });
@@ -272,29 +277,42 @@ const Profile = () => {
 
   // Crear o actualizar perfil
   const updateProfile = async () => {
+    if (!store.user || !store.user.id) {
+      console.error('User not available');
+      return;
+    }
+
     if (isEditing) {
       if (store.user.profile) {
         try {
-          const resp = await fetch(url + `/api/profiles/${store.user.id}`, {
+          const resp = await fetch(normalizeUrl(url, `/api/profiles/${store.user.id}`), {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
             body: JSON.stringify(profile),
           });
           if (!resp.ok) throw new Error('Error al guardar perfil');
           const result = await resp.json();
+          await loadProfile(); // Recargar perfil después de actualizar
         } catch (err) {
           console.error('Error en updateProfile:', err);
         }
 
       } else {
         try {
-          const resp = await fetch(url + `/api/profiles/${store.user?.id}`, {
+          const resp = await fetch(normalizeUrl(url, `/api/profiles/${store.user.id}`), {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
             body: JSON.stringify(profile),
           });
           if (!resp.ok) throw new Error('Error al guardar perfil');
           const result = await resp.json();
+          await loadProfile(); // Recargar perfil después de crear
         } catch (err) {
           console.error('Error en updateProfile:', err);
         }
@@ -340,6 +358,10 @@ const Profile = () => {
     }
   };
   const handleAdd = async () => {
+    if (!store.user?.profile?.id) {
+      console.error('User profile not available');
+      return;
+    }
 
     setErrorRepeatedGame('');
     setErrorHoursPlayed('');
@@ -348,7 +370,7 @@ const Profile = () => {
       setErrorHoursPlayed('Your must complete all the information')
       return;
     }
-    if (store.user.profile.games.some(g => g.gameTitle === game.title)) {
+    if (store.user?.profile?.games?.some(g => g.gameTitle === game.title)) {
       setErrorRepeatedGame('This game is already on the list')
       return;
     }
@@ -361,8 +383,7 @@ const Profile = () => {
         image
       };
       console.log("Enviando:", newGame);
-      await gameServices.postNewGame(store.user.profile?.id, newGame);
-      allGames = store.user?.profile?.games ? store.user.profile.games : [];
+      await gameServices.postNewGame(store.user.profile.id, newGame);
       await loadProfile();
 
       // Cerrar modal y limpiar

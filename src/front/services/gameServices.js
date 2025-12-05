@@ -1,9 +1,11 @@
+import { normalizeUrl } from '../utils/urlHelper';
+
 const url = import.meta.env.VITE_BACKEND_URL;
 
 const gameServices = {
   postNewGame: async (profileId, form) => {
     try {
-      const resp = await fetch(`${url}/api/games/${profileId}`, {
+      const resp = await fetch(normalizeUrl(url, `/api/games/${profileId}`), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -31,7 +33,7 @@ const gameServices = {
 
   deleteGameById: async (game_id) => {
     try {
-      const resp = await fetch(`${url}/api/games/${game_id}`, {
+      const resp = await fetch(normalizeUrl(url, `/api/games/${game_id}`), {
         method: "DELETE",
       });
 
@@ -49,7 +51,7 @@ const gameServices = {
 
   updateGameInfo: async (game_id, hours) => {
     try {
-      const resp = await fetch(`${url}/api/games/hours/${game_id}`, {
+      const resp = await fetch(normalizeUrl(url, `/api/games/hours/${game_id}`), {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

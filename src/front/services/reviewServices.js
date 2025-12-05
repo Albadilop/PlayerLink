@@ -1,9 +1,11 @@
+import { normalizeUrl } from '../utils/urlHelper';
+
 const url = import.meta.env.VITE_BACKEND_URL;
 const reviewServices = {};
 
 reviewServices.getAllReviewsReceived = async (user_id) => {
   try {
-    const resp = await fetch(url + `/api/reviews_received/${user_id}`);
+    const resp = await fetch(normalizeUrl(url, `/api/reviews_received/${user_id}`));
     if (!resp.ok)
       throw Error("Something went wrong traying to get matches info");
     const data = await resp.json();
@@ -23,7 +25,7 @@ reviewServices.postNewReview = async (
 ) => {
   try {
     const resp = await fetch(
-      `${url}/api/reviews/${userAuthoredId}/${userReviewedId}`,
+      normalizeUrl(url, `/api/reviews/${userAuthoredId}/${userReviewedId}`),
       {
         method: "POST",
         headers: {

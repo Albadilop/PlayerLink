@@ -81,6 +81,7 @@ CORS(api, resources={r"/api/*": {"origins": allowed_origins, "supports_credentia
 
 @api.route("/chat", methods=["POST"])
 @jwt_required()
+@api.limiter.limit("30 per minute")
 def chat():
     """
     Recibe JSON:
@@ -139,6 +140,7 @@ def chat():
 
 
 @api.route('/register', methods=['POST'])
+@api.limiter.limit("5 per minute")
 def register():
     try:
         data = request.get_json()
@@ -197,6 +199,7 @@ def register():
 
 # LOGIN
 @api.route('/login', methods=['POST'])
+@api.limiter.limit("5 per minute")
 def login():
     try:
         data = request.get_json()
@@ -240,6 +243,7 @@ def check_jwt():
 
 
 @api.route("/check_mail", methods=['POST'])
+@api.limiter.limit("3 per hour")
 def check_mail():
     try:
         data = request.json

@@ -2,6 +2,11 @@
 This module takes care of starting the API Server, Loading the DB and Adding the endpoints
 """
 import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
 from flask import Flask, request, jsonify, url_for, send_from_directory
 from flask_migrate import Migrate
 from flask_swagger import swagger
@@ -64,11 +69,8 @@ app.register_blueprint(api, url_prefix='/api')
 # Make limiter available to the blueprint
 api.limiter = limiter
 
-# Apply specific rate limits to critical endpoints
-limiter.limit("5 per minute")(api.view_functions['register'])
-limiter.limit("5 per minute")(api.view_functions['login'])
-limiter.limit("3 per hour")(api.view_functions['check_mail'])
-limiter.limit("30 per minute")(api.view_functions['chat'])
+# Note: Rate limits are applied directly in routes.py using decorators
+# This is the recommended approach as it ensures functions are available
 
 # Handle/serialize errors like a JSON object
 

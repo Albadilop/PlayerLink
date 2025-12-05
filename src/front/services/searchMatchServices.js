@@ -1,10 +1,12 @@
+import { normalizeUrl } from '../utils/urlHelper';
+
 const url = import.meta.env.VITE_BACKEND_URL;
 const searchMatchServices = {};
 
 // Trae la información del usuario logeado (creo no hace falta)
 searchMatchServices.getUserInfo = async () => {
   try {
-    const resp = await fetch(url + "/api/private", {
+    const resp = await fetch(normalizeUrl(url, "/api/private"), {
       headers: {
         "Content-Type": "application/json",
         Authorization: "Bearer " + localStorage.getItem("token"),
@@ -25,7 +27,7 @@ searchMatchServices.getUserInfo = async () => {
 searchMatchServices.getAllProfiles = async () => {
   try {
     // console.log("Fetching from URL:", url + "/api/profiles");//para ver si funciona
-    const resp = await fetch(url + "/api/profiles");
+    const resp = await fetch(normalizeUrl(url, "/api/profiles"));
     if (!resp.ok) throw Error("Failed to get all profiles");
     const data = await resp.json();
     return data;
@@ -38,7 +40,7 @@ searchMatchServices.getAllProfiles = async () => {
 //Trae la información de un solo perfil
 searchMatchServices.getOneProfile = async (user_id) => {
   try {
-    const resp = await fetch(url + `/api/profiles/${user_id}`);
+    const resp = await fetch(normalizeUrl(url, `/api/profiles/${user_id}`));
     if (!resp.ok) throw Error(`Failed to get profile from ${user_id}`);
     const data = await resp.json();
     return data;
@@ -51,7 +53,7 @@ searchMatchServices.getOneProfile = async (user_id) => {
 //Traer los matches del user
 searchMatchServices.getUserMatchesInfo = async (user_id) => {
   try {
-    const resp = await fetch(url + `/api/matches/user/${user_id}`, {
+    const resp = await fetch(normalizeUrl(url, `/api/matches/user/${user_id}`), {
       headers: {
         "Content-Type": "application/json",
         Authorization: "Bearer " + localStorage.getItem("token"),
@@ -69,7 +71,7 @@ searchMatchServices.getUserMatchesInfo = async (user_id) => {
 // Trae las estrellas de las reviews de un user
 searchMatchServices.getStarsByUser = async (userId) => {
   try {
-    const resp = await fetch(url + `/api/reviews_received/${userId}`);
+    const resp = await fetch(normalizeUrl(url, `/api/reviews_received/${userId}`));
     if (!resp.ok) throw new Error(`Failed to get stars from user ${userId}`);
     const data = await resp.json();
     const reviews = data.reviews_received;
@@ -92,7 +94,7 @@ searchMatchServices.getStarsByUser = async (userId) => {
 // Manda los likes dados por el usuario
 searchMatchServices.addLikeSent = async (liker_id, liked_id) => {
   try {
-    const resp = await fetch(url + `/api/likes/${liker_id}/${liked_id}`, {
+    const resp = await fetch(normalizeUrl(url, `/api/likes/${liker_id}/${liked_id}`), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -112,7 +114,7 @@ searchMatchServices.addLikeSent = async (liker_id, liked_id) => {
 searchMatchServices.addDislikeSent = async (rejector_id, rejected_id) => {
   try {
     const resp = await fetch(
-      url + `/api/rejects/${rejector_id}/${rejected_id}`,
+      normalizeUrl(url, `/api/rejects/${rejector_id}/${rejected_id}`),
       {
         method: "POST",
         headers: {
@@ -133,7 +135,7 @@ searchMatchServices.addDislikeSent = async (rejector_id, rejected_id) => {
 // Trae los likes recibidos por el usuario logeado (creo que no hace falta)
 searchMatchServices.getLikesReceived = async (userId) => {
   try {
-    const resp = await fetch(url + `/api/likes_received/${userId}`, {
+    const resp = await fetch(normalizeUrl(url, `/api/likes_received/${userId}`), {
       headers: {
         Authorization: "Bearer " + localStorage.getItem("token"),
       },
@@ -150,7 +152,7 @@ searchMatchServices.getLikesReceived = async (userId) => {
 // Trae los dislikes recibidos por el usuario logeado (creo que no hace falta)
 searchMatchServices.getDislikesReceived = async (userId) => {
   try {
-    const resp = await fetch(url + `/api/rejects_received/${userId}`, {
+    const resp = await fetch(normalizeUrl(url, `/api/rejects_received/${userId}`), {
       headers: {
         Authorization: "Bearer " + localStorage.getItem("token"),
       },
@@ -167,7 +169,7 @@ searchMatchServices.getDislikesReceived = async (userId) => {
 // Trae perfiles filtrados (excluye a los que ya se dio like o dislike)
 searchMatchServices.getFilteredProfiles = async (userId) => {
   try {
-    const resp = await fetch(`${url}/api/profiles/profiles_to_explore/${userId}`, {
+    const resp = await fetch(normalizeUrl(url, `/api/profiles/profiles_to_explore/${userId}`), {
       headers: {
         Authorization: "Bearer " + localStorage.getItem("token"),
       },

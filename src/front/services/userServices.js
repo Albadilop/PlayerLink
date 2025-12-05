@@ -1,9 +1,11 @@
+import { normalizeUrl } from '../utils/urlHelper';
+
 const url = import.meta.env.VITE_BACKEND_URL;
 const userServices = {};
 
 userServices.register = async (formData) => {
   try {
-    const resp = await fetch(url + "/api/register", {
+    const resp = await fetch(normalizeUrl(url, "/api/register"), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -22,7 +24,7 @@ userServices.register = async (formData) => {
 
 userServices.login = async (formData) => {
   try {
-    const resp = await fetch(url + "/api/login", {
+    const resp = await fetch(normalizeUrl(url, "/api/login"), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -41,7 +43,7 @@ userServices.login = async (formData) => {
 
 userServices.getUserInfo = async () => {
   try {
-    const resp = await fetch(url + "/api/private", {
+    const resp = await fetch(normalizeUrl(url, "/api/private"), {
       headers: {
         "Content-Type": "application/json",
         Authorization: "Bearer " + localStorage.getItem("token"),
@@ -60,7 +62,7 @@ userServices.getUserInfo = async () => {
 
 userServices.getUserInfoById = async (user_id) => {
   try {
-    const resp = await fetch(url + `/api/users/${user_id}`);
+    const resp = await fetch(normalizeUrl(url, `/api/users/${user_id}`));
     if (!resp.ok) throw Error("Something went wrong");
     const data = await resp.json();
     console.log(data);
@@ -73,7 +75,7 @@ userServices.getUserInfoById = async (user_id) => {
 
 userServices.changeUserPhoto = async (user_id, photo) => {
   try {
-    const resp = await fetch(url + `/api/profiles/photo/${user_id}`, {
+    const resp = await fetch(normalizeUrl(url, `/api/profiles/photo/${user_id}`), {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -91,7 +93,7 @@ userServices.changeUserPhoto = async (user_id, photo) => {
 
 userServices.changeUserEmail = async (user_id, newEmail) => {
   try {
-    const resp = await fetch(url + `/api/users_email/${user_id}`, {
+    const resp = await fetch(normalizeUrl(url, `/api/users_email/${user_id}`), {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -118,7 +120,7 @@ userServices.changeUserEmail = async (user_id, newEmail) => {
 
 userServices.deleteAccount = async (userId) => {
   try {
-    const resp = await fetch(url + `/api/users/${userId}`, {
+    const resp = await fetch(normalizeUrl(url, `/api/users/${userId}`), {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
@@ -148,7 +150,7 @@ userServices.changeUserPassword = async (
   actualPassword
 ) => {
   try {
-    const resp = await fetch(url + `/api/users_password/${user_id}`, {
+    const resp = await fetch(normalizeUrl(url, `/api/users_password/${user_id}`), {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
