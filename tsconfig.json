@@ -1,0 +1,41 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+
+    /* Path aliases */
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/front/*"],
+      "@/components/*": ["src/front/components/*"],
+      "@/services/*": ["src/front/services/*"],
+      "@/pages/*": ["src/front/pages/*"],
+      "@/hooks/*": ["src/front/hooks/*"],
+      "@/utils/*": ["src/front/utils/*"],
+      "@/types/*": ["src/front/types/*"]
+    }
+  },
+  "include": ["src/front"],
+  "references": [{ "path": "./tsconfig.node.json" }]
+}
+

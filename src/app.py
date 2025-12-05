@@ -10,12 +10,14 @@ load_dotenv()
 from flask import Flask, request, jsonify, url_for, send_from_directory
 from flask_migrate import Migrate
 from flask_swagger import swagger
+from flask_cors import CORS
 from api.utils import APIException, generate_sitemap
 from api.models import db
 from api.routes import api
 from api.admin import setup_admin
 from api.commands import setup_commands
 from flask_jwt_extended import JWTManager
+from datetime import timedelta
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from api.mail.mail_config import mail
@@ -28,13 +30,36 @@ static_file_dir = os.path.join(os.path.dirname(
 app = Flask(__name__)
 app.url_map.strict_slashes = False
 
+# Configure CORS globally for all routes
+allowed_origins = os.getenv('CORS_ORIGINS', 'http://localhost:5173,http://localhost:3000').split(',')
+CORS(app, 
+     resources={r"/api/*": {
+         "origins": allowed_origins, 
+         "supports_credentials": True, 
+         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+         "allow_headers": ["Content-Type", "Authorization", "X-Requested-With"],
+         "expose_headers": ["Content-Type", "Authorization"],
+         "max_age": 3600
+     }},
+     allow_headers=["Content-Type", "Authorization", "X-Requested-With"],
+     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+     supports_credentials=True)
+
 
 # Setup the Flask-JWT-Extended extension
 jwt_secret_key = os.getenv('JWT_SECRET_KEY')
 if not jwt_secret_key:
     raise RuntimeError("JWT_SECRET_KEY environment variable is required and must be set. Please configure it in your .env file.")
 app.config['JWT_SECRET_KEY'] = jwt_secret_key
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=24)
 jwt = JWTManager(app)
+
+# Allow OPTIONS requests to pass through without JWT validation
+@app.before_request
+def handle_preflight():
+    if request.method == "OPTIONS":
+        # Let Flask-CORS handle the OPTIONS request
+        return None
 
 # Setup rate limiting
 limiter = Limiter(
@@ -63,13 +88,32 @@ setup_admin(app)
 # add the admin
 setup_commands(app)
 
-# Add all endpoints form the API with a "api" prefix
+# Import and register all blueprints
+from api.auth import auth_bp
+from api.users import users_bp
+from api.profiles import profiles_bp
+from api.games import games_bp
+from api.reviews import reviews_bp
+from api.matches import matches_bp
+from api.chat import chat_bp
+
+# Register main API blueprint
 app.register_blueprint(api, url_prefix='/api')
 
-# Make limiter available to the blueprint
-api.limiter = limiter
+# Register all sub-blueprints
+app.register_blueprint(auth_bp, url_prefix='/api')
+app.register_blueprint(users_bp, url_prefix='/api')
+app.register_blueprint(profiles_bp, url_prefix='/api')
+app.register_blueprint(games_bp, url_prefix='/api')
+app.register_blueprint(reviews_bp, url_prefix='/api')
+app.register_blueprint(matches_bp, url_prefix='/api')
+app.register_blueprint(chat_bp, url_prefix='/api')
 
-# Note: Rate limits are applied directly in routes.py using decorators
+# Make limiter available to rate_limiter module
+from api.rate_limiter import set_limiter
+set_limiter(limiter)
+
+# Note: Rate limits are applied directly in route modules using decorators
 # This is the recommended approach as it ensures functions are available
 
 # Handle/serialize errors like a JSON object

@@ -9,9 +9,17 @@
 	"scripts": {
 		"dev": "vite",
 		"start": "vite",
-		"build": "vite build",
-		"lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
-		"preview": "vite preview"
+		"build": "tsc && vite build",
+		"lint": "eslint . --ext js,jsx,ts,tsx --report-unused-disable-directives --max-warnings 0",
+		"lint:fix": "eslint . --ext js,jsx,ts,tsx --fix",
+		"format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,scss,md}\"",
+		"format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,css,scss,md}\"",
+		"preview": "vite preview",
+		"type-check": "tsc --noEmit",
+		"test": "jest",
+		"test:watch": "jest --watch",
+		"test:coverage": "jest --coverage",
+		"prepare": "husky"
 	},
 	"author": {
 		"name": "Alejandro Sanchez",
@@ -29,13 +37,32 @@
 	],
 	"license": "ISC",
 	"devDependencies": {
+		"@jest/globals": "^30.2.0",
+		"@testing-library/jest-dom": "^6.9.1",
+		"@testing-library/react": "^16.3.0",
+		"@testing-library/user-event": "^14.6.1",
+		"@types/jest": "^30.0.0",
+		"@types/node": "^24.10.1",
 		"@types/react": "^18.2.18",
 		"@types/react-dom": "^18.2.7",
+		"@types/react-router-dom": "^5.3.3",
+		"@types/react-select": "^5.0.0",
+		"@typescript-eslint/eslint-plugin": "^8.48.1",
+		"@typescript-eslint/parser": "^8.48.1",
 		"@vitejs/plugin-react": "^4.0.4",
 		"eslint": "^8.46.0",
+		"eslint-config-prettier": "^9.1.2",
 		"eslint-plugin-react": "^7.33.1",
 		"eslint-plugin-react-hooks": "^4.6.0",
 		"eslint-plugin-react-refresh": "^0.4.3",
+		"husky": "^9.1.7",
+		"identity-obj-proxy": "^3.0.0",
+		"jest": "^30.2.0",
+		"jest-environment-jsdom": "^30.2.0",
+		"lint-staged": "^15.5.2",
+		"prettier": "^3.7.4",
+		"ts-jest": "^29.4.6",
+		"typescript": "^5.9.3",
 		"vite": "^4.4.8"
 	},
 	"babel": {
@@ -60,5 +87,18 @@
 		"react-dom": "^18.2.0",
 		"react-router-dom": "^6.30.1",
 		"react-select": "^5.10.1"
+	},
+	"lint-staged": {
+		"*.{ts,tsx}": [
+			"eslint --fix --max-warnings 0",
+			"prettier --write"
+		],
+		"*.{js,jsx}": [
+			"eslint --fix --max-warnings 0",
+			"prettier --write"
+		],
+		"*.{json,css,scss,md}": [
+			"prettier --write"
+		]
 	}
 }

@@ -9,6 +9,10 @@ verify_ssl = true
 name = ""
 
 [dev-packages]
+pytest = "*"
+pytest-flask = "*"
+pytest-cov = "*"
+faker = "*"
 
 [packages]
 flask-sqlalchemy = "*"
@@ -43,3 +47,5 @@ downgrade="flask db downgrade"
 insert-test-data="flask insert-test-data"
 reset_db="bash ./docs/assets/reset_migrations.bash"
 deploy="echo 'Please follow this 3 steps to deploy: https://github.com/4GeeksAcademy/flask-rest-hello/blob/master/README.md#deploy-your-website-to-heroku' "
+test="pytest"
+test:cov="pytest --cov=src --cov-report=html"

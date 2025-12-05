@@ -1,26 +1,28 @@
-from flask import jsonify, url_for
+from flask import jsonify, url_for, Flask
+from typing import Optional, Dict, Any
+from werkzeug.routing import Rule
 
 class APIException(Exception):
-    status_code = 400
+    status_code: int = 400
 
-    def __init__(self, message, status_code=None, payload=None):
+    def __init__(self, message: str, status_code: Optional[int] = None, payload: Optional[Dict[str, Any]] = None) -> None:
         Exception.__init__(self)
-        self.message = message
+        self.message: str = message
         if status_code is not None:
             self.status_code = status_code
-        self.payload = payload
+        self.payload: Optional[Dict[str, Any]] = payload
 
-    def to_dict(self):
-        rv = dict(self.payload or ())
+    def to_dict(self) -> Dict[str, Any]:
+        rv: Dict[str, Any] = dict(self.payload or ())
         rv['message'] = self.message
         return rv
 
-def has_no_empty_params(rule):
+def has_no_empty_params(rule: Rule) -> bool:
     defaults = rule.defaults if rule.defaults is not None else ()
     arguments = rule.arguments if rule.arguments is not None else ()
     return len(defaults) >= len(arguments)
 
-def generate_sitemap(app):
+def generate_sitemap(app: Flask) -> str:
     links = ['/admin/']
     for rule in app.url_map.iter_rules():
         # Filter out rules we can't navigate to in a browser
