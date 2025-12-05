@@ -70,6 +70,43 @@ Every Github codespace environment will have **its own database**, so if you're 
 1. Install the packages: `$ npm install`
 2. Start coding! start the webpack dev server `$ npm run start`
 
+## Seguridad
+
+Esta aplicación incluye mejoras de seguridad implementadas para proteger contra vulnerabilidades comunes. Para más detalles, consulta:
+
+- **[Mejoras de Seguridad Implementadas](docs/SECURITY_IMPROVEMENTS.md)** - Documentación completa de todas las mejoras
+- **[Changelog de Seguridad](CHANGELOG_SECURITY.md)** - Resumen de cambios de seguridad
+
+### Configuración de Seguridad Requerida
+
+Asegúrate de configurar las siguientes variables de entorno en tu archivo `.env`:
+
+```env
+# OBLIGATORIO - Clave secreta para JWT (debe ser una cadena larga y aleatoria)
+JWT_SECRET_KEY=tu_clave_secreta_muy_larga_y_aleatoria_aqui
+
+# OBLIGATORIO - URL de conexión a la base de datos
+DATABASE_URL=postgresql://usuario:password@host:puerto/database
+
+# OPCIONAL - Orígenes permitidos para CORS (separados por comas)
+# En producción, configura con tus dominios reales
+CORS_ORIGINS=https://tudominio.com,https://www.tudominio.com
+
+# OPCIONAL - Activar debug mode (solo en desarrollo, NUNCA en producción)
+FLASK_DEBUG=1
+```
+
+### Características de Seguridad Implementadas
+
+- ✅ Almacenamiento seguro de contraseñas (hashing)
+- ✅ Autenticación JWT con expiración
+- ✅ Prevención de IDOR (Insecure Direct Object Reference)
+- ✅ Rate limiting para prevenir ataques de fuerza bruta
+- ✅ Validación robusta de entrada
+- ✅ CORS configurado con orígenes específicos
+- ✅ Manejo seguro de errores
+- ✅ Prevención de email enumeration
+
 ## Publish your website!
 
 This boilerplate it's 100% read to deploy with Render.com and Heroku in a matter of minutes. Please read the [official documentation about it](https://4geeks.com/docs/start/deploy-to-render-com).

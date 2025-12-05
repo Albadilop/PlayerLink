@@ -10,13 +10,59 @@ from api.utils import generate_sitemap, APIException
 from flask_cors import CORS
 from sqlalchemy import select, or_
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
+from datetime import timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
 from flask_mail import Message
 from api.mail.mailer import send_email
+from functools import wraps
+import re
 
 # Carga variables de entorno desde .env
 load_dotenv()
+
+# Limiter will be set by app.py after blueprint registration
+limiter = None
+
+# Validation functions
+def validate_email(email):
+    """Validate email format"""
+    if not email or not isinstance(email, str):
+        return False
+    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    return bool(re.match(pattern, email))
+
+def validate_password_strength(password):
+    """Validate password strength"""
+    if not password or not isinstance(password, str):
+        return False, "Password is required"
+    if len(password) < 8:
+        return False, "Password must be at least 8 characters long"
+    if not re.search(r'[A-Z]', password):
+        return False, "Password must contain at least one uppercase letter"
+    if not re.search(r'[0-9]', password):
+        return False, "Password must contain at least one number"
+    if not re.search(r'[@$!%*?&.]', password):
+        return False, "Password must contain at least one special character (@$!%*?&.)"
+    return True, None
+
+# Helper function to verify user owns the resource
+def verify_ownership(user_id_from_token, resource_user_id):
+    """Verify that the authenticated user owns the resource"""
+    return str(user_id_from_token) == str(resource_user_id)
+
+def require_ownership(f):
+    """Decorator to verify user owns the resource they're trying to modify"""
+    @wraps(f)
+    @jwt_required()
+    def decorated_function(*args, **kwargs):
+        current_user_id = get_jwt_identity()
+        # Extract user_id from kwargs or args
+        user_id = kwargs.get('user_id') or (args[0] if args else None)
+        if user_id and not verify_ownership(current_user_id, user_id):
+            return jsonify({'error': 'Unauthorized: You can only modify your own data'}), 403
+        return f(*args, **kwargs)
+    return decorated_function
 
 # Obtén la clave de OpenAI
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
@@ -27,11 +73,14 @@ openai.api_key = OPENAI_API_KEY
 
 api = Blueprint('api', __name__)
 
-# Allow CORS requests to this API
-CORS(api)
+# Allow CORS requests to this API with specific origins
+# Get allowed origins from environment variable or use defaults for development
+allowed_origins = os.getenv('CORS_ORIGINS', 'http://localhost:5173,http://localhost:3000').split(',')
+CORS(api, resources={r"/api/*": {"origins": allowed_origins, "supports_credentials": True}})
 
 
 @api.route("/chat", methods=["POST"])
+@jwt_required()
 def chat():
     """
     Recibe JSON:
@@ -84,7 +133,9 @@ def chat():
         return jsonify({"reply": reply_text})
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        # Log the error but don't expose internal details to client
+        print(f"Error in chat endpoint: {type(e).__name__}")
+        return jsonify({"error": "An error occurred processing your request"}), 500
 
 
 @api.route('/register', methods=['POST'])
@@ -96,6 +147,15 @@ def register():
 
         if not email or not password:
             return jsonify({'error': 'Missing email or password'}), 400
+
+        # Validate email format
+        if not validate_email(email):
+            return jsonify({'error': 'Invalid email format'}), 400
+
+        # Validate password strength
+        is_valid, error_msg = validate_password_strength(password)
+        if not is_valid:
+            return jsonify({'error': error_msg}), 400
 
         if db.session.execute(select(User).where(User.email == email)).scalar_one_or_none():
             return jsonify({'error': 'Email already in use'}), 409
@@ -121,11 +181,17 @@ def register():
         db.session.add(new_user)
         db.session.commit()
 
-        token = create_access_token(identity=str(new_user.id))
+        # Token expires in 24 hours
+        token = create_access_token(
+            identity=str(new_user.id),
+            expires_delta=timedelta(hours=24)
+        )
         return jsonify({'success': True, 'token': token}), 200
 
     except Exception as e:
-        print("Registration error:", e)
+        # Log error details server-side only
+        print(f"Registration error: {type(e).__name__}")
+        db.session.rollback()
         return jsonify({'error': 'Internal error during registration'}), 500
 
 
@@ -139,17 +205,21 @@ def login():
         stmt = select(User).where(User.email == data['email'])
         user = db.session.execute(stmt).scalar_one_or_none()
 
-        if not user:
-            return jsonify({'error': 'el email no esta registrado, registrate'}), 418
+        # Use generic error message to prevent email enumeration
+        # Always check password hash even if user doesn't exist to prevent timing attacks
+        if not user or not check_password_hash(user.password, data['password']):
+            return jsonify({'error': 'Email o contraseña incorrectos'}), 401
 
-        if not check_password_hash(user.password, data['password']):
-            return jsonify({'error': 'email/contraseña no válido'}), 418
-
-        token = create_access_token(identity=str(user.id))
+        # Token expires in 24 hours
+        token = create_access_token(
+            identity=str(user.id),
+            expires_delta=timedelta(hours=24)
+        )
         return jsonify({'success': 'true', 'token': token}), 200
     except Exception as e:
-        print(e)
-        return jsonify({'Error': 'algo paso'}), 400
+        # Log error details server-side only
+        print(f"Login error: {type(e).__name__}")
+        return jsonify({'error': 'An error occurred during login'}), 400
 
 
 @api.route('/mailer/<address>', methods=['POST'])
@@ -175,11 +245,15 @@ def check_mail():
         data = request.json
         # buscamos el correo en la base de datos y almacenamos el resultado en la variable user
         user = User.query.filter_by(email=data['email']).first()
-        # si no se encuentra, se devuelve que el correo no se ha encontrado
+        # Use generic message to prevent email enumeration
         if not user:
-            return jsonify({'success': False, 'msg': 'email not found'}), 404
+            return jsonify({'success': False, 'msg': 'If this email exists, a password reset link has been sent'}), 200
         # creamos el token que se va a enviar y necesario para la recuperacion de la contraseña
-        token = create_access_token(identity=str(user.id))
+        # Token for password reset expires in 1 hour
+        token = create_access_token(
+            identity=str(user.id),
+            expires_delta=timedelta(hours=1)
+        )
         if not token:
             return jsonify({'success': False, 'msg': 'token not found'}), 404
 
@@ -187,8 +261,9 @@ def check_mail():
         print(result)
         return jsonify({'success': True, 'token': token, 'email': result}), 200
     except Exception as e:
-        print('error: ' + str(e))
-        return jsonify({'success': False, 'msg': 'something went wrong'})
+        # Log error details server-side only
+        print(f"Check mail error: {type(e).__name__}")
+        return jsonify({'success': False, 'msg': 'An error occurred processing your request'}), 500
 
 
 # ruta para actualizar el password. Se consume desde la vista para hacer el reset en el front
@@ -197,9 +272,14 @@ def check_mail():
 def password_update():
     try:
         data = request.get_json(force=True)
-        print('Datos recibidos: ', data)
         if not data or 'password' not in data or not data['password']:
             return jsonify({'success': False, 'msg': 'Falta el campo password'}), 422
+        
+        # Validate password strength
+        is_valid, error_msg = validate_password_strength(data['password'])
+        if not is_valid:
+            return jsonify({'success': False, 'msg': error_msg}), 400
+        
         # extraemos el id del token que creamos en la linea 133
         id = get_jwt_identity()
         if not id:
@@ -217,8 +297,9 @@ def password_update():
         return jsonify({'success': True, 'msg': 'Contraseña actualizada exitosamente, intente iniciar sesion'}), 200
     except Exception as e:
         db.session.rollback()
-        print(f"Error al enviar el correo: {str(e)}")
-        return jsonify({'success': False, 'msg': f"Error al enviar el correo: {str(e)}"})
+        # Log error details server-side only
+        print(f"Password update error: {type(e).__name__}")
+        return jsonify({'success': False, 'msg': 'An error occurred updating your password'}), 500
 
 
 # PRIVATE ENDPOINT
@@ -256,7 +337,11 @@ def get_single_user(user_id):
 
 
 @api.route('/users/<int:user_id>', methods=['DELETE'])
+@jwt_required()
 def delete_user(user_id):
+    current_user_id = get_jwt_identity()
+    if not verify_ownership(current_user_id, user_id):
+        return jsonify({'error': 'Unauthorized: You can only delete your own account'}), 403
     stmt = select(User).where(User.id == user_id)
     user = db.session.execute(stmt).scalar_one_or_none()
     if user is None:
@@ -269,13 +354,15 @@ def delete_user(user_id):
 
 
 @api.route('/users', methods=['POST'])
+@jwt_required()
 def post_user():
     data = request.get_json()
     if not data or 'email' not in data or 'password' not in data:
         return jsonify({'error': 'Missing data'}), 400
+    hashed_password = generate_password_hash(data['password'])
     new_user = User(
         email=data['email'],
-        password=data['password']
+        password=hashed_password
     )
     db.session.add(new_user)
     db.session.commit()
@@ -285,7 +372,11 @@ def post_user():
 
 
 @api.route('/users/<int:user_id>', methods=['PUT'])
+@jwt_required()
 def put_user(user_id):
+    current_user_id = get_jwt_identity()
+    if not verify_ownership(current_user_id, user_id):
+        return jsonify({'error': 'Unauthorized: You can only modify your own account'}), 403
     data = request.get_json()
     if not data or 'email' not in data or 'password' not in data:
         return jsonify({'error': 'Missing data'}), 400
@@ -294,16 +385,26 @@ def put_user(user_id):
     if user is None:
         return jsonify({'error': f'can not find user with id: {user_id}'})
     user.email = data.get('email', user.email)
-    user.password = data.get('password', user.password)
+    # Hash password before storing
+    if 'password' in data and data['password']:
+        user.password = generate_password_hash(data['password'])
     db.session.commit()
     return jsonify(user.serialize()), 200
 
 # PUT USER EMAIL
 @api.route('/users_email/<int:user_id>', methods=['PUT'])
+@jwt_required()
 def put_user_email(user_id):
+    current_user_id = get_jwt_identity()
+    if not verify_ownership(current_user_id, user_id):
+        return jsonify({'error': 'Unauthorized: You can only modify your own email'}), 403
     data = request.get_json()
     if not data or 'email' not in data:
         return jsonify({'error': 'Missing data'}), 400
+    
+    # Validate email format
+    if not validate_email(data['email']):
+        return jsonify({'error': 'Invalid email format'}), 400
     
     emailstmt = select(User).where(User.email == data['email'])
     existingEmail = db.session.execute(emailstmt).scalar_one_or_none()
@@ -322,7 +423,11 @@ def put_user_email(user_id):
 
 # PUT USER PASSWORD
 @api.route('/users_password/<int:user_id>', methods=['PUT'])
+@jwt_required()
 def users_password(user_id):
+    current_user_id = get_jwt_identity()
+    if not verify_ownership(current_user_id, user_id):
+        return jsonify({'error': 'Unauthorized: You can only change your own password'}), 403
     data = request.get_json()
     required_fields = ['password', 'actualPassword']
 
@@ -337,6 +442,11 @@ def users_password(user_id):
 
     if not check_password_hash(user.password, data['actualPassword']):
         return jsonify({'error': 'Contraseña actual incorrecta'}), 401
+
+    # Validate password strength
+    is_valid, error_msg = validate_password_strength(data['password'])
+    if not is_valid:
+        return jsonify({'error': error_msg}), 400
 
     user.password = generate_password_hash(data['password'])
     db.session.commit()
@@ -376,7 +486,11 @@ def get_single_profile(profile_id):
 
 
 @api.route('/profiles/user/<int:user_id>', methods=['DELETE'])
+@jwt_required()
 def delete_profile_by_user_id(user_id):
+    current_user_id = get_jwt_identity()
+    if not verify_ownership(current_user_id, user_id):
+        return jsonify({'error': 'Unauthorized: You can only delete your own profile'}), 403
     stmt = select(Profile).where(Profile.user_id == user_id)
     profile = db.session.execute(stmt).scalar_one_or_none()
     if profile is None:
@@ -389,6 +503,7 @@ def delete_profile_by_user_id(user_id):
 
 
 @api.route('/profiles/<int:profile_id>', methods=['DELETE'])
+@jwt_required()
 def delete_profile(profile_id):
     stmt = select(Profile).where(Profile.id == profile_id)
     profile = db.session.execute(stmt).scalar_one_or_none()
@@ -402,7 +517,11 @@ def delete_profile(profile_id):
 
 
 @api.route('/profiles/<int:user_id>', methods=['POST'])
+@jwt_required()
 def post_profile(user_id):
+    current_user_id = get_jwt_identity()
+    if not verify_ownership(current_user_id, user_id):
+        return jsonify({'error': 'Unauthorized: You can only create your own profile'}), 403
     data = request.get_json()
     if not data:
         return jsonify({'error': 'Missing data'}), 400
@@ -433,7 +552,11 @@ def post_profile(user_id):
 
 # PUT PROFILE
 @api.route('/profiles/<int:user_id>', methods=['PUT'])
+@jwt_required()
 def put_profile(user_id):
+    current_user_id = get_jwt_identity()
+    if not verify_ownership(current_user_id, user_id):
+        return jsonify({'error': 'Unauthorized: You can only modify your own profile'}), 403
     data = request.get_json()
     if not data:
         return jsonify({'error': 'Missing data'}), 400
@@ -498,7 +621,11 @@ def profiles_to_explore(user_id):
 
 
 @api.route('/profiles/photo/<int:user_id>', methods=['PUT'])
+@jwt_required()
 def put_profilephoto(user_id):
+    current_user_id = get_jwt_identity()
+    if not verify_ownership(current_user_id, user_id):
+        return jsonify({'error': 'Unauthorized: You can only modify your own profile photo'}), 403
     data = request.get_json()
     if not data or 'photo' not in data:
         return jsonify({'error': 'Missing data'}), 400
@@ -575,10 +702,15 @@ def get_user_reviews(user_id):
 
 # DELETE REVIEW
 @api.route('/reviews/<int:review_id>', methods=['DELETE'])
+@jwt_required()
 def delete_review(review_id):
+    current_user_id = get_jwt_identity()
     review = Review.query.get(review_id)
     if review is None:
         return jsonify({'error': 'that review does not exist'}), 400
+    # Only the author can delete their review
+    if not verify_ownership(current_user_id, review.author_id):
+        return jsonify({'error': 'Unauthorized: You can only delete your own reviews'}), 403
 
     db.session.delete(review)
     db.session.commit()
@@ -587,7 +719,12 @@ def delete_review(review_id):
 
 # POST REVIEW
 @api.route('/reviews/<int:author_id>/<int:receiver_id>', methods=['POST'])
+@jwt_required()
 def post_review(author_id, receiver_id):
+    current_user_id = get_jwt_identity()
+    # Verify that the authenticated user is the author
+    if not verify_ownership(current_user_id, author_id):
+        return jsonify({'error': 'Unauthorized: You can only create reviews as yourself'}), 403
     if author_id == receiver_id:
         return jsonify({'error': 'No puedes comentar sobre ti mismo'}), 400
 
@@ -624,10 +761,15 @@ def post_review(author_id, receiver_id):
 
 # PUT REVIEW
 @api.route('/reviews/<int:review_id>', methods=['PUT'])
+@jwt_required()
 def put_review(review_id):
+    current_user_id = get_jwt_identity()
     review = Review.query.get(review_id)
     if review is None:
         return jsonify({'error': 'that review does not exist'}), 400
+    # Only the author can update their review
+    if not verify_ownership(current_user_id, review.author_id):
+        return jsonify({'error': 'Unauthorized: You can only update your own reviews'}), 403
     data = request.get_json()
 
     if 'stars' not in data or 'comment' not in data:
@@ -710,7 +852,12 @@ def get_matches_for_user(user_id):
 
 # POST A MATCH
 @api.route('/matches/<int:user1_id>/<int:user2_id>', methods=['POST'])
+@jwt_required()
 def post_match(user1_id, user2_id):
+    current_user_id = get_jwt_identity()
+    # Verify that the authenticated user is one of the users in the match
+    if not verify_ownership(current_user_id, user1_id) and not verify_ownership(current_user_id, user2_id):
+        return jsonify({'error': 'Unauthorized: You can only create matches involving yourself'}), 403
     if user1_id == user2_id:
         return jsonify({'error': 'Cannot match yourself'}), 400
     user1 = User.query.get(user1_id)
@@ -731,11 +878,16 @@ def post_match(user1_id, user2_id):
 
 # DELETE A MATCH
 @api.route('/matches/<int:match_id>', methods=['DELETE'])
+@jwt_required()
 def delete_match(match_id):
+    current_user_id = get_jwt_identity()
     stmt = select(Match).where(Match.id == match_id)
     match = db.session.execute(stmt).scalar_one_or_none()
     if not match:
         return jsonify({'error': f'Match with id {match_id} not found'}), 404
+    # Only users in the match can delete it
+    if not verify_ownership(current_user_id, match.user1_id) and not verify_ownership(current_user_id, match.user2_id):
+        return jsonify({'error': 'Unauthorized: You can only delete matches you are part of'}), 403
     db.session.delete(match)
     db.session.commit()
     return jsonify({'message': f'Match {match_id} deleted'}), 200
@@ -799,6 +951,7 @@ def get_rejects_received(user_id):
 
 
 @api.route('/rejects/<reject_id>', methods=['DELETE'])
+@jwt_required()
 def delete_reject(reject_id):
     stmt = select(Reject).where(Reject.id == reject_id)
     reject = db.session.execute(stmt).scalar_one_or_none()
@@ -812,7 +965,12 @@ def delete_reject(reject_id):
 
 # POST REJECT
 @api.route('/rejects/<int:rejector_id>/<int:rejected_id>', methods=['POST'])
+@jwt_required()
 def post_reject(rejector_id, rejected_id):
+    current_user_id = get_jwt_identity()
+    # Verify that the authenticated user is the rejector
+    if not verify_ownership(current_user_id, rejector_id):
+        return jsonify({'error': 'Unauthorized: You can only reject as yourself'}), 403
     rejector = db.session.get(User, rejector_id)
     if rejector is None:
         return jsonify({'error': f'User (rejector) with id={rejector_id} not found'}), 404
@@ -876,7 +1034,9 @@ def get_games_by_profile_id(profile_id):
 
 
 @api.route('/games/hours/<int:game_id>', methods=['PUT'])
+@jwt_required()
 def put_game_hours(game_id):
+    current_user_id = get_jwt_identity()
     data = request.get_json()
 
     if not data:
@@ -888,6 +1048,11 @@ def put_game_hours(game_id):
 
     if game is None:
         return jsonify({'error': 'Este juego no existe'}), 404
+    
+    # Verify that the game belongs to the authenticated user's profile
+    profile = db.session.get(Profile, game.profile_id)
+    if not profile or not verify_ownership(current_user_id, profile.user_id):
+        return jsonify({'error': 'Unauthorized: You can only modify games in your own profile'}), 403
 
     # Actualizar los valores
     game.game_hoursPlayed = data.get("hours_played") or 'undefined'
@@ -900,7 +1065,13 @@ def put_game_hours(game_id):
 
 # POST GAMES
 @api.route('/games/<profile_id>', methods=['POST'])
+@jwt_required()
 def post_game(profile_id):
+    current_user_id = get_jwt_identity()
+    # Verify that the profile belongs to the authenticated user
+    profile = db.session.get(Profile, profile_id)
+    if not profile or not verify_ownership(current_user_id, profile.user_id):
+        return jsonify({'error': 'Unauthorized: You can only add games to your own profile'}), 403
     # 1) Asegurarnos de que el Content-Type sea application/json
     if not request.is_json:
         return jsonify({'error': 'Se requiere Content-Type: application/json'}), 400
@@ -926,11 +1097,18 @@ def post_game(profile_id):
 
 # DELETE GAME
 @api.route('/games/<game_id>', methods=['DELETE'])
+@jwt_required()
 def delete_game(game_id):
+    current_user_id = get_jwt_identity()
     stmt = select(Game).where(Game.id == game_id)
     game = db.session.execute(stmt).scalar_one_or_none()
     if game is None:
         return jsonify({'error': f'game with id: {game_id} not found'}), 400
+    
+    # Verify that the game belongs to the authenticated user's profile
+    profile = db.session.get(Profile, game.profile_id)
+    if not profile or not verify_ownership(current_user_id, profile.user_id):
+        return jsonify({'error': 'Unauthorized: You can only delete games from your own profile'}), 403
 
     db.session.delete(game)
     db.session.commit()
@@ -958,7 +1136,12 @@ def get_single_like(like_id):
 
 
 @api.route('/likes/<int:liker_id>/<int:liked_id>', methods=['POST'])
+@jwt_required()
 def post_like(liker_id, liked_id):
+    current_user_id = get_jwt_identity()
+    # Verify that the authenticated user is the liker
+    if not verify_ownership(current_user_id, liker_id):
+        return jsonify({'error': 'Unauthorized: You can only like as yourself'}), 403
     # No se permite que un usuario se de like a sí mismo
     if liker_id == liked_id:
         return jsonify({'error': 'Cannot like yourself'}), 400
@@ -1005,11 +1188,16 @@ def post_like(liker_id, liked_id):
 
 # DELETE LIKE (ESTÁ LA LÓGICA PARA QUE SE BORRE EL MATCH SI ES NECESARIO)
 @api.route('/likes/<int:like_id>', methods=['DELETE'])
+@jwt_required()
 def delete_like(like_id):
+    current_user_id = get_jwt_identity()
     # Buscar el like
     like = db.session.query(Like).get(like_id)
     if not like:
         return jsonify({'error': f'Like with id {like_id} not found'}), 404
+    # Only the liker can delete their like
+    if not verify_ownership(current_user_id, like.liker_id):
+        return jsonify({'error': 'Unauthorized: You can only delete your own likes'}), 403
 
     # Comprobar si este like formó parte de un match
     match = (db.session.query(Match)

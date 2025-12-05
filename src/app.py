@@ -11,6 +11,8 @@ from api.routes import api
 from api.admin import setup_admin
 from api.commands import setup_commands
 from flask_jwt_extended import JWTManager
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from api.mail.mail_config import mail
 
 # from models import Person
@@ -23,8 +25,19 @@ app.url_map.strict_slashes = False
 
 
 # Setup the Flask-JWT-Extended extension
-app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
+jwt_secret_key = os.getenv('JWT_SECRET_KEY')
+if not jwt_secret_key:
+    raise RuntimeError("JWT_SECRET_KEY environment variable is required and must be set. Please configure it in your .env file.")
+app.config['JWT_SECRET_KEY'] = jwt_secret_key
 jwt = JWTManager(app)
+
+# Setup rate limiting
+limiter = Limiter(
+    app=app,
+    key_func=get_remote_address,
+    default_limits=["200 per day", "50 per hour"],
+    storage_uri="memory://"
+)
 
 
 # database condiguration
@@ -47,6 +60,15 @@ setup_commands(app)
 
 # Add all endpoints form the API with a "api" prefix
 app.register_blueprint(api, url_prefix='/api')
+
+# Make limiter available to the blueprint
+api.limiter = limiter
+
+# Apply specific rate limits to critical endpoints
+limiter.limit("5 per minute")(api.view_functions['register'])
+limiter.limit("5 per minute")(api.view_functions['login'])
+limiter.limit("3 per hour")(api.view_functions['check_mail'])
+limiter.limit("30 per minute")(api.view_functions['chat'])
 
 # Handle/serialize errors like a JSON object
 
@@ -91,4 +113,6 @@ def serve_any_other_file(path):
 # this only runs if `$ python src/main.py` is executed
 if __name__ == '__main__':
     PORT = int(os.environ.get('PORT', 3001))
-    app.run(host='0.0.0.0', port=PORT, debug=True)
+    # Only enable debug mode if explicitly set in environment
+    debug_mode = os.getenv('FLASK_DEBUG') == '1'
+    app.run(host='0.0.0.0', port=PORT, debug=debug_mode)
