@@ -67,7 +67,8 @@ def get_matches_for_user(user_id: int, _user: User) -> Tuple[Response, int]:
                 "games":     [g.serialize() for g in u.profile.games] if u.profile.games else [],
                 "gender":    u.profile.gender if u.profile.gender else "undefined",
                 "age": u.profile.age if u.profile.age else "undefined",
-                "location": u.profile.location if u.profile.location else "undefined"
+                "location": u.profile.location if u.profile.location else "undefined",
+                "photo": u.profile.photo if u.profile.photo else None
             })
         else:
             other_users.append(f" user with id {u.id} has no data")

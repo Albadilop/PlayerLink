@@ -1,10 +1,10 @@
-// MatchMiniCard.tsx
 import React, { useEffect } from "react";
 import "./matchMiniCard.css";
 import goldMedal from "../assets/img/medals/gold-medal.png";
 import silverMedal from "../assets/img/medals/silver-medal.png";
 import bronzeMedal from "../assets/img/medals/bronze-medal.png";
 import { useNavigate } from "react-router-dom";
+import { getPhotoAsset, defaultPhoto } from "../constants/photoAssets";
 import type { Game } from "../types";
 
 interface MatchMiniCardProps {
@@ -12,8 +12,10 @@ interface MatchMiniCardProps {
   nickname: string;
   gender: string;
   games: Game[];
-  age: number;
+  age: number | string;
   location: string;
+  photo?: string;
+  index?: number;
 }
 
 declare global {
@@ -29,95 +31,100 @@ export const MatchMiniCard: React.FC<MatchMiniCardProps> = ({
   games,
   age,
   location,
+  photo,
+  index = 0,
 }) => {
+  const navigate = useNavigate();
+
   useEffect(() => {
-    // Selecciona todas las imágenes con data-bs-toggle="popover" y crea un Popover de Bootstrap para cada una
     document.querySelectorAll('[data-bs-toggle="popover"]').forEach((el) => {
       if (window.bootstrap?.Popover) {
         new window.bootstrap.Popover(el);
       }
     });
-  }, []); // Se ejecuta solo al montar
+  }, []);
 
-  const navigate = useNavigate();
-
-  // Dentro del componente (antes del return), calcula los 3 juegos con más horas:
   const topThreeGames = games
     ? [...games].sort((a, b) => (b.gameHoursPlayed || 0) - (a.gameHoursPlayed || 0)).slice(0, 3)
     : [];
 
   const selectMedal = (gamehours: number | string): string => {
     const hours = typeof gamehours === "string" ? parseInt(gamehours, 10) : gamehours;
-    if (isNaN(hours)) {
-      return bronzeMedal;
-    }
-    if (hours >= 2500) {
-      return goldMedal;
-    } else if (hours >= 500) {
-      return silverMedal;
-    } else {
-      return bronzeMedal;
-    }
+    if (isNaN(hours)) return bronzeMedal;
+    if (hours >= 2500) return goldMedal;
+    if (hours >= 500) return silverMedal;
+    return bronzeMedal;
   };
 
+  const avatarSrc = photo ? getPhotoAsset(photo) : defaultPhoto;
+
   return (
-    <div className="card h-100 w-100 matchCardd" onClick={() => navigate(`matchDetails/${id}`)}>
-      <div className="card-body d-flex flex-column p-3">
-        {/* Nickname */}
-        <div className="mb-2">
-          <h5 className="match-card-nickname text-truncate mb-0">{nickname}</h5>
+    <div
+      className="match-mini-card"
+      onClick={() => navigate(`matchDetails/${id}`)}
+      style={{ animationDelay: `${index * 0.1}s` }}
+    >
+      {/* Efecto de brillo */}
+      <div className="match-mini-glow" />
+
+      <div className="match-mini-content">
+        {/* Header con avatar y nombre */}
+        <div className="match-mini-header">
+          <div className="match-mini-avatar-wrapper">
+            <div className="match-mini-avatar-ring" />
+            <img src={avatarSrc} alt={`${nickname}'s avatar`} className="match-mini-avatar" />
+          </div>
+
+          <div className="match-mini-info">
+            <h3 className="match-mini-nickname">{nickname || "Unknown"}</h3>
+            <div className="match-mini-details">
+              <span className="match-mini-badge">
+                <i className="fa-solid fa-user" />
+                {gender} • {age}
+              </span>
+            </div>
+          </div>
         </div>
 
-        {/* Info del usuario */}
-        <div className="row match-card-info mb-3">
-          <div className="col-12 col-lg-6 d-flex align-items-center mb-1">
-            <span className="fa-solid fa-location-dot me-2 match-card-location"></span>
-            <span className="text-truncate">{location}</span>
-          </div>
-          <div className="col-12 col-lg-6 d-flex align-items-center mb-1">
-            <span className="fa-solid fa-user me-2"></span>
-            <span>
-              {gender} • {age}
-            </span>
-          </div>
+        {/* Location */}
+        <div className="match-mini-location">
+          <i className="fa-solid fa-location-dot" />
+          <span>{location || "Unknown location"}</span>
         </div>
 
-        {/* Games y Medallas */}
-        <div className="flex-grow-1 medalsBox rounded">
-          {topThreeGames && topThreeGames.length > 0 ? (
-            <div className="d-flex flex-row flex-nowrap justify-content-around align-items-center">
-              {topThreeGames.map((el, index) => (
-                <div
-                  key={el.id || index}
-                  className="d-flex flex-column justify-content-center align-items-center mx-1"
-                >
+        {/* Games Section */}
+        <div className="match-mini-games">
+          {topThreeGames.length > 0 ? (
+            <div className="match-mini-games-grid">
+              {topThreeGames.map((game, idx) => (
+                <div key={game.id || idx} className="match-mini-game-item">
+                  <img src={game.gameImage} alt={game.gameTitle} className="match-mini-game-img" />
                   <img
-                    src={el.gameImage}
-                    className="img-fluid imagenminicard mb-1"
-                    style={{ width: "80px", height: "45px", objectFit: "cover" }}
-                    alt={el.gameTitle}
-                  />
-                  <img
-                    src={selectMedal(el.gameHoursPlayed)}
-                    className="img-fluid medal-img"
-                    style={{ width: "2.5rem", height: "auto" }}
+                    src={selectMedal(game.gameHoursPlayed)}
                     alt="Medal"
+                    className="match-mini-medal"
                     role="button"
                     data-bs-toggle="popover"
                     data-bs-trigger="hover focus"
                     data-bs-container="body"
                     data-bs-placement="bottom"
-                    data-bs-content={`${el.gameTitle} — ${el.gameHoursPlayed} hours`}
+                    data-bs-content={`${game.gameTitle} — ${game.gameHoursPlayed}h`}
                   />
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-center no-games-text mb-0">
-              <i className="fa-solid fa-gamepad me-2"></i>
-              No games yet
-            </p>
+            <div className="match-mini-no-games">
+              <i className="fa-solid fa-gamepad" />
+              <span>No games yet</span>
+            </div>
           )}
+        </div>
+
+        {/* View Profile hint */}
+        <div className="match-mini-cta">
+          <span>View Profile</span>
+          <i className="fa-solid fa-arrow-right" />
         </div>
       </div>
     </div>

@@ -84,6 +84,7 @@ export interface UserMatchInfo {
   location: string;
   match_id?: number;
   id?: number;
+  photo?: string;
 }
 
 export interface ReviewsReceived {
