@@ -722,25 +722,12 @@ const Profile: React.FC = () => {
           photo={profile.photo}
           nickName={profile.nick_name}
           location={profile.location}
+          bio={profile.bio}
           topThreeGames={topThreeGames}
           onPhotoEdit={() => setShowModal(true)}
         />
 
         <div className="right-panel">
-          <div className="bio-box">
-            <h3>Bio</h3>
-            {isEditing ? (
-              <textarea
-                className="form-control textareastyle"
-                rows={3}
-                value={profile.bio}
-                onChange={(e) => handleInputChange("bio", e.target.value)}
-              />
-            ) : (
-              <p>{profile.bio}</p>
-            )}
-          </div>
-
           <ProfileTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
           {activeTab === "info" && (

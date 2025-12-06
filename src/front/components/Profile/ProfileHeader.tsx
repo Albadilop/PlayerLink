@@ -7,6 +7,7 @@ export interface ProfileHeaderProps {
   photo: string;
   nickName: string;
   location: string;
+  bio: string;
   topThreeGames: Game[];
   onPhotoEdit: () => void;
 }
@@ -15,6 +16,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   photo,
   nickName,
   location,
+  bio,
   topThreeGames,
   onPhotoEdit,
 }) => {
@@ -37,6 +39,13 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
         <i className="fa-solid fa-location-dot" />
         {location || "Unknown location"}
       </p>
+
+      {/* Bio */}
+      {bio && (
+        <div className="profile-bio">
+          <p>{bio}</p>
+        </div>
+      )}
 
       {/* Top Games */}
       {topThreeGames.length > 0 && (
