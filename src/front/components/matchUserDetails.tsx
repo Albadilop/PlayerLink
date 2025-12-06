@@ -43,6 +43,8 @@ export const MatchUserDetails: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>("info");
   const [newComment, setNewComment] = useState<CommentForm>({ stars: 0, comment: "" });
   const [hoverRating, setHoverRating] = useState<number>(0);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
   const allGames = (store.itsMatchInfo?.profile?.games ?? []) as Game[];
   const topThreeGames = allGames
     .slice() // 1. Copia el array para no mutar el original
@@ -52,15 +54,27 @@ export const MatchUserDetails: React.FC = () => {
   useEffect(() => {
     if (!store.user) {
       navigate("/");
-    } else if (id) {
+      return;
+    }
+
+    if (id) {
+      // Limpiar datos anteriores y mostrar loading
+      setIsLoading(true);
+      dispatch({ type: "getItsMatchInfo", payload: null });
+      dispatch({ type: "matchReviewsReceived", payload: null });
+
       const userId = parseInt(id, 10);
-      userServices
-        .getUserInfoById(userId)
-        .then((data) => dispatch({ type: "getItsMatchInfo", payload: data }))
-        .catch((err) => console.error("Failed to load user info:", err));
-      reviewServices
-        .getAllReviewsReceived(userId)
-        .then((data) => dispatch({ type: "matchReviewsReceived", payload: data }));
+
+      Promise.all([
+        userServices.getUserInfoById(userId),
+        reviewServices.getAllReviewsReceived(userId),
+      ])
+        .then(([userData, reviewsData]) => {
+          dispatch({ type: "getItsMatchInfo", payload: userData });
+          dispatch({ type: "matchReviewsReceived", payload: reviewsData });
+        })
+        .catch((err) => console.error("Failed to load user info:", err))
+        .finally(() => setIsLoading(false));
     }
   }, [navigate, store.user, id, dispatch]);
 
@@ -129,6 +143,19 @@ export const MatchUserDetails: React.FC = () => {
       // aquí podrías mostrar un alert o toast de error
     }
   };
+
+  if (isLoading || !store.itsMatchInfo) {
+    return (
+      <div className="profile-container d-flex justify-content-center align-items-center">
+        <div className="text-center">
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+          <p className="mt-3 text-light">Loading profile...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="profile-container">
