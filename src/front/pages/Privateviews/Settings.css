@@ -173,3 +173,136 @@
   font-size: 1.2rem;
   user-select: none;
 }
+
+.settings-category {
+  background: #111d;
+  border: 2px solid cyan;
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.settings-category h3 {
+  color: cyan;
+  margin-bottom: 15px;
+  font-size: 1.3rem;
+}
+
+.settings-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #333;
+}
+
+.settings-item:last-child {
+  border-bottom: none;
+}
+
+.settings-item label {
+  color: white;
+  flex: 1;
+}
+
+.settings-toggle {
+  position: relative;
+  width: 50px;
+  height: 26px;
+}
+
+.settings-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.settings-toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #333;
+  transition: 0.3s;
+  border-radius: 26px;
+}
+
+.settings-toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
+}
+
+.settings-toggle input:checked + .settings-toggle-slider {
+  background-color: cyan;
+}
+
+.settings-toggle input:checked + .settings-toggle-slider:before {
+  transform: translateX(24px);
+}
+
+.settings-input-group {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin: 10px 0;
+}
+
+.settings-input-group input,
+.settings-input-group select {
+  flex: 1;
+  padding: 8px;
+  background: #222;
+  border: 2px solid cyan;
+  border-radius: 8px;
+  color: white;
+}
+
+.settings-input-group label {
+  min-width: 120px;
+  color: white;
+}
+
+.blocked-user-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  background: #222;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.blocked-user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.blocked-user-info img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+.export-btn {
+  background: #0066cc;
+  border: none;
+  padding: 10px 20px;
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.export-btn:hover {
+  background: #0052a3;
+}
