@@ -157,7 +157,7 @@ def profiles_to_explore(user_id: int) -> Tuple[Response, int]:
     # Serializar perfiles
     result = [profile.serialize() for profile in profiles]
 
-    return jsonify(result), 200
+    return jsonify({"profiles": result}), 200
 
 
 @profiles_bp.route('/profiles/photo/<int:user_id>', methods=['PUT'])

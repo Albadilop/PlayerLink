@@ -33,12 +33,18 @@ const reviewServices: ReviewServices = {
     reviewData: CreateReviewRequest
   ): Promise<ReviewResponse> => {
     try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+
       const resp = await fetch(
         normalizeUrl(url, `/api/reviews/${userAuthoredId}/${userReviewedId}`),
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
           },
           body: JSON.stringify(reviewData),
         }

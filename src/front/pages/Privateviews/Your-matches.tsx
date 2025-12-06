@@ -34,9 +34,9 @@ export const YourMatches: React.FC = () => {
         ) : (
           <>
             {Array.isArray(store.userMatchesInfo) && store.userMatchesInfo.length > 0 ? (
-              store.userMatchesInfo.slice().reverse().map((el) => (
+              store.userMatchesInfo.slice().reverse().map((el, index) => (
                 <div
-                  key={el.id}
+                  key={el.user_id || el.match_id || `match-${index}`}
                   className="col-lg-4 col-md-6 col-sm-12"
                 >
                   <MatchMiniCard
