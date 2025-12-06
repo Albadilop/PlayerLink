@@ -1,0 +1,19 @@
+/* GameForm styles are inherited from Profile.css modal styles */
+.selectorJuegos {
+  color: #000;
+}
+
+.input-sci-fi {
+  width: 100%;
+  padding: 10px;
+  background: #1a1a2f;
+  border: 2px solid #7f00ff;
+  border-radius: 5px;
+  color: #fff;
+}
+
+.input-sci-fi:focus {
+  outline: none;
+  border-color: #00ffff;
+}
+

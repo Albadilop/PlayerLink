@@ -1,0 +1,92 @@
+/* ProfileGamesTab styles are inherited from Profile.css */
+.gamesbigbox {
+  margin-top: 20px;
+}
+
+.gamesbox {
+  background: linear-gradient(145deg, #0e0e1a, #1a1a2f);
+  border: 2px solid #7f00ff;
+  border-radius: 10px;
+  margin-bottom: 15px;
+  padding: 15px;
+}
+
+.botonLeaveComment {
+  background: linear-gradient(145deg, #7f00ff, #5a00b3);
+  border: 2px solid #00ffff;
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.botonLeaveComment:hover {
+  background: linear-gradient(145deg, #5a00b3, #7f00ff);
+  transform: scale(1.05);
+}
+
+.botonesAccionesJuegos {
+  cursor: pointer;
+  font-size: 18px;
+  transition: all 0.3s;
+}
+
+.botonesAccionesJuegos:hover {
+  transform: scale(1.2);
+}
+
+.input-hours {
+  padding: 5px 10px;
+  background: #1a1a2f;
+  border: 2px solid #7f00ff;
+  color: #fff;
+  width: 100px;
+}
+
+.input-hours:focus {
+  outline: none;
+  border-color: #00ffff;
+}
+
+.error-hours-font {
+  font-size: 12px;
+}
+
+.medals-info-icon {
+  color: #00ffff;
+  cursor: pointer;
+}
+
+.medal-info-tooltip-text {
+  visibility: hidden;
+  position: absolute;
+  background: #1a1a2f;
+  border: 2px solid #00ffff;
+  padding: 10px;
+  border-radius: 5px;
+  z-index: 1;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 200px;
+  color: #fff;
+  font-size: 12px;
+}
+
+.tooltip-wrapper:hover .medal-info-tooltip-text {
+  visibility: visible;
+}
+
+.medal-info-gold {
+  color: #ffd700;
+}
+
+.medal-info-silver {
+  color: #c0c0c0;
+}
+
+.medal-info-bronze {
+  color: #cd7f32;
+}
+

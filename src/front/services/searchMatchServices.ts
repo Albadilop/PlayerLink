@@ -1,4 +1,4 @@
-import { normalizeUrl } from '../utils/urlHelper';
+import apiClient from './apiClient';
 import type {
   UserInfoResponse,
   ProfilesResponse,
@@ -9,8 +9,6 @@ import type {
   RejectResponse,
   ProfilesToExploreResponse
 } from '../types/api';
-
-const url = import.meta.env.VITE_BACKEND_URL;
 
 interface SearchMatchServices {
   getUserInfo: () => Promise<UserInfoResponse | Error>;
@@ -27,168 +25,98 @@ interface SearchMatchServices {
 
 const searchMatchServices: SearchMatchServices = {
   getUserInfo: async (): Promise<UserInfoResponse | Error> => {
-    try {
-      const resp = await fetch(normalizeUrl(url, "/api/private"), {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer " + localStorage.getItem("token"),
-        },
-      });
-      if (!resp.ok) throw Error("Something went wrong getting user information");
-      const data = await resp.json() as UserInfoResponse;
-      console.log(data);
-      localStorage.setItem("user", JSON.stringify(data.user));
-      return data;
-    } catch (error) {
-      console.log(error);
-      return error as Error;
+    const response = await apiClient.get<UserInfoResponse>("/api/private", true);
+    if (response.ok && response.data) {
+      const data = response.data as any;
+      if (data.user) {
+        localStorage.setItem("user", JSON.stringify(data.user));
+        console.log(data);
+        return data;
+      }
     }
+    return new Error(response.error || "Something went wrong getting user information");
   },
 
   getAllProfiles: async (): Promise<ProfilesResponse | Error> => {
-    try {
-      const resp = await fetch(normalizeUrl(url, "/api/profiles"));
-      if (!resp.ok) throw Error("Failed to get all profiles");
-      const data = await resp.json() as ProfilesResponse;
-      return data;
-    } catch (error) {
-      console.log(error);
-      return error as Error;
+    const response = await apiClient.get<ProfilesResponse>("/api/profiles", false);
+    if (response.ok && response.data) {
+      return response.data;
     }
+    return new Error(response.error || "Failed to get all profiles");
   },
 
   getOneProfile: async (user_id: number): Promise<ProfileResponse | Error> => {
-    try {
-      const resp = await fetch(normalizeUrl(url, `/api/profiles/${user_id}`));
-      if (!resp.ok) throw Error(`Failed to get profile from ${user_id}`);
-      const data = await resp.json() as ProfileResponse;
-      return data;
-    } catch (error) {
-      console.log(error);
-      return error as Error;
+    const response = await apiClient.get<ProfileResponse>(`/api/profiles/${user_id}`, false);
+    if (response.ok && response.data) {
+      return response.data;
     }
+    return new Error(response.error || `Failed to get profile from ${user_id}`);
   },
 
   getUserMatchesInfo: async (user_id: number): Promise<MatchesResponse | Error> => {
-    try {
-      const resp = await fetch(normalizeUrl(url, `/api/matches/user/${user_id}`), {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer " + localStorage.getItem("token"),
-        },
-      });
-      if (!resp.ok) throw Error(`Failed to get matches from user ${user_id}`);
-      const data = await resp.json() as MatchesResponse;
-      return data;
-    } catch (error) {
-      console.log(error);
-      return error as Error;
+    const response = await apiClient.get<MatchesResponse>(`/api/matches/user/${user_id}`, true);
+    if (response.ok && response.data) {
+      return response.data;
     }
+    return new Error(response.error || `Failed to get matches from user ${user_id}`);
   },
 
   getStarsByUser: async (userId: number): Promise<number> => {
-    try {
-      const resp = await fetch(normalizeUrl(url, `/api/reviews_received/${userId}`));
-      if (!resp.ok) throw new Error(`Failed to get stars from user ${userId}`);
-      const data = await resp.json() as ReviewsResponse;
-      const reviews = data.reviews_received;
-
+    const response = await apiClient.get<ReviewsResponse>(`/api/reviews_received/${userId}`, false);
+    if (response.ok && response.data) {
+      const reviews = response.data.reviews_received;
       if (!Array.isArray(reviews) || reviews.length === 0) return 0;
-
       const totalStars = reviews.reduce((sum, r) => sum + (r.stars || 0), 0);
-      const average = totalStars / reviews.length;
-
-      return average;
-    } catch (error) {
-      console.log(error);
-      return 0;
+      return totalStars / reviews.length;
     }
+    return 0;
   },
 
   addLikeSent: async (liker_id: number, liked_id: number): Promise<LikeResponse | Error> => {
-    try {
-      const resp = await fetch(normalizeUrl(url, `/api/likes/${liker_id}/${liked_id}`), {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer " + localStorage.getItem("token"),
-        },
-      });
-      if (!resp.ok) throw new Error("Failed to send a like");
-      return await resp.json() as LikeResponse;
-    } catch (error) {
-      console.error(error);
-      return error as Error;
+    const response = await apiClient.post<LikeResponse>(`/api/likes/${liker_id}/${liked_id}`, {}, true);
+    if (response.ok && response.data) {
+      return response.data;
     }
+    return new Error(response.error || "Failed to send a like");
   },
 
   addDislikeSent: async (rejector_id: number, rejected_id: number): Promise<RejectResponse | Error> => {
-    try {
-      const resp = await fetch(
-        normalizeUrl(url, `/api/rejects/${rejector_id}/${rejected_id}`),
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: "Bearer " + localStorage.getItem("token"),
-          },
-          body: JSON.stringify({ rejector_id, rejected_id }),
-        }
-      );
-      if (!resp.ok) throw new Error("Failed to send a dislike");
-      return await resp.json() as RejectResponse;
-    } catch (error) {
-      console.error(error);
-      return error as Error;
+    const response = await apiClient.post<RejectResponse>(
+      `/api/rejects/${rejector_id}/${rejected_id}`,
+      { rejector_id, rejected_id },
+      true
+    );
+    if (response.ok && response.data) {
+      return response.data;
     }
+    return new Error(response.error || "Failed to send a dislike");
   },
 
   getLikesReceived: async (userId: number): Promise<unknown> => {
-    try {
-      const resp = await fetch(normalizeUrl(url, `/api/likes_received/${userId}`), {
-        headers: {
-          Authorization: "Bearer " + localStorage.getItem("token"),
-        },
-      });
-      if (!resp.ok) throw new Error("Failed to get likes received");
-      const data = await resp.json();
-      return data;
-    } catch (error) {
-      console.error(error);
-      return error;
+    const response = await apiClient.get(`/api/likes_received/${userId}`, true);
+    if (response.ok && response.data) {
+      return response.data;
     }
+    return new Error(response.error || "Failed to get likes received");
   },
 
   getDislikesReceived: async (userId: number): Promise<unknown> => {
-    try {
-      const resp = await fetch(normalizeUrl(url, `/api/rejects_received/${userId}`), {
-        headers: {
-          Authorization: "Bearer " + localStorage.getItem("token"),
-        },
-      });
-      if (!resp.ok) throw new Error("Failed to get dislikes received");
-      const data = await resp.json();
-      return data;
-    } catch (error) {
-      console.error(error);
-      return error;
+    const response = await apiClient.get(`/api/rejects_received/${userId}`, true);
+    if (response.ok && response.data) {
+      return response.data;
     }
+    return new Error(response.error || "Failed to get dislikes received");
   },
 
   getFilteredProfiles: async (userId: number): Promise<ProfilesToExploreResponse> => {
-    try {
-      const resp = await fetch(normalizeUrl(url, `/api/profiles/profiles_to_explore/${userId}`), {
-        headers: {
-          Authorization: "Bearer " + localStorage.getItem("token"),
-        },
-      });
-      if (!resp.ok) throw new Error(`Failed to get profiles to explore: ${resp.status}`);
-      const data = await resp.json() as ProfilesToExploreResponse;
-      return data;
-    } catch (error) {
-      console.error("Error in getFilteredProfiles:", error);
-      throw error;
+    const response = await apiClient.get<ProfilesToExploreResponse>(
+      `/api/profiles/profiles_to_explore/${userId}`,
+      true
+    );
+    if (response.ok && response.data) {
+      return response.data;
     }
+    throw new Error(response.error || `Failed to get profiles to explore: ${response.status}`);
   },
 };
 

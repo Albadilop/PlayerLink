@@ -1,4 +1,4 @@
-import { normalizeUrl } from '../utils/urlHelper';
+import apiClient from './apiClient';
 import type {
   RegisterRequest,
   RegisterResponse,
@@ -10,8 +10,6 @@ import type {
   ChangePasswordRequest,
   ApiResponse
 } from '../types/api';
-
-const url = import.meta.env.VITE_BACKEND_URL;
 
 interface UserServices {
   register: (formData: RegisterRequest) => Promise<RegisterResponse | Error>;
@@ -35,51 +33,25 @@ const CACHE_DURATION = 10000; // 10 segundos de caché
 
 const userServices: UserServices = {
   register: async (formData: RegisterRequest): Promise<RegisterResponse | Error> => {
-    try {
-      const resp = await fetch(normalizeUrl(url, "/api/register"), {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
-      if (!resp.ok) throw Error("Something went wrong");
-      const data = await resp.json() as RegisterResponse;
-      console.log(data);
-      return data;
-    } catch (error) {
-      console.log(error);
-      return error as Error;
+    const response = await apiClient.post<RegisterResponse>("/api/register", formData, false);
+    if (response.ok && response.data) {
+      console.log(response.data);
+      return response.data;
     }
+    return new Error(response.error || "Something went wrong");
   },
 
   login: async (formData: LoginRequest): Promise<LoginResponse | Error> => {
-    try {
-      const resp = await fetch(normalizeUrl(url, "/api/login"), {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
-      
-      if (!resp.ok) {
-        const errorData = await resp.json().catch(() => ({}));
-        const errorMessage = errorData?.msg || errorData?.message || "Something went wrong";
-        throw new Error(errorMessage);
-      }
-      
-      const data = await resp.json() as LoginResponse;
-      console.log(data);
-      return data;
-    } catch (error) {
-      console.error("Login error:", error);
-      // Si es un error de red, proporcionar un mensaje más útil
-      if (error instanceof TypeError && error.message === "Failed to fetch") {
-        return new Error("No se pudo conectar con el servidor. Verifica que el backend esté corriendo.");
-      }
-      return error as Error;
+    const response = await apiClient.post<LoginResponse>("/api/login", formData, false);
+    if (response.ok && response.data) {
+      console.log(response.data);
+      return response.data;
     }
+    // Si es un error de red, proporcionar un mensaje más útil
+    if (response.status === 0) {
+      return new Error("No se pudo conectar con el servidor. Verifica que el backend esté corriendo.");
+    }
+    return new Error(response.error || "Something went wrong");
   },
 
   getUserInfo: async (retryCount: number = 0, forceRefresh: boolean = false): Promise<UserInfoResponse | Error> => {
@@ -104,24 +76,14 @@ const userServices: UserServices = {
 
       // Crear la promesa de la llamada
       const fetchPromise = (async (): Promise<UserInfoResponse | Error> => {
-        const resp = await fetch(normalizeUrl(url, "/api/private"), {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: "Bearer " + token,
-          },
-        });
+        const response = await apiClient.get<UserInfoResponse>("/api/private", true);
 
-        if (!resp.ok) {
+        if (!response.ok) {
           // Manejo especial para error 429 (Too Many Requests)
-          if (resp.status === 429) {
-            const retryAfter = resp.headers.get("Retry-After");
-            // Esperar más tiempo: mínimo 5 segundos para dar tiempo al rate limiter
-            const waitTime = retryAfter ? parseInt(retryAfter) * 1000 : Math.min(5000 * (retryCount + 1), 30000);
-            
+          if (response.status === 429) {
             // Si es el primer intento y el error es 429, esperar y reintentar una vez
             if (retryCount === 0) {
-              console.warn(`Rate limit reached. Waiting ${waitTime}ms before retry...`);
-              await new Promise(resolve => setTimeout(resolve, waitTime));
+              console.warn("Rate limit reached. Retrying...");
               // Limpiar la promesa para permitir el retry
               getUserInfoPromise = null;
               // Llamar recursivamente a getUserInfo con retryCount = 1
@@ -132,29 +94,30 @@ const userServices: UserServices = {
           }
 
           // Manejo especial para error 401 (Unauthorized) - token inválido o expirado
-          if (resp.status === 401) {
+          if (response.status === 401) {
             localStorage.removeItem('token');
             return new Error("Tu sesión ha expirado. Por favor, inicia sesión de nuevo.");
           }
 
-          const errorData = await resp.json().catch(() => ({}));
-          const errorMessage = errorData?.error || errorData?.msg || errorData?.message || `HTTP ${resp.status}: ${resp.statusText}`;
-          console.error("getUserInfo error:", resp.status, errorMessage, errorData);
+          const errorMessage = response.error || `HTTP ${response.status}`;
+          console.error("getUserInfo error:", response.status, errorMessage);
           throw new Error(errorMessage);
         }
 
-        const data = await resp.json();
-        
-        // El backend devuelve {success: 'true', user: {...}}
-        // Asegurarse de que el formato sea correcto
-        if (data.user) {
-          localStorage.setItem("user", JSON.stringify(data.user));
-          const result = { user: data.user } as UserInfoResponse;
-          // Guardar en caché
-          getUserInfoCache = { data: result, timestamp: Date.now() };
-          return result;
+        if (response.data) {
+          // El backend devuelve {success: 'true', user: {...}}
+          const data = response.data as any;
+          if (data.user) {
+            localStorage.setItem("user", JSON.stringify(data.user));
+            const result = { user: data.user } as UserInfoResponse;
+            // Guardar en caché
+            getUserInfoCache = { data: result, timestamp: Date.now() };
+            return result;
+          } else {
+            throw new Error("Invalid response format: user not found");
+          }
         } else {
-          throw new Error("Invalid response format: user not found");
+          throw new Error("No data received");
         }
       })();
 
@@ -189,96 +152,38 @@ const userServices: UserServices = {
   },
 
   getUserInfoById: async (user_id: number): Promise<UserInfoResponse | Error> => {
-    try {
-      const resp = await fetch(normalizeUrl(url, `/api/users/${user_id}`));
-      if (!resp.ok) throw Error("Something went wrong");
-      const data = await resp.json() as UserInfoResponse;
-      console.log(data);
-      return data;
-    } catch (error) {
-      console.log(error);
-      return error as Error;
+    const response = await apiClient.get<UserInfoResponse>(`/api/users/${user_id}`, false);
+    if (response.ok && response.data) {
+      console.log(response.data);
+      return response.data;
     }
+    return new Error(response.error || "Something went wrong");
   },
 
   changeUserPhoto: async (user_id: number, photo: { photo: string }): Promise<unknown> => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        throw new Error("No authentication token found");
-      }
-
-      const resp = await fetch(normalizeUrl(url, `/api/profiles/photo/${user_id}`), {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-        body: JSON.stringify(photo),
-      });
-      if (!resp.ok) {
-        const errorData = await resp.json().catch(() => ({}));
-        throw new Error(errorData.error || `Something went wrong: ${resp.status} ${resp.statusText}`);
-      }
-      const data = await resp.json();
-      return data;
-    } catch (error) {
-      console.log(error);
-      throw error;
+    const response = await apiClient.put(`/api/profiles/photo/${user_id}`, photo, true);
+    if (response.ok && response.data) {
+      return response.data;
     }
+    throw new Error(response.error || "Something went wrong");
   },
 
   changeUserEmail: async (user_id: number, newEmail: string): Promise<ApiResponse<unknown>> => {
-    try {
-      const resp = await fetch(normalizeUrl(url, `/api/users_email/${user_id}`), {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email: newEmail }),
-      });
-
-      const data = await resp.json();
-
-      return {
-        ok: resp.ok,
-        data,
-        error: resp.ok ? null : (data?.error as string) || "Unknown error",
-      };
-    } catch (error) {
-      console.error("Error en changeUserEmail:", error);
-      return {
-        ok: false,
-        data: null,
-        error: (error as Error).message || "Network error",
-      };
-    }
+    const response = await apiClient.put(`/api/users_email/${user_id}`, { email: newEmail }, true);
+    return {
+      ok: response.ok,
+      data: response.data,
+      error: response.ok ? null : (response.error || "Unknown error"),
+    };
   },
 
   deleteAccount: async (userId: number): Promise<ApiResponse<unknown>> => {
-    try {
-      const resp = await fetch(normalizeUrl(url, `/api/users/${userId}`), {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      const data = await resp.json();
-
-      return {
-        ok: resp.ok,
-        data,
-        error: resp.ok ? null : (data?.error as string) || "Unknown error",
-      };
-    } catch (error) {
-      console.error("Error en deleteAccount:", error);
-      return {
-        ok: false,
-        data: null,
-        error: (error as Error).message || "Network error",
-      };
-    }
+    const response = await apiClient.delete(`/api/users/${userId}`, true);
+    return {
+      ok: response.ok,
+      data: response.data,
+      error: response.ok ? null : (response.error || "Unknown error"),
+    };
   },
 
   changeUserPassword: async (
@@ -286,30 +191,16 @@ const userServices: UserServices = {
     newPassword: string,
     actualPassword: string
   ): Promise<ApiResponse<unknown>> => {
-    try {
-      const resp = await fetch(normalizeUrl(url, `/api/users_password/${user_id}`), {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ password: newPassword, actualPassword }),
-      });
-
-      const data = await resp.json();
-
-      return {
-        ok: resp.ok,
-        data,
-        error: resp.ok ? null : (data?.error as string) || "Unknown error",
-      };
-    } catch (error) {
-      console.error("Error en changeUserPassword:", error);
-      return {
-        ok: false,
-        data: null,
-        error: (error as Error).message || "Error de red",
-      };
-    }
+    const response = await apiClient.put(
+      `/api/users_password/${user_id}`,
+      { password: newPassword, actualPassword },
+      true
+    );
+    return {
+      ok: response.ok,
+      data: response.data,
+      error: response.ok ? null : (response.error || "Unknown error"),
+    };
   },
 };
 
