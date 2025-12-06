@@ -124,9 +124,7 @@ export const ProfileGamesTab: React.FC<ProfileGamesTabProps> = ({
         />
       </div>
       <div className="row mt-5 gap-3 d-flez justify-content-center gamesbigbox p-2">
-        {loading ? (
-          <p>Loading games...</p>
-        ) : games.length > 0 ? (
+        {games.length > 0 ? (
           games.map((el, i) => (
             <div key={i} className="row gamesbox d-flex align-content-center py-3">
               <div className="d-flex justify-content-around col-lg-6 col-md-12 col-sm-12 align-items-center">
@@ -178,6 +176,9 @@ export const ProfileGamesTab: React.FC<ProfileGamesTabProps> = ({
           ))
         ) : (
           <p>No games yet</p>
+        )}
+        {loading && (
+          <p className="text-muted mt-3">Cargando lista de juegos disponibles...</p>
         )}
       </div>
     </div>

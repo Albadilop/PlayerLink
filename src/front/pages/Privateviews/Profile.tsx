@@ -1,7 +1,7 @@
 // Profile.tsx
 // Componente de perfil de usuario con edición, selección de avatar, medallas de juego y sección de comentarios
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useMemo } from "react";
 import "../../pages/Privateviews/Profile.css";
 
 // Hooks y servicios
@@ -63,7 +63,7 @@ const Profile: React.FC = () => {
   // Acceso al store global y dispatch para actualizar datos
   const navigate = useNavigate();
   const [availableGames, setAvailableGames] = useState<string[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loadingAvailableGames, setLoadingAvailableGames] = useState<boolean>(false);
   const { store, dispatch } = useGlobalReducer();
   const url = import.meta.env.VITE_BACKEND_URL;
   const rawgApi = import.meta.env.VITE_RAWG_KEY;
@@ -100,11 +100,17 @@ const Profile: React.FC = () => {
     parsePreferences(profile.languages)
   );
 
-  const allGames: Game[] = store.user?.profile?.games ? store.user.profile.games : [];
-  const topThreeGames = allGames
-    .slice()
-    .sort((a, b) => (b.gameHoursPlayed ?? 0) - (a.gameHoursPlayed ?? 0))
-    .slice(0, 3);
+  // Usar useMemo para asegurar que se recalcule cuando cambie el store
+  const allGames: Game[] = useMemo(() => {
+    return store.user?.profile?.games ? store.user.profile.games : [];
+  }, [store.user?.profile?.games]);
+  
+  const topThreeGames = useMemo(() => {
+    return allGames
+      .slice()
+      .sort((a, b) => (b.gameHoursPlayed ?? 0) - (a.gameHoursPlayed ?? 0))
+      .slice(0, 3);
+  }, [allGames]);
 
   // Mapeo avatars: filename -> clave interna
   const picMap: Record<string, string> = {
@@ -174,7 +180,7 @@ const Profile: React.FC = () => {
     if (activeTab === "comments") {
       getReviews();
     }
-  }, [activeTab]);
+  }, [activeTab, availableGames.length]);
 
   const getReviews = async () => {
     if (!store.user?.id) return;
@@ -187,24 +193,106 @@ const Profile: React.FC = () => {
   };
 
   const fetchGames = async () => {
+    setLoadingAvailableGames(true);
     try {
+      // Verificar que la API key esté disponible
+      if (!rawgApi) {
+        console.error('RAWG API key no está configurada');
+        setNotice(
+          <h4 className="text-center text-danger">
+            <i className="fa-solid fa-triangle-exclamation text-warning fa-xl"></i> 
+            Error: API key de RAWG no configurada. Por favor, contacta al administrador.
+          </h4>
+        );
+        setLoadingAvailableGames(false);
+        return;
+      }
+
       const pageSize = 40;
       const pages = 25;
       let allGames: string[] = [];
 
+      // Agregar delay entre peticiones para evitar rate limiting
+      const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
       for (let page = 1; page <= pages; page++) {
-        const resp = await fetch(
-          `https://api.rawg.io/api/games?key=${rawgApi}&page_size=${pageSize}&page=${page}`
-        );
-        if (!resp.ok) throw new Error('Error cargando juegos');
-        const data = await resp.json();
-        allGames = allGames.concat(data.results.map((g: { name: string }) => g.name));
+        try {
+          const resp = await fetch(
+            `https://api.rawg.io/api/games?key=${rawgApi}&page_size=${pageSize}&page=${page}`,
+            {
+              method: 'GET',
+              headers: {
+                'Accept': 'application/json',
+              },
+            }
+          );
+
+          if (!resp.ok) {
+            // Si es un error 429 (rate limit), esperar más tiempo
+            if (resp.status === 429) {
+              const retryAfter = resp.headers.get('Retry-After');
+              const waitTime = retryAfter ? parseInt(retryAfter) * 1000 : 5000;
+              console.warn(`Rate limit alcanzado. Esperando ${waitTime}ms...`);
+              await delay(waitTime);
+              page--; // Reintentar la misma página
+              continue;
+            }
+            
+            // Si es un error 401/403, la API key es inválida
+            if (resp.status === 401 || resp.status === 403) {
+              throw new Error('API key de RAWG inválida o expirada');
+            }
+            
+            throw new Error(`Error cargando juegos: ${resp.status} ${resp.statusText}`);
+          }
+
+          const data = await resp.json();
+          
+          if (!data.results || !Array.isArray(data.results)) {
+            console.warn(`Página ${page}: formato de respuesta inesperado`);
+            break;
+          }
+
+          allGames = allGames.concat(data.results.map((g: { name: string }) => g.name));
+          
+          // Si no hay más resultados, salir del loop
+          if (data.results.length === 0 || !data.next) {
+            break;
+          }
+
+          // Delay entre peticiones para evitar rate limiting (excepto en la última)
+          if (page < pages) {
+            await delay(200); // 200ms entre peticiones
+          }
+        } catch (pageError) {
+          console.error(`Error en página ${page}:`, pageError);
+          // Continuar con la siguiente página en lugar de fallar completamente
+          if (pageError instanceof Error && pageError.message.includes('API key')) {
+            throw pageError; // Re-lanzar errores de API key
+          }
+          // Para otros errores, continuar con las siguientes páginas
+          await delay(1000); // Esperar un poco más antes de continuar
+        }
       }
+
+      if (allGames.length === 0) {
+        throw new Error('No se pudieron cargar juegos desde RAWG');
+      }
+
       setAvailableGames(allGames);
     } catch (err) {
       console.error('RAWG fetch error:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Error desconocido al cargar juegos';
+      setNotice(
+        <h4 className="text-center text-danger">
+          <i className="fa-solid fa-triangle-exclamation text-warning fa-xl"></i> 
+          {errorMessage}
+        </h4>
+      );
+      // Limpiar el mensaje después de 10 segundos
+      setTimeout(() => setNotice(""), 10000);
     } finally {
-      setLoading(false);
+      setLoadingAvailableGames(false);
     }
   };
 
@@ -339,16 +427,42 @@ const Profile: React.FC = () => {
 
   const selectGameImage = async (gameTitle: string): Promise<string | null> => {
     try {
-      const response = await fetch(`https://api.rawg.io/api/games?key=${rawgApi}&search=${gameTitle}`);
+      if (!rawgApi) {
+        console.error('RAWG API key no está configurada');
+        return null;
+      }
+
+      const response = await fetch(
+        `https://api.rawg.io/api/games?key=${rawgApi}&search=${encodeURIComponent(gameTitle)}`,
+        {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        if (response.status === 429) {
+          console.warn("Rate limit alcanzado al buscar imagen del juego");
+          return null;
+        }
+        if (response.status === 401 || response.status === 403) {
+          console.error('API key de RAWG inválida o expirada');
+          return null;
+        }
+        throw new Error(`Error al buscar juego: ${response.status} ${response.statusText}`);
+      }
+
       const data = await response.json();
 
-      if (data.results.length === 0) {
+      if (!data.results || data.results.length === 0) {
         console.warn("No se encontraron resultados para:", gameTitle);
         return null;
       }
 
       const game = data.results[0];
-      return game.background_image;
+      return game.background_image || null;
     } catch (error) {
       console.error("Error al obtener la imagen del juego:", error);
       return null;
@@ -358,26 +472,194 @@ const Profile: React.FC = () => {
   const handleAddGame = async (gameData: GameFormData) => {
     if (!store.user?.profile?.id) {
       console.error('User profile not available');
+      setNotice(
+        <h4 className="text-center text-danger">
+          <i className="fa-solid fa-triangle-exclamation text-warning fa-xl"></i> 
+          Error: Perfil de usuario no disponible
+        </h4>
+      );
+      if (clearNoticeTimerRef.current) {
+        clearTimeout(clearNoticeTimerRef.current);
+      }
+      clearNoticeTimerRef.current = setTimeout(() => setNotice(""), 5000);
       return;
     }
 
-    const image = await selectGameImage(gameData.title);
-    const newGame = {
-      ...gameData,
-      image: image || ''
-    };
-    await gameServices.postNewGame(store.user.profile.id, newGame);
-    await loadProfile();
+    try {
+      const image = await selectGameImage(gameData.title);
+      const newGame = {
+        ...gameData,
+        image: image || ''
+      };
+      
+      // Añadir el juego al backend
+      const response = await gameServices.postNewGame(store.user.profile.id, newGame);
+      
+      // Actualizar optimistamente el store con el nuevo juego
+      if (store.user?.profile?.games && response?.game) {
+        const updatedGames = [...store.user.profile.games, response.game];
+        const updatedUser = {
+          ...store.user,
+          profile: {
+            ...store.user.profile,
+            games: updatedGames
+          }
+        };
+        dispatch({ type: 'getUserInfo', payload: updatedUser });
+      }
+      
+      // Sincronizar con el backend en segundo plano (sin bloquear la UI)
+      // Usamos un delay para que la actualización optimista se muestre primero
+      setTimeout(async () => {
+        try {
+          await loadProfile();
+        } catch (syncError) {
+          console.error('Error al sincronizar perfil:', syncError);
+        }
+      }, 1000);
+      
+      // Limpiar cualquier mensaje de error previo
+      if (clearNoticeTimerRef.current) {
+        clearTimeout(clearNoticeTimerRef.current);
+      }
+      setNotice('');
+    } catch (err) {
+      console.error('Error al agregar juego:', err);
+      
+      // Si hay error, revertir la actualización optimista recargando el perfil
+      await loadProfile();
+      
+      const errorMessage = err instanceof Error ? err.message : 'Error al agregar el juego';
+      
+      setNotice(
+        <h4 className="text-center text-danger">
+          <i className="fa-solid fa-triangle-exclamation text-warning fa-xl"></i> 
+          {errorMessage}
+        </h4>
+      );
+      if (clearNoticeTimerRef.current) {
+        clearTimeout(clearNoticeTimerRef.current);
+      }
+      clearNoticeTimerRef.current = setTimeout(() => setNotice(""), 5000);
+    }
   };
 
   const handleDeleteGame = async (game_id: number) => {
-    await gameServices.deleteGameById(game_id);
-    await loadProfile();
+    try {
+      // Actualizar optimistamente el store antes de la petición
+      if (store.user?.profile?.games) {
+        const updatedGames = store.user.profile.games.filter(game => game.id !== game_id);
+        const updatedUser = {
+          ...store.user,
+          profile: {
+            ...store.user.profile,
+            games: updatedGames
+          }
+        };
+        dispatch({ type: 'getUserInfo', payload: updatedUser });
+      }
+
+      // Eliminar en el backend
+      await gameServices.deleteGameById(game_id);
+      
+      // Sincronizar con el backend en segundo plano (sin bloquear la UI)
+      // Usamos un delay para que la actualización optimista se muestre primero
+      setTimeout(async () => {
+        try {
+          await loadProfile();
+        } catch (syncError) {
+          console.error('Error al sincronizar perfil:', syncError);
+        }
+      }, 1000);
+      
+      // Limpiar cualquier mensaje de error previo
+      if (clearNoticeTimerRef.current) {
+        clearTimeout(clearNoticeTimerRef.current);
+      }
+      setNotice('');
+    } catch (err) {
+      console.error('Error al eliminar juego:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Error al eliminar el juego';
+      
+      // Si el juego no existe, simplemente recargar el perfil para sincronizar
+      if (errorMessage.includes('not found')) {
+        await loadProfile();
+        return;
+      }
+      
+      // Si hay error, revertir la actualización optimista recargando el perfil
+      await loadProfile();
+      
+      // Para otros errores, mostrar un mensaje
+      setNotice(
+        <h4 className="text-center text-danger">
+          <i className="fa-solid fa-triangle-exclamation text-warning fa-xl"></i> 
+          {errorMessage}
+        </h4>
+      );
+      if (clearNoticeTimerRef.current) {
+        clearTimeout(clearNoticeTimerRef.current);
+      }
+      clearNoticeTimerRef.current = setTimeout(() => setNotice(""), 5000);
+    }
   };
 
   const handleUpdateGame = async (game_id: number, hours: number) => {
-    await gameServices.updateGameInfo(game_id, hours);
-    await loadProfile();
+    try {
+      // Actualizar optimistamente el store antes de la petición
+      if (store.user?.profile?.games) {
+        const updatedGames = store.user.profile.games.map(game => 
+          game.id === game_id 
+            ? { ...game, gameHoursPlayed: hours }
+            : game
+        );
+        const updatedUser = {
+          ...store.user,
+          profile: {
+            ...store.user.profile,
+            games: updatedGames
+          }
+        };
+        dispatch({ type: 'getUserInfo', payload: updatedUser });
+      }
+
+      // Actualizar en el backend
+      await gameServices.updateGameInfo(game_id, hours);
+      
+      // Sincronizar con el backend en segundo plano (sin bloquear la UI)
+      // Usamos un delay para que la actualización optimista se muestre primero
+      setTimeout(async () => {
+        try {
+          await loadProfile();
+        } catch (syncError) {
+          console.error('Error al sincronizar perfil:', syncError);
+        }
+      }, 1000);
+      
+      // Limpiar cualquier mensaje de error previo
+      if (clearNoticeTimerRef.current) {
+        clearTimeout(clearNoticeTimerRef.current);
+      }
+      setNotice('');
+    } catch (err) {
+      console.error('Error al actualizar juego:', err);
+      
+      // Si hay error, revertir la actualización optimista recargando el perfil
+      await loadProfile();
+      
+      const errorMessage = err instanceof Error ? err.message : 'Error al actualizar las horas del juego';
+      
+      setNotice(
+        <h4 className="text-center text-danger">
+          <i className="fa-solid fa-triangle-exclamation text-warning fa-xl"></i> 
+          {errorMessage}
+        </h4>
+      );
+      if (clearNoticeTimerRef.current) {
+        clearTimeout(clearNoticeTimerRef.current);
+      }
+      clearNoticeTimerRef.current = setTimeout(() => setNotice(""), 5000);
+    }
   };
 
   const reviews = store.matchReviewsReceived?.reviews_received || [];
@@ -433,7 +715,7 @@ const Profile: React.FC = () => {
               games={allGames}
               availableGames={availableGames}
               gameOptions={gameOptions}
-              loading={loading}
+              loading={loadingAvailableGames}
               onAddGame={handleAddGame}
               onDeleteGame={handleDeleteGame}
               onUpdateGame={handleUpdateGame}

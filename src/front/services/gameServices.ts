@@ -16,32 +16,56 @@ const gameServices: GameServices = {
         hours_played: form.hours_played,
         image: form.image,
       },
-      false
+      true  // Requiere autenticación - el endpoint tiene @jwt_required()
     );
     if (response.ok && response.data) {
       return response.data;
     }
-    throw new Error(response.error || "Something went wrong trying to post game info");
+    // Mejorar el mensaje de error según el código de estado
+    if (response.status === 404) {
+      throw new Error(`El perfil no existe`);
+    }
+    if (response.status === 401 || response.status === 403) {
+      throw new Error(`No tienes permiso para agregar juegos a este perfil`);
+    }
+    throw new Error(response.error || "Error al intentar agregar el juego");
   },
 
   deleteGameById: async (game_id: number): Promise<DeleteGameResponse> => {
-    const response = await apiClient.delete<DeleteGameResponse>(`/api/games/${game_id}`, false);
+    const response = await apiClient.delete<DeleteGameResponse>(
+      `/api/games/${game_id}`,
+      true  // Requiere autenticación - el endpoint tiene @jwt_required()
+    );
     if (response.ok && response.data) {
       return response.data;
     }
-    throw new Error(response.error || "Something went wrong trying to delete game");
+    // Mejorar el mensaje de error según el código de estado
+    if (response.status === 404) {
+      throw new Error(`El juego no existe o ya fue eliminado`);
+    }
+    if (response.status === 401 || response.status === 403) {
+      throw new Error(`No tienes permiso para eliminar este juego`);
+    }
+    throw new Error(response.error || "Error al intentar eliminar el juego");
   },
 
   updateGameInfo: async (game_id: number, hours: number): Promise<UpdateGameResponse> => {
     const response = await apiClient.put<UpdateGameResponse>(
       `/api/games/hours/${game_id}`,
       { hours_played: hours },
-      false
+      true  // Requiere autenticación - el endpoint tiene @jwt_required()
     );
     if (response.ok && response.data) {
       return response.data;
     }
-    throw new Error(response.error || "Something went wrong trying to update game");
+    // Mejorar el mensaje de error según el código de estado
+    if (response.status === 404) {
+      throw new Error(`El juego no existe o ya fue eliminado`);
+    }
+    if (response.status === 401 || response.status === 403) {
+      throw new Error(`No tienes permiso para actualizar este juego`);
+    }
+    throw new Error(response.error || "Error al intentar actualizar las horas del juego");
   },
 };
 
