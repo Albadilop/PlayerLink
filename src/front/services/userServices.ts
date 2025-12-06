@@ -1,15 +1,12 @@
-import apiClient from './apiClient';
+import apiClient from "./apiClient";
 import type {
   RegisterRequest,
   RegisterResponse,
   LoginRequest,
   LoginResponse,
   UserInfoResponse,
-  UpdateProfileRequest,
-  ChangeEmailRequest,
-  ChangePasswordRequest,
-  ApiResponse
-} from '../types/api';
+  ApiResponse,
+} from "../types/api";
 
 interface UserServices {
   register: (formData: RegisterRequest) => Promise<RegisterResponse | Error>;
@@ -49,12 +46,17 @@ const userServices: UserServices = {
     }
     // Si es un error de red, proporcionar un mensaje más útil
     if (response.status === 0) {
-      return new Error("No se pudo conectar con el servidor. Verifica que el backend esté corriendo.");
+      return new Error(
+        "No se pudo conectar con el servidor. Verifica que el backend esté corriendo."
+      );
     }
     return new Error(response.error || "Something went wrong");
   },
 
-  getUserInfo: async (retryCount: number = 0, forceRefresh: boolean = false): Promise<UserInfoResponse | Error> => {
+  getUserInfo: async (
+    retryCount: number = 0,
+    forceRefresh: boolean = false
+  ): Promise<UserInfoResponse | Error> => {
     try {
       const token = localStorage.getItem("token");
       if (!token) {
@@ -83,19 +85,31 @@ const userServices: UserServices = {
           if (response.status === 429) {
             // Si es el primer intento y el error es 429, esperar y reintentar una vez
             if (retryCount === 0) {
-              console.warn("Rate limit reached. Retrying...");
+              console.warn("Rate limit reached. Waiting 3 seconds before retry...");
               // Limpiar la promesa para permitir el retry
               getUserInfoPromise = null;
+
+              // Esperar antes de reintentar (3 segundos para dar tiempo al rate limiter)
+              await new Promise((resolve) => setTimeout(resolve, 3000));
+
               // Llamar recursivamente a getUserInfo con retryCount = 1
               return await userServices.getUserInfo(1, forceRefresh);
             }
-            
-            return new Error("Demasiadas solicitudes. Por favor, espera unos segundos e intenta de nuevo.");
+
+            // Si ya se reintentó y sigue fallando, usar el caché si está disponible
+            if (getUserInfoCache && getUserInfoCache.data) {
+              console.warn("Rate limit persistente. Usando datos en caché.");
+              return getUserInfoCache.data;
+            }
+
+            return new Error(
+              "Demasiadas solicitudes. Por favor, espera unos segundos e intenta de nuevo."
+            );
           }
 
           // Manejo especial para error 401 (Unauthorized) - token inválido o expirado
           if (response.status === 401) {
-            localStorage.removeItem('token');
+            localStorage.removeItem("token");
             return new Error("Tu sesión ha expirado. Por favor, inicia sesión de nuevo.");
           }
 
@@ -173,7 +187,7 @@ const userServices: UserServices = {
     return {
       ok: response.ok,
       data: response.data,
-      error: response.ok ? null : (response.error || "Unknown error"),
+      error: response.ok ? null : response.error || "Unknown error",
     };
   },
 
@@ -182,7 +196,7 @@ const userServices: UserServices = {
     return {
       ok: response.ok,
       data: response.data,
-      error: response.ok ? null : (response.error || "Unknown error"),
+      error: response.ok ? null : response.error || "Unknown error",
     };
   },
 
@@ -199,11 +213,9 @@ const userServices: UserServices = {
     return {
       ok: response.ok,
       data: response.data,
-      error: response.ok ? null : (response.error || "Unknown error"),
+      error: response.ok ? null : response.error || "Unknown error",
     };
   },
 };
 
 export default userServices;
-
-

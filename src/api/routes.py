@@ -2,7 +2,7 @@
 Main routes module - provides sitemap and error handling
 Note: Individual route blueprints are registered in app.py
 """
-from flask import Blueprint
+from flask import Blueprint, current_app
 from api.utils import generate_sitemap, APIException
 
 api = Blueprint('api', __name__)
@@ -12,7 +12,7 @@ api = Blueprint('api', __name__)
 
 @api.route('/', methods=['GET'])
 def sitemap():
-    return generate_sitemap(api)
+    return generate_sitemap(current_app)
 
 
 @api.errorhandler(APIException)

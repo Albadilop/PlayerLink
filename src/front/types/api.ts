@@ -1,6 +1,6 @@
 // API request and response types
 
-import { User, Profile, Game, Review, Match, Like, Reject } from './index';
+import { User, Profile, Game, Review, Match, Like, Reject } from "./index";
 
 // Request types
 export interface RegisterRequest {
@@ -70,7 +70,8 @@ export interface UpdatePasswordRequest {
 export interface RegisterResponse {
   success: boolean;
   token: string;
-  user: User;
+  // El backend no devuelve el usuario en el registro, solo el token
+  // El usuario se obtiene después llamando a getUserInfo()
 }
 
 export interface LoginResponse {
@@ -154,14 +155,6 @@ export interface ProfilesToExploreResponse {
   profiles: Profile[];
 }
 
-export interface LikeResponse {
-  like: Like;
-}
-
-export interface RejectResponse {
-  reject: Reject;
-}
-
 export interface ErrorResponse {
   error: string;
   message?: string;
@@ -173,4 +166,3 @@ export interface ApiResponse<T> {
   data: T | null;
   error: string | null;
 }
-
