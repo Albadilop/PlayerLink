@@ -46,7 +46,7 @@ with app.app_context():
     for i in range(start_idx, users_to_create + start_idx):
         email = user_emails[i]
         # Verificar si el usuario ya existe antes de crearlo
-        existing = db.session.execute(select(User).where(User.email == email)).scalar_one_or_none()
+        existing = db.session.execute(select(User).where(User.email == email)).scalars().first()
         if not existing:
             new_user = User(email=email, password=generate_password_hash("password123"))
             new_users.append(new_user)
@@ -107,7 +107,7 @@ with app.app_context():
     for i, user in enumerate(users):
         user_id = user.id
         # Verificar si el perfil ya existe
-        existing_profile = db.session.execute(select(Profile).where(Profile.user_id == user_id)).scalar_one_or_none()
+        existing_profile = db.session.execute(select(Profile).where(Profile.user_id == user_id)).scalars().first()
         if not existing_profile:
             profile_info = profile_data[i]
             profile = Profile(
@@ -181,7 +181,7 @@ with app.app_context():
             # Verificar si el juego ya existe
             existing_game = db.session.execute(
                 select(Game).where(Game.profile_id == profile_id, Game.game_title == game_title)
-            ).scalar_one_or_none()
+            ).scalars().first()
             if not existing_game:
                 games.append(Game(profile_id=profile_id, game_title=game_title, game_hoursPlayed=hours, game_image=image))
     
@@ -210,10 +210,10 @@ with app.app_context():
         user_id = user.id
         for author_idx, stars, comment in reviews_data[i]:
             author_id = users[author_idx].id
-            # Verificar si la review ya existe
+            # Verificar si la review ya existe (usar first() para manejar posibles duplicados)
             existing_review = db.session.execute(
                 select(Review).where(Review.user_id == user_id, Review.author_id == author_id)
-            ).scalar_one_or_none()
+            ).scalars().first()
             if not existing_review:
                 reviews.append(Review(user_id=user_id, author_id=author_id, stars=stars, comment=comment))
     
@@ -222,33 +222,29 @@ with app.app_context():
         db.session.commit()
         print(f"✅ Creadas {len(reviews)} reviews nuevas")
 
-    # Crear matches - Estrategia para que cada usuario tenga al menos 3 matches
-    # Usuario 0: matches con 1, 2, 3
-    # Usuario 1: matches con 0, 2, 4
-    # Usuario 2: matches con 0, 1, 5
-    # Usuario 3: matches con 0, 4, 6
-    # Usuario 4: matches con 1, 3, 7
-    # Usuario 5: matches con 2, 6, 8
-    # Usuario 6: matches con 3, 5, 9
-    # Usuario 7: matches con 4, 8, 9
-    # Usuario 8: matches con 5, 7, 9
-    # Usuario 9: matches con 6, 7, 8
+    # Crear matches - Estrategia para que cada usuario tenga exactamente 2 matches
+    # Usuario 0: matches con 1, 2
+    # Usuario 1: matches con 0, 3
+    # Usuario 2: matches con 0, 4
+    # Usuario 3: matches con 1, 5
+    # Usuario 4: matches con 2, 6
+    # Usuario 5: matches con 3, 7
+    # Usuario 6: matches con 4, 8
+    # Usuario 7: matches con 5, 9
+    # Usuario 8: matches con 6, 9
+    # Usuario 9: matches con 7, 8
     
     matches_data = [
         (0, 1, datetime(2024, 1, 15, 10, 0, 0, tzinfo=timezone.utc)),
         (0, 2, datetime(2024, 1, 16, 11, 30, 0, tzinfo=timezone.utc)),
-        (0, 3, datetime(2024, 1, 17, 9, 45, 0, tzinfo=timezone.utc)),
-        (1, 4, datetime(2024, 1, 18, 14, 0, 0, tzinfo=timezone.utc)),
-        (2, 5, datetime(2024, 1, 19, 13, 15, 0, tzinfo=timezone.utc)),
-        (3, 4, datetime(2024, 1, 20, 16, 45, 0, tzinfo=timezone.utc)),
-        (3, 6, datetime(2024, 1, 21, 8, 30, 0, tzinfo=timezone.utc)),
-        (4, 7, datetime(2024, 1, 22, 10, 15, 0, tzinfo=timezone.utc)),
-        (5, 6, datetime(2024, 1, 23, 12, 0, 0, tzinfo=timezone.utc)),
-        (5, 8, datetime(2024, 1, 24, 14, 30, 0, tzinfo=timezone.utc)),
-        (6, 9, datetime(2024, 1, 25, 15, 45, 0, tzinfo=timezone.utc)),
-        (7, 8, datetime(2024, 1, 26, 9, 0, 0, tzinfo=timezone.utc)),
-        (7, 9, datetime(2024, 1, 27, 11, 20, 0, tzinfo=timezone.utc)),
-        (8, 9, datetime(2024, 1, 28, 13, 10, 0, tzinfo=timezone.utc)),
+        (1, 3, datetime(2024, 1, 17, 9, 45, 0, tzinfo=timezone.utc)),
+        (2, 4, datetime(2024, 1, 18, 14, 0, 0, tzinfo=timezone.utc)),
+        (3, 5, datetime(2024, 1, 19, 13, 15, 0, tzinfo=timezone.utc)),
+        (4, 6, datetime(2024, 1, 20, 16, 45, 0, tzinfo=timezone.utc)),
+        (5, 7, datetime(2024, 1, 21, 8, 30, 0, tzinfo=timezone.utc)),
+        (6, 8, datetime(2024, 1, 22, 10, 15, 0, tzinfo=timezone.utc)),
+        (7, 9, datetime(2024, 1, 23, 12, 0, 0, tzinfo=timezone.utc)),
+        (8, 9, datetime(2024, 1, 24, 14, 30, 0, tzinfo=timezone.utc)),
     ]
     
     matches = []
@@ -261,7 +257,7 @@ with app.app_context():
                 ((Match.user1_id == user1_id) & (Match.user2_id == user2_id)) |
                 ((Match.user1_id == user2_id) & (Match.user2_id == user1_id))
             )
-        ).scalar_one_or_none()
+        ).scalars().first()
         if not existing_match:
             matches.append(Match(user1_id=user1_id, user2_id=user2_id, created_at=created_at))
 
@@ -270,29 +266,29 @@ with app.app_context():
         db.session.commit()
         print(f"✅ Creados {len(matches)} matches nuevos")
 
-    # Crear likes - Cada usuario debe tener al menos 4 likes dados
-    # Usuario 0: likes a 1, 2, 3, 4 (4 likes)
-    # Usuario 1: likes a 0, 2, 4, 5 (4 likes)
-    # Usuario 2: likes a 0, 1, 5, 6 (4 likes)
-    # Usuario 3: likes a 0, 4, 6, 7 (4 likes)
-    # Usuario 4: likes a 1, 3, 7, 8 (4 likes)
-    # Usuario 5: likes a 2, 6, 8, 9 (4 likes)
-    # Usuario 6: likes a 3, 5, 9, 0 (4 likes)
-    # Usuario 7: likes a 4, 8, 9, 1 (4 likes)
-    # Usuario 8: likes a 5, 7, 9, 2 (4 likes)
-    # Usuario 9: likes a 6, 7, 8, 3 (4 likes)
+    # Crear likes - Cada usuario debe tener exactamente 6 likes dados
+    # Usuario 0: likes a 1, 2, 3, 4, 5, 6 (6 likes)
+    # Usuario 1: likes a 0, 2, 3, 4, 5, 6 (6 likes)
+    # Usuario 2: likes a 0, 1, 3, 4, 5, 6 (6 likes)
+    # Usuario 3: likes a 0, 1, 2, 4, 5, 6 (6 likes)
+    # Usuario 4: likes a 0, 1, 2, 3, 7, 8 (6 likes)
+    # Usuario 5: likes a 0, 1, 2, 3, 7, 9 (6 likes)
+    # Usuario 6: likes a 0, 1, 2, 3, 8, 9 (6 likes)
+    # Usuario 7: likes a 4, 5, 6, 8, 9, 0 (6 likes)
+    # Usuario 8: likes a 4, 5, 6, 7, 9, 1 (6 likes)
+    # Usuario 9: likes a 4, 5, 6, 7, 8, 2 (6 likes)
     
     likes_data = [
-        [1, 2, 3, 4],  # Usuario 0
-        [0, 2, 4, 5],  # Usuario 1
-        [0, 1, 5, 6],  # Usuario 2
-        [0, 4, 6, 7],  # Usuario 3
-        [1, 3, 7, 8],  # Usuario 4
-        [2, 6, 8, 9],  # Usuario 5
-        [3, 5, 9, 0],  # Usuario 6
-        [4, 8, 9, 1],  # Usuario 7
-        [5, 7, 9, 2],  # Usuario 8
-        [6, 7, 8, 3],  # Usuario 9
+        [1, 2, 3, 4, 5, 6],  # Usuario 0
+        [0, 2, 3, 4, 5, 6],  # Usuario 1
+        [0, 1, 3, 4, 5, 6],  # Usuario 2
+        [0, 1, 2, 4, 5, 6],  # Usuario 3
+        [0, 1, 2, 3, 7, 8],  # Usuario 4
+        [0, 1, 2, 3, 7, 9],  # Usuario 5
+        [0, 1, 2, 3, 8, 9],  # Usuario 6
+        [4, 5, 6, 8, 9, 0],  # Usuario 7
+        [4, 5, 6, 7, 9, 1],  # Usuario 8
+        [4, 5, 6, 7, 8, 2],  # Usuario 9
     ]
     
     likes = []
@@ -303,7 +299,7 @@ with app.app_context():
             # Verificar si el like ya existe
             existing_like = db.session.execute(
                 select(Like).where(Like.liker_id == liker_id, Like.liked_id == liked_id)
-            ).scalar_one_or_none()
+            ).scalars().first()
             if not existing_like:
                 likes.append(Like(liker_id=liker_id, liked_id=liked_id))
 
@@ -333,7 +329,7 @@ with app.app_context():
         # Verificar si el reject ya existe
         existing_reject = db.session.execute(
             select(Reject).where(Reject.rejector_id == rejector_id, Reject.rejected_id == rejected_id)
-        ).scalar_one_or_none()
+        ).scalars().first()
         if not existing_reject:
             rejects.append(Reject(rejector_id=rejector_id, rejected_id=rejected_id, created_at=created_at))
 
@@ -346,6 +342,6 @@ with app.app_context():
     print(f"✅ Created 10 users with profiles")
     print(f"✅ Created {len(games)} games")
     print(f"✅ Created {len(reviews)} reviews")
-    print(f"✅ Created {len(matches)} matches (each user has at least 3 matches)")
-    print(f"✅ Created {len(likes)} likes (each user has at least 4 likes)")
+    print(f"✅ Created {len(matches)} matches (each user has exactly 2 matches)")
+    print(f"✅ Created {len(likes)} likes (each user has exactly 6 likes)")
     print(f"✅ Created {len(rejects)} rejects")
