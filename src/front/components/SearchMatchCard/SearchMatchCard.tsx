@@ -49,159 +49,131 @@ export const SearchMatchCard: React.FC<SearchMatchCardProps> = ({ profile, onLik
 
   const formattedPreferences = profile?.preferences
     ? profile.preferences
-        .replace(/\band\b/g, ",") // reemplaza "and" por coma
-        .replace(/\.+$/, "") // elimina punto final al final
-        .split(",") // separa en array por comas
-        .map((pref) => pref.trim()) // quita espacios
-        .filter(Boolean) // elimina vacíos
-        .join(", ") // une con comas sin coma final
-    : "-";
+        .replace(/\band\b/g, ",")
+        .replace(/\.+$/, "")
+        .split(",")
+        .map((pref) => pref.trim())
+        .filter(Boolean)
+        .join(", ")
+    : null;
 
   const formattedLanguages = profile?.language
     ? profile.language
-        .replace(/\band\b/g, ",") // reemplaza "and" por coma
-        .replace(/\.+$/, "") // elimina punto final al final
-        .split(",") // separa en array por comas
-        .map((pref) => pref.trim()) // quita espacios
-        .filter(Boolean) // elimina vacíos
-        .join(", ") // une con comas sin coma final
-    : "-";
+        .replace(/\band\b/g, ",")
+        .replace(/\.+$/, "")
+        .split(",")
+        .map((lang) => lang.trim())
+        .filter(Boolean)
+        .join(", ")
+    : null;
+
+  const topGames = profile?.games
+    ? [...profile.games]
+        .sort((a, b) => (b.gameHoursPlayed || 0) - (a.gameHoursPlayed || 0))
+        .slice(0, 3)
+    : [];
 
   return (
-    <>
-      <div className="d-flex justify-content-center">
-        <div className="col">
-          <div className={`card search-match-card ${animationClass}`}>
-            <div className="card-body">
-              <div className="d-flex justify-content-center">
-                <div className="d-flex justify-content-center rounded-circle">
-                  <img
-                    src={selectPhoto()}
-                    alt="App Logo"
-                    className="search-match-profile-pic border border-3"
-                  ></img>
-                </div>
-              </div>
+    <div className="d-flex justify-content-center">
+      <div className={`search-match-card ${animationClass}`}>
+        {/* Avatar con anillo */}
+        <div className="search-match-avatar-wrapper">
+          <div className="search-match-avatar-ring" />
+          <img
+            src={selectPhoto()}
+            alt={`${profile?.nick_name || "User"} avatar`}
+            className="search-match-profile-pic"
+          />
+        </div>
 
-              {/* Nombre de user = nickname */}
-              <h1 className="card-title d-flex justify-content-center mt-3 search-match-name">
-                {profile?.nick_name || "No nick_name"}
-              </h1>
+        {/* Nickname */}
+        <h1 className="text-center search-match-name">{profile?.nick_name || "Unknown Player"}</h1>
 
-              {/* stars-rating de los users */}
-              <div className="d-flex justify-content-center mt-4 mb-5">
-                {[...Array(5)].map((_, i) => (
-                  <i
-                    key={i}
-                    className={`fa-star fa-xl ms-1 search-match-stars ${
-                      i < Math.round(avgStars) ? "fa-solid" : "fa-regular"
-                    }`}
-                  ></i>
-                ))}
-              </div>
+        {/* Stars Rating */}
+        <div className="search-match-stars-container">
+          {[...Array(5)].map((_, i) => (
+            <i
+              key={i}
+              className={`fa-star search-match-stars ${
+                i < Math.round(avgStars) ? "fa-solid" : "fa-regular"
+              }`}
+            />
+          ))}
+        </div>
 
-              <hr className="search-match-line" />
+        {/* Quick Info Badges */}
+        <div className="search-match-quick-info">
+          {profile?.location && (
+            <span className="search-match-badge">
+              <i className="fa-solid fa-location-dot icon-location" />
+              {profile.location}
+            </span>
+          )}
+          {formattedLanguages && (
+            <span className="search-match-badge">
+              <i className="fa-solid fa-language icon-language" />
+              {formattedLanguages}
+            </span>
+          )}
+        </div>
 
-              {/* Games */}
-              {profile?.games && profile.games.length > 0 ? (
-                profile.games
-                  .sort((a, b) => (b.gameHoursPlayed || 0) - (a.gameHoursPlayed || 0))
-                  .slice(0, 3)
-                  .map((g, index) => (
-                    <div
-                      className="game-row d-flex justify-content-between align-items-center"
-                      key={index}
-                    >
-                      <span className="search-match-text-sm">{g.gameTitle}</span>
-                      <span className="search-match-text-sm" style={{ color: "#00f0ff" }}>
-                        {g.gameHoursPlayed} h
-                      </span>
-                    </div>
-                  ))
-              ) : (
-                <div className="text-center py-3">
-                  <i className="fa-solid fa-gamepad me-2" style={{ color: "#666" }}></i>
-                  <span
-                    className="search-match-text-sm"
-                    style={{ color: "#666", fontStyle: "italic" }}
-                  >
-                    No games yet
-                  </span>
-                </div>
-              )}
-              <hr className="search-match-line" />
+        <hr className="search-match-line" />
 
-              {/* Preferences */}
-              <div className="col">
-                {formattedPreferences && formattedPreferences !== "-" ? (
-                  <div className="d-flex ms-4 flex-wrap preferences-container-mobile align-items-center">
-                    <h5 className="search-match-text-sm me-2 preferences-full">Preferences:</h5>
-                    <i className="fa-solid fa-thumbs-up preferences-small mb-2"></i>
-                    <h5 className="search-match-text-sm me-2 text-end">{formattedPreferences}</h5>
-                  </div>
-                ) : (
-                  <div className="d-flex justify-content-center">
-                    <h5 className="search-match-text-sm">No preferences </h5>
-                  </div>
-                )}
-              </div>
-
-              <hr className="search-match-line" />
-
-              {/* Language */}
-              <div className="col">
-                <div className="d-flex justify-content-center">
-                  <div className="d-flex ms-4">
-                    <i className="fa-solid fa-language me-2 ms-4"></i>
-                    <h5 className="search-match-text-sm me-4">
-                      {formattedLanguages && formattedLanguages !== "-"
-                        ? formattedLanguages
-                        : "No languages"}
-                    </h5>
-                  </div>
-                </div>
-              </div>
-
-              <hr className="search-match-line" />
-
-              {/* Location */}
-              <div className="col">
-                <div className="d-flex justify-content-center ">
-                  <div className="d-flex ms-4">
-                    <i className="fa-solid fa-location-dot me-2"></i>
-                    <h5 className="search-match-text-sm">{profile?.location || "No location"}</h5>
-                  </div>
-                </div>
-              </div>
-
-              <hr className="search-match-last-line" />
-
-              {/* botones */}
-              <div className="row mt-3 d-flex justify-content-center">
-                <div className="col-6">
-                  {/* dislike button */}
-                  <button
-                    type="button"
-                    onClick={handleDislike}
-                    className="p-1 me-1 bg-transparent border border-3  search-match-button search-match-dislike-btn-border "
-                  >
-                    <i className="fa-solid fa-xmark fa-3x d-flex justify-content-center align-items-center search-match-dislike"></i>
-                  </button>
-                </div>
-
-                {/* like button */}
-                <button
-                  type="button"
-                  onClick={handleLike}
-                  className="p-1 me-1 bg-transparent border border-3 search-match-button search-match-like-btn-border"
-                >
-                  <i className="hover-button-pulsate-bck fa-solid fa-heart fa-2x d-flex justify-content-center align-items-center search-match-like "></i>
-                </button>
-              </div>
-            </div>
+        {/* Games Section */}
+        <div className="search-match-info-section">
+          <div className="search-match-section-header">
+            <i className="fa-solid fa-gamepad icon-games" />
+            Top Games
           </div>
+          {topGames.length > 0 ? (
+            topGames.map((game, index) => (
+              <div className="game-row" key={index}>
+                <span className="game-title">{game.gameTitle}</span>
+                <span className="game-hours">{game.gameHoursPlayed}h</span>
+              </div>
+            ))
+          ) : (
+            <p className="no-data-text">
+              <i className="fa-solid fa-ghost me-2" />
+              No games yet
+            </p>
+          )}
+        </div>
+
+        {/* Preferences Section */}
+        {formattedPreferences && (
+          <div className="search-match-info-section">
+            <div className="search-match-section-header">
+              <i className="fa-solid fa-heart icon-preferences" />
+              Preferences
+            </div>
+            <p className="preferences-text">{formattedPreferences}</p>
+          </div>
+        )}
+
+        <hr className="search-match-last-line" />
+
+        {/* Action Buttons */}
+        <div className="search-match-buttons">
+          <button
+            type="button"
+            onClick={handleDislike}
+            className="search-match-button search-match-dislike-btn-border"
+            aria-label="Dislike"
+          >
+            <i className="fa-solid fa-xmark search-match-dislike" />
+          </button>
+
+          <button
+            type="button"
+            onClick={handleLike}
+            className="search-match-button search-match-like-btn-border"
+            aria-label="Like"
+          >
+            <i className="fa-solid fa-heart search-match-like" />
+          </button>
         </div>
       </div>
-    </>
+    </div>
   );
 };
