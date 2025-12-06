@@ -203,14 +203,23 @@ const userServices: UserServices = {
 
   changeUserPhoto: async (user_id: number, photo: { photo: string }): Promise<unknown> => {
     try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+
       const resp = await fetch(normalizeUrl(url, `/api/profiles/photo/${user_id}`), {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
         },
         body: JSON.stringify(photo),
       });
-      if (!resp.ok) throw Error("Something went wrong");
+      if (!resp.ok) {
+        const errorData = await resp.json().catch(() => ({}));
+        throw new Error(errorData.error || `Something went wrong: ${resp.status} ${resp.statusText}`);
+      }
       const data = await resp.json();
       return data;
     } catch (error) {
