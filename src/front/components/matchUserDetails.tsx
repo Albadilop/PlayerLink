@@ -140,7 +140,7 @@ export const MatchUserDetails: React.FC = () => {
           .then((data) => dispatch({ type: "matchReviewsReceived", payload: data }));
       }
     } catch (error) {
-      console.error("Error al guardar el comentario:", error);
+      console.error("Error saving comment:", error);
     }
   };
 

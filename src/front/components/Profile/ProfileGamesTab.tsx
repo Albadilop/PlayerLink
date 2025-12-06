@@ -43,7 +43,7 @@ export const ProfileGamesTab: React.FC<ProfileGamesTabProps> = ({
       !game.hours_played ||
       Number(game.hours_played) <= 0
     ) {
-      setErrorHoursPlayed("Your must complete all the information");
+      setErrorHoursPlayed("You must complete all the information");
       return;
     }
 
@@ -64,7 +64,7 @@ export const ProfileGamesTab: React.FC<ProfileGamesTabProps> = ({
       setErrorRepeatedGame("");
       setErrorHoursPlayed("");
     } catch (err) {
-      console.error("Error añadiendo el juego:", err);
+      console.error("Error adding game:", err);
     }
   };
 

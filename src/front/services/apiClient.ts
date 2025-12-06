@@ -155,7 +155,7 @@ class ApiClient {
       if (error instanceof TypeError) {
         if (error.message.includes("Failed to fetch")) {
           errorMessage =
-            "No se pudo conectar con el servidor. Verifica que el backend esté corriendo y que CORS esté configurado correctamente.";
+            "Could not connect to the server. Please verify that the backend is running and that CORS is configured correctly.";
         } else {
           errorMessage = error.message;
         }

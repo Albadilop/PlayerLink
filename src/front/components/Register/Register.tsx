@@ -94,11 +94,9 @@ export const Register: React.FC<RegisterProps> = ({ onSwitch }) => {
           }
         } else {
           const errorMsg =
-            userInfo instanceof Error
-              ? userInfo.message
-              : "Error al obtener información del usuario";
+            userInfo instanceof Error ? userInfo.message : "Error getting user information";
           setErrorEmailRegistered(errorMsg);
-          console.error("Error obteniendo información del usuario:", userInfo);
+          console.error("Error getting user information:", userInfo);
         }
       } else {
         const errorMsg = data instanceof Error ? data.message : "Email already registered";

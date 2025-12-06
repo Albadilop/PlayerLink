@@ -218,11 +218,11 @@ const Profile: React.FC = () => {
     try {
       // Verificar que la API key esté disponible
       if (!rawgApi) {
-        console.error("RAWG API key no está configurada");
+        console.error("RAWG API key is not configured");
         setNotice(
           <h4 className="text-center text-danger">
             <i className="fa-solid fa-triangle-exclamation text-warning fa-xl"></i>
-            Error: API key de RAWG no configurada. Por favor, contacta al administrador.
+            Error: RAWG API key is not configured. Please contact the administrator.
           </h4>
         );
         setLoadingAvailableGames(false);
@@ -249,22 +249,22 @@ const Profile: React.FC = () => {
           );
 
           if (!resp.ok) {
-            // Si es un error 429 (rate limit), esperar más tiempo
+            // If it's a 429 error (rate limit), wait longer
             if (resp.status === 429) {
               const retryAfter = resp.headers.get("Retry-After");
               const waitTime = retryAfter ? parseInt(retryAfter) * 1000 : 5000;
-              console.warn(`Rate limit alcanzado. Esperando ${waitTime}ms...`);
+              console.warn(`Rate limit reached. Waiting ${waitTime}ms...`);
               await delay(waitTime);
-              page--; // Reintentar la misma página
+              page--; // Retry the same page
               continue;
             }
 
-            // Si es un error 401/403, la API key es inválida
+            // If it's a 401/403 error, the API key is invalid
             if (resp.status === 401 || resp.status === 403) {
-              throw new Error("API key de RAWG inválida o expirada");
+              throw new Error("RAWG API key is invalid or expired");
             }
 
-            throw new Error(`Error cargando juegos: ${resp.status} ${resp.statusText}`);
+            throw new Error(`Error loading games: ${resp.status} ${resp.statusText}`);
           }
 
           const data = await resp.json();
@@ -286,25 +286,24 @@ const Profile: React.FC = () => {
             await delay(200); // 200ms entre peticiones
           }
         } catch (pageError) {
-          console.error(`Error en página ${page}:`, pageError);
-          // Continuar con la siguiente página en lugar de fallar completamente
+          console.error(`Error on page ${page}:`, pageError);
+          // Continue with the next page instead of failing completely
           if (pageError instanceof Error && pageError.message.includes("API key")) {
-            throw pageError; // Re-lanzar errores de API key
+            throw pageError; // Re-throw API key errors
           }
-          // Para otros errores, continuar con las siguientes páginas
-          await delay(1000); // Esperar un poco más antes de continuar
+          // For other errors, continue with the next pages
+          await delay(1000); // Wait a bit longer before continuing
         }
       }
 
       if (allGames.length === 0) {
-        throw new Error("No se pudieron cargar juegos desde RAWG");
+        throw new Error("Could not load games from RAWG");
       }
 
       setAvailableGames(allGames);
     } catch (err) {
       console.error("RAWG fetch error:", err);
-      const errorMessage =
-        err instanceof Error ? err.message : "Error desconocido al cargar juegos";
+      const errorMessage = err instanceof Error ? err.message : "Unknown error loading games";
       setNotice(
         <h4 className="text-center text-danger">
           <i className="fa-solid fa-triangle-exclamation text-warning fa-xl"></i>
@@ -472,7 +471,7 @@ const Profile: React.FC = () => {
       if (store.user.profile) {
         try {
           const response = await apiClient.put(`/api/profiles/${store.user.id}`, profile, true);
-          if (!response.ok) throw new Error("Error al guardar perfil");
+          if (!response.ok) throw new Error("Error saving profile");
           await userServices.getUserInfo(0, true);
           await loadProfile();
         } catch (err) {
@@ -481,7 +480,7 @@ const Profile: React.FC = () => {
       } else {
         try {
           const response = await apiClient.post(`/api/profiles/${store.user.id}`, profile, true);
-          if (!response.ok) throw new Error("Error al guardar perfil");
+          if (!response.ok) throw new Error("Error saving profile");
           await userServices.getUserInfo(0, true);
           await loadProfile();
         } catch (err) {
@@ -500,7 +499,7 @@ const Profile: React.FC = () => {
   const selectGameImage = async (gameTitle: string): Promise<string | null> => {
     try {
       if (!rawgApi) {
-        console.error("RAWG API key no está configurada");
+        console.error("RAWG API key is not configured");
         return null;
       }
 
@@ -516,27 +515,27 @@ const Profile: React.FC = () => {
 
       if (!response.ok) {
         if (response.status === 429) {
-          console.warn("Rate limit alcanzado al buscar imagen del juego");
+          console.warn("Rate limit reached while searching for game image");
           return null;
         }
         if (response.status === 401 || response.status === 403) {
-          console.error("API key de RAWG inválida o expirada");
+          console.error("RAWG API key is invalid or expired");
           return null;
         }
-        throw new Error(`Error al buscar juego: ${response.status} ${response.statusText}`);
+        throw new Error(`Error searching for game: ${response.status} ${response.statusText}`);
       }
 
       const data = await response.json();
 
       if (!data.results || data.results.length === 0) {
-        console.warn("No se encontraron resultados para:", gameTitle);
+        console.warn("No results found for:", gameTitle);
         return null;
       }
 
       const game = data.results[0];
       return game.background_image || null;
     } catch (error) {
-      console.error("Error al obtener la imagen del juego:", error);
+      console.error("Error getting game image:", error);
       return null;
     }
   };
@@ -547,7 +546,7 @@ const Profile: React.FC = () => {
       setNotice(
         <h4 className="text-center text-danger">
           <i className="fa-solid fa-triangle-exclamation text-warning fa-xl"></i>
-          Error: Perfil de usuario no disponible
+          Error: User profile not available
         </h4>
       );
       if (clearNoticeTimerRef.current) {
@@ -594,7 +593,7 @@ const Profile: React.FC = () => {
       // Si hay error, revertir la actualización optimista recargando el perfil
       await loadProfile();
 
-      const errorMessage = err instanceof Error ? err.message : "Error al agregar el juego";
+      const errorMessage = err instanceof Error ? err.message : "Error adding game";
 
       setNotice(
         <h4 className="text-center text-danger">
@@ -637,7 +636,7 @@ const Profile: React.FC = () => {
       setNotice("");
     } catch (err) {
       console.error("Error al eliminar juego:", err);
-      const errorMessage = err instanceof Error ? err.message : "Error al eliminar el juego";
+      const errorMessage = err instanceof Error ? err.message : "Error deleting game";
 
       // Si el juego no existe, simplemente recargar el perfil para sincronizar
       if (errorMessage.includes("not found")) {
@@ -696,8 +695,7 @@ const Profile: React.FC = () => {
       // Si hay error, revertir la actualización optimista recargando el perfil
       await loadProfile();
 
-      const errorMessage =
-        err instanceof Error ? err.message : "Error al actualizar las horas del juego";
+      const errorMessage = err instanceof Error ? err.message : "Error updating game hours";
 
       setNotice(
         <h4 className="text-center text-danger">

@@ -80,10 +80,13 @@ export const SignIn: React.FC<SignInProps> = ({ onSwitch }) => {
             }
 
             console.error("❌ getUserInfo failed after all retries:", userInfo.message);
-            // Si el error es de rate limiting, mostrar mensaje más amigable
-            if (userInfo.message.includes("Demasiadas solicitudes")) {
+            // If the error is rate limiting, show a friendlier message
+            if (
+              userInfo.message.includes("Too many requests") ||
+              userInfo.message.includes("Demasiadas solicitudes")
+            ) {
               setErrorLogin(
-                "El servidor está ocupado. Por favor, espera unos segundos e intenta iniciar sesión de nuevo."
+                "The server is busy. Please wait a few seconds and try logging in again."
               );
             } else {
               setErrorLogin(userInfo.message);
@@ -92,7 +95,7 @@ export const SignIn: React.FC<SignInProps> = ({ onSwitch }) => {
           }
 
           if (userInfo && userInfo.user) {
-            // El user ya está guardado en localStorage por getUserInfo
+            // The user is already saved in localStorage by getUserInfo
             const userStr = localStorage.getItem("user");
             console.log("🟡 User from localStorage:", userStr);
 
@@ -104,19 +107,19 @@ export const SignIn: React.FC<SignInProps> = ({ onSwitch }) => {
                 navigate(ROUTES.PROFILE);
               } catch (parseError) {
                 console.error("❌ Error parsing user data:", parseError);
-                // Si falla el parse, usar directamente userInfo
+                // If parse fails, use userInfo directly
                 dispatch({ type: "getUserInfo", payload: userInfo.user });
                 navigate(ROUTES.PROFILE);
               }
             } else {
               console.warn("⚠️ No user in localStorage, using userInfo directly");
-              // Si no está en localStorage, usar directamente userInfo
+              // If not in localStorage, use userInfo directly
               dispatch({ type: "getUserInfo", payload: userInfo.user });
               navigate(ROUTES.PROFILE);
             }
           } else {
             console.error("❌ Invalid userInfo format:", userInfo);
-            setErrorLogin("Error al obtener información del usuario");
+            setErrorLogin("Error getting user information");
           }
         } else {
           console.error("❌ Login failed - success is false");

@@ -44,10 +44,10 @@ const userServices: UserServices = {
       console.log(response.data);
       return response.data;
     }
-    // Si es un error de red, proporcionar un mensaje más útil
+    // If it's a network error, provide a more useful message
     if (response.status === 0) {
       return new Error(
-        "No se pudo conectar con el servidor. Verifica que el backend esté corriendo."
+        "Could not connect to the server. Please verify that the backend is running."
       );
     }
     return new Error(response.error || "Something went wrong");
@@ -96,21 +96,19 @@ const userServices: UserServices = {
               return await userServices.getUserInfo(1, forceRefresh);
             }
 
-            // Si ya se reintentó y sigue fallando, usar el caché si está disponible
+            // If retry failed, use cache if available
             if (getUserInfoCache && getUserInfoCache.data) {
-              console.warn("Rate limit persistente. Usando datos en caché.");
+              console.warn("Persistent rate limit. Using cached data.");
               return getUserInfoCache.data;
             }
 
-            return new Error(
-              "Demasiadas solicitudes. Por favor, espera unos segundos e intenta de nuevo."
-            );
+            return new Error("Too many requests. Please wait a few seconds and try again.");
           }
 
-          // Manejo especial para error 401 (Unauthorized) - token inválido o expirado
+          // Special handling for 401 error (Unauthorized) - invalid or expired token
           if (response.status === 401) {
             localStorage.removeItem("token");
-            return new Error("Tu sesión ha expirado. Por favor, inicia sesión de nuevo.");
+            return new Error("Your session has expired. Please log in again.");
           }
 
           const errorMessage = response.error || `HTTP ${response.status}`;
