@@ -5,10 +5,19 @@ from flask import Blueprint, request, jsonify, Response
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from sqlalchemy import select, not_
 from api.models import db, User, Profile
-from api.validators import verify_ownership
+from api.validators import (
+    verify_ownership,
+    require_user_exists,
+    require_profile_exists,
+    validate_json,
+    handle_errors,
+    require_ownership
+)
+from api.base import BaseEndpoint
 from typing import Tuple
 
 profiles_bp = Blueprint('profiles', __name__)
+base = BaseEndpoint()
 
 
 @profiles_bp.route('/profiles', methods=['GET'])
@@ -19,12 +28,14 @@ def get_profiles() -> Tuple[Response, int]:
 
 
 @profiles_bp.route('/profiles/user/<int:user_id>', methods=['GET'])
-def get_single_profile_by_user(user_id: int) -> Tuple[Response, int]:
-    stmt = select(Profile).where(Profile.user_id == user_id)
-    profile = db.session.execute(stmt).scalar_one_or_none()
-    if profile is None:
-        return jsonify({'error': f'the profile of the user with id: {user_id} not found'}), 414
-    return jsonify(profile.serialize()), 200
+@handle_errors
+@require_user_exists('user_id')
+def get_single_profile_by_user(user_id: int, _user: User) -> Tuple[Response, int]:
+    """Get profile by user ID"""
+    profile, error_response = base.get_profile_or_404(user_id)
+    if error_response:
+        return error_response
+    return base.serialize_response(profile, 200)
 
 
 @profiles_bp.route('/profiles/<int:profile_id>', methods=['GET'])
@@ -38,17 +49,17 @@ def get_single_profile(profile_id: int) -> Tuple[Response, int]:
 
 @profiles_bp.route('/profiles/user/<int:user_id>', methods=['DELETE'])
 @jwt_required()
-def delete_profile_by_user_id(user_id: int) -> Tuple[Response, int] | Response:
-    current_user_id = get_jwt_identity()
-    if not verify_ownership(current_user_id, user_id):
-        return jsonify({'error': 'Unauthorized: You can only delete your own profile'}), 403
-    stmt = select(Profile).where(Profile.user_id == user_id)
-    profile = db.session.execute(stmt).scalar_one_or_none()
-    if profile is None:
-        return jsonify({'error': f'the profile of the user with id: {user_id} not found'}), 414
+@handle_errors
+@require_user_exists('user_id')
+@require_ownership
+def delete_profile_by_user_id(user_id: int, _user: User) -> Tuple[Response, int] | Response:
+    """Delete profile by user ID"""
+    profile, error_response = base.get_profile_or_404(user_id)
+    if error_response:
+        return error_response
     db.session.delete(profile)
     db.session.commit()
-    return jsonify({'message': f'profile of user with id: {user_id} deleted'})
+    return base.success_response(f'profile of user with id: {user_id} deleted', status_code=200)
 
 
 @profiles_bp.route('/profiles/<int:profile_id>', methods=['DELETE'])
@@ -65,83 +76,69 @@ def delete_profile(profile_id: int) -> Tuple[Response, int] | Response:
 
 @profiles_bp.route('/profiles/<int:user_id>', methods=['POST'])
 @jwt_required()
-def post_profile(user_id: int) -> Tuple[Response, int]:
-    current_user_id = get_jwt_identity()
-    if not verify_ownership(current_user_id, user_id):
-        return jsonify({'error': 'Unauthorized: You can only create your own profile'}), 403
-    data = request.get_json()
-    if not data:
-        return jsonify({'error': 'Missing data'}), 400
-    stmt = select(User).where(User.id == user_id)
-    user = db.session.execute(stmt).scalar_one_or_none()
-    if user is None:
-        return jsonify({'error': f'can not find user with id: {user_id}'}), 400
-    if user.profile:
-        return jsonify({'error': 'this profile already exist, please try to modify it insted of create a new one'}), 400
+@handle_errors
+@require_user_exists('user_id')
+@require_ownership
+@validate_json()
+def post_profile(user_id: int, _user: User, _data: dict) -> Tuple[Response, int]:
+    """Create a new profile for a user"""
+    if _user.profile:
+        return base.error_response('this profile already exist, please try to modify it insted of create a new one', 400)
+    
     new_profile = Profile(
-        gender=data.get('gender') or 'Undefinied',
-        age=data.get('age') or 0,
-        discord=data.get('discord') or 'Undefinied',
-        name=data.get('name') or 'Undefinied',
-        preferences=data.get('preferences') or 'Undefinied',
-        zodiac=data.get('zodiac') or 'Undefinied',
-        location=data.get('location') or 'Undefinied',
-        nick_name=data.get('nick_name') or 'Undefinied',
-        bio=data.get('bio') or 'Undefinied',
-        language=data.get('language') or 'Undefinied',
-        steam_id=data.get('steam_id') or 'Undefinied',
-        photo=data.get('photo') or 'Undefinied'
+        gender=_data.get('gender') or 'Undefinied',
+        age=_data.get('age') or 0,
+        discord=_data.get('discord') or 'Undefinied',
+        name=_data.get('name') or 'Undefinied',
+        preferences=_data.get('preferences') or 'Undefinied',
+        zodiac=_data.get('zodiac') or 'Undefinied',
+        location=_data.get('location') or 'Undefinied',
+        nick_name=_data.get('nick_name') or 'Undefinied',
+        bio=_data.get('bio') or 'Undefinied',
+        language=_data.get('language') or 'Undefinied',
+        steam_id=_data.get('steam_id') or 'Undefinied',
+        photo=_data.get('photo') or 'Undefinied'
     )
-    user.profile = new_profile
+    _user.profile = new_profile
     db.session.commit()
-    return jsonify(user.profile.serialize()), 200
+    return base.serialize_response(_user.profile, 200)
 
 
 @profiles_bp.route('/profiles/<int:user_id>', methods=['PUT'])
 @jwt_required()
-def put_profile(user_id: int) -> Tuple[Response, int]:
-    current_user_id = get_jwt_identity()
-    if not verify_ownership(current_user_id, user_id):
-        return jsonify({'error': 'Unauthorized: You can only modify your own profile'}), 403
-    data = request.get_json()
-    if not data:
-        return jsonify({'error': 'Missing data'}), 400
-    stmt = select(User).where(User.id == user_id)
-    user = db.session.execute(stmt).scalar_one_or_none()
-    if user is None:
-        return jsonify({'error': f'can not find user with id: {user_id}'}), 400
-    if not user.profile:
-        return jsonify({'error': 'this profile do not  exist, please try to create it insted of modify one'}), 400
-
-    user.profile.gender = data.get('gender', user.profile.gender)
-    user.profile.preferences = data.get('preferences', user.profile.preferences)
-    user.profile.zodiac = data.get('zodiac', user.profile.zodiac)
-    user.profile.discord = data.get('discord', user.profile.discord)
-    user.profile.age = data.get('age', user.profile.age)
-    user.profile.name = data.get('name', user.profile.name)
-    user.profile.location = data.get('location', user.profile.location)
-    user.profile.nick_name = data.get('nick_name', user.profile.nick_name)
-    user.profile.bio = data.get('bio', user.profile.bio)
-    user.profile.language = data.get('languages', user.profile.language)
-    user.profile.steam_id = data.get('steam_id', user.profile.steam_id)
-    user.profile.photo = data.get('photo', user.profile.photo)
+@handle_errors
+@require_profile_exists('user_id')
+@require_ownership
+@validate_json()
+def put_profile(user_id: int, _user: User, _profile: Profile, _data: dict) -> Tuple[Response, int]:
+    """Update an existing profile"""
+    _profile.gender = _data.get('gender', _profile.gender)
+    _profile.preferences = _data.get('preferences', _profile.preferences)
+    _profile.zodiac = _data.get('zodiac', _profile.zodiac)
+    _profile.discord = _data.get('discord', _profile.discord)
+    _profile.age = _data.get('age', _profile.age)
+    _profile.name = _data.get('name', _profile.name)
+    _profile.location = _data.get('location', _profile.location)
+    _profile.nick_name = _data.get('nick_name', _profile.nick_name)
+    _profile.bio = _data.get('bio', _profile.bio)
+    _profile.language = _data.get('languages', _profile.language)
+    _profile.steam_id = _data.get('steam_id', _profile.steam_id)
+    _profile.photo = _data.get('photo', _profile.photo)
 
     db.session.commit()
-    return jsonify(user.profile.serialize()), 200
+    return base.serialize_response(_profile, 200)
 
 
 @profiles_bp.route('/profiles/profiles_to_explore/<int:user_id>', methods=['GET'])
-def profiles_to_explore(user_id: int) -> Tuple[Response, int]:
-    # Verificar que el usuario existe
-    user = User.query.get(user_id)
-    if not user:
-        return jsonify({'error': f'User with id {user_id} not found'}), 404
-
+@handle_errors
+@require_user_exists('user_id')
+def profiles_to_explore(user_id: int, _user: User) -> Tuple[Response, int]:
+    """Get profiles available for exploration (excluding already liked/rejected)"""
     # Obtener los IDs de usuarios a los que ya le dio like
-    liked_user_ids = [like.liked_id for like in user.likes_given]
+    liked_user_ids = [like.liked_id for like in _user.likes_given]
 
     # Obtener los IDs de usuarios a los que ya le dio reject
-    rejected_user_ids = [reject.rejected_id for reject in user.rejects_given]
+    rejected_user_ids = [reject.rejected_id for reject in _user.rejects_given]
 
     # IDs a excluir
     exclude_ids = set(liked_user_ids + rejected_user_ids + [user_id])
@@ -162,23 +159,14 @@ def profiles_to_explore(user_id: int) -> Tuple[Response, int]:
 
 @profiles_bp.route('/profiles/photo/<int:user_id>', methods=['PUT'])
 @jwt_required()
-def put_profilephoto(user_id: int) -> Tuple[Response, int]:
-    current_user_id = get_jwt_identity()
-    if not verify_ownership(current_user_id, user_id):
-        return jsonify({'error': 'Unauthorized: You can only modify your own profile photo'}), 403
-    data = request.get_json()
-    if not data or 'photo' not in data:
-        return jsonify({'error': 'Missing data'}), 400
-    stmt = select(User).where(User.id == user_id)
-    user = db.session.execute(stmt).scalar_one_or_none()
-    if user is None:
-        return jsonify({'error': f'can not find user with id: {user_id}'}), 400
-    if not user.profile:
-        return jsonify({'error': 'this profile do not  exist, please try to create it insted of modify one'}), 400
-
-    user.profile.photo = data.get('photo', user.profile.photo)
-
+@handle_errors
+@require_profile_exists('user_id')
+@require_ownership
+@validate_json(['photo'])
+def put_profilephoto(user_id: int, _user: User, _profile: Profile, _data: dict) -> Tuple[Response, int]:
+    """Update profile photo"""
+    _profile.photo = _data.get('photo', _profile.photo)
     db.session.commit()
-    return jsonify(user.profile.serialize()), 200
+    return base.serialize_response(_profile, 200)
 
 
