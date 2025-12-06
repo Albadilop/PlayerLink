@@ -75,11 +75,25 @@ def put_game_hours(game_id: int, _data: dict) -> Tuple[Response, int]:
     if ownership_error:
         return ownership_error
 
+    # Validar que hours_played sea un número válido
+    hours_played = _data.get("hours_played")
+    if hours_played is None:
+        return base.error_response('hours_played is required', 400)
+    
+    try:
+        hours_value = int(hours_played)
+        if hours_value <= 0:
+            return base.error_response('Hours must be greater than 0', 400)
+        if hours_value > 999999:
+            return base.error_response('Hours value is too large (max 999999)', 400)
+    except (ValueError, TypeError):
+        return base.error_response('hours_played must be a valid number', 400)
+
     # Actualizar los valores
-    game.game_hoursPlayed = _data.get("hours_played") or 'undefined'
+    game.game_hoursPlayed = hours_value
     db.session.commit()
 
-    return base.serialize_response(game, 200)
+    return jsonify({"game": game.serialize()}), 200
 
 
 @games_bp.route('/games/<profile_id>', methods=['POST'])
@@ -108,7 +122,7 @@ def post_game(profile_id: int, _data: dict) -> Tuple[Response, int]:
     db.session.add(new_game)
     db.session.commit()
 
-    return base.serialize_response(new_game, 201)
+    return jsonify({"game": new_game.serialize()}), 201
 
 
 @games_bp.route('/games/<game_id>', methods=['DELETE'])

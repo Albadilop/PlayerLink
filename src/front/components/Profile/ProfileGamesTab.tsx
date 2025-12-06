@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
-import { selectMedal } from '../../utils/profileHelpers';
-import { GameForm, GameFormData } from './GameForm';
-import type { Game } from '../../types';
-import type { SelectOption } from './GameForm';
-import './ProfileGamesTab.css';
+import React, { useState } from "react";
+import { GameForm, GameFormData } from "./GameForm";
+import type { Game } from "../../types";
+import type { SelectOption } from "./GameForm";
+import "./ProfileGamesTab.css";
 
 export interface ProfileGamesTabProps {
   games: Game[];
@@ -17,73 +16,90 @@ export interface ProfileGamesTabProps {
 
 export const ProfileGamesTab: React.FC<ProfileGamesTabProps> = ({
   games,
-  availableGames,
+  availableGames: _availableGames,
   gameOptions,
   loading,
   onAddGame,
   onDeleteGame,
   onUpdateGame,
 }) => {
-  const [game, setGame] = useState<GameFormData>({ title: '', hours_played: '', image: '' });
+  const [game, setGame] = useState<GameFormData>({ title: "", hours_played: "", image: "" });
   const [idOfGameBeingEdited, setIdOfGameBeingEdited] = useState<number>(0);
-  const [errorRepeatedGame, setErrorRepeatedGame] = useState<string>('');
-  const [errorHoursPlayed, setErrorHoursPlayed] = useState<string>('');
-  const [errorCeroHours, setErrorCeroHours] = useState<string>('');
+  const [errorRepeatedGame, setErrorRepeatedGame] = useState<string>("");
+  const [errorHoursPlayed, setErrorHoursPlayed] = useState<string>("");
+  const [errorCeroHours, setErrorCeroHours] = useState<string>("");
 
   const handleChange = (field: keyof GameFormData, value: string | number) => {
-    setGame(prev => ({ ...prev, [field]: value }));
+    setGame((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleAdd = async () => {
-    setErrorRepeatedGame('');
-    setErrorHoursPlayed('');
+    setErrorRepeatedGame("");
+    setErrorHoursPlayed("");
 
-    if (!game.title || game.title.length <= 0 || !game.hours_played || Number(game.hours_played) <= 0) {
-      setErrorHoursPlayed('Your must complete all the information');
+    if (
+      !game.title ||
+      game.title.length <= 0 ||
+      !game.hours_played ||
+      Number(game.hours_played) <= 0
+    ) {
+      setErrorHoursPlayed("Your must complete all the information");
       return;
     }
 
-    if (games.some(g => g.gameTitle === game.title)) {
-      setErrorRepeatedGame('This game is already on the list');
+    if (games.some((g) => g.gameTitle === game.title)) {
+      setErrorRepeatedGame("This game is already on the list");
       return;
     }
 
     try {
       await onAddGame(game);
       // Cerrar modal y limpiar
-      const modalEl = document.getElementById('commentModal');
+      const modalEl = document.getElementById("commentModal");
       if (modalEl && window.bootstrap?.Modal) {
         const modal = window.bootstrap.Modal.getInstance(modalEl);
         if (modal) modal.hide();
       }
-      setGame({ title: '', hours_played: '', image: '' });
-      setErrorRepeatedGame('');
-      setErrorHoursPlayed('');
+      setGame({ title: "", hours_played: "", image: "" });
+      setErrorRepeatedGame("");
+      setErrorHoursPlayed("");
     } catch (err) {
-      console.error('Error añadiendo el juego:', err);
+      console.error("Error añadiendo el juego:", err);
     }
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>, gameId: number) => {
     e.preventDefault();
-    const hours = Number(game.hours_played);
+    const hours = Math.floor(Number(game.hours_played));
 
     if (hours <= 0) {
-      setErrorCeroHours('Hours must be more than 0');
+      setErrorCeroHours("Hours must be more than 0");
+      return;
+    }
+
+    // Validar rango máximo (PostgreSQL INTEGER max)
+    if (hours > 2147483647) {
+      setErrorCeroHours("Hours value is too large");
       return;
     }
 
     await onUpdateGame(gameId, hours);
     setIdOfGameBeingEdited(0);
-    setGame({ hours_played: 0, title: '', image: '' });
-    setErrorCeroHours('');
+    setGame({ hours_played: 0, title: "", image: "" });
+    setErrorCeroHours("");
+  };
+
+  const handleStartEdit = (gameId: number, currentHours: number) => {
+    setIdOfGameBeingEdited(gameId);
+    setGame({ ...game, hours_played: currentHours });
+    setErrorCeroHours("");
   };
 
   return (
     <div className="container info-section">
       <div className="row d-flex justify-content-around align-items-center">
         <h2 className="col-lg-6 col-md-12 col-sm-12 mt-3">
-          Games{' '}
+          Games{" "}
           <span className="tooltip-wrapper">
             <i className="fa-solid fa-circle-info fa-2xs medals-info-icon"></i>
             <span className="tooltip-text medal-info-tooltip-text">
@@ -117,9 +133,9 @@ export const ProfileGamesTab: React.FC<ProfileGamesTabProps> = ({
           onChange={handleChange}
           onSubmit={handleAdd}
           onCancel={() => {
-            setGame({ title: '', hours_played: '', image: '' });
-            setErrorRepeatedGame('');
-            setErrorHoursPlayed('');
+            setGame({ title: "", hours_played: "", image: "" });
+            setErrorRepeatedGame("");
+            setErrorHoursPlayed("");
           }}
         />
       </div>
@@ -143,6 +159,8 @@ export const ProfileGamesTab: React.FC<ProfileGamesTabProps> = ({
                       className="col-auto input-hours border-2 rounded-2 ms-2"
                       type="number"
                       name="hours_played"
+                      min="1"
+                      max="999999"
                       value={game.hours_played}
                       onChange={(e) => setGame({ ...game, hours_played: e.target.value })}
                       placeholder="Hours"
@@ -164,7 +182,7 @@ export const ProfileGamesTab: React.FC<ProfileGamesTabProps> = ({
                   <h6 className="m-0 col-4">{el.gameHoursPlayed} hours</h6>
                   <span
                     className="text-light botonesAccionesJuegos col-auto fa-solid fa-pencil"
-                    onClick={() => setIdOfGameBeingEdited(el.id)}
+                    onClick={() => handleStartEdit(el.id, el.gameHoursPlayed)}
                   ></span>
                   <span
                     className="text-danger botonesAccionesJuegos col-auto fa-solid fa-trash"
@@ -177,11 +195,8 @@ export const ProfileGamesTab: React.FC<ProfileGamesTabProps> = ({
         ) : (
           <p>No games yet</p>
         )}
-        {loading && (
-          <p className="text-muted mt-3">Cargando lista de juegos disponibles...</p>
-        )}
+        {loading && <p className="text-muted mt-3">Cargando lista de juegos disponibles...</p>}
       </div>
     </div>
   );
 };
-

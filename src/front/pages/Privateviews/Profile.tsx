@@ -543,15 +543,8 @@ const Profile: React.FC = () => {
         dispatch({ type: "getUserInfo", payload: updatedUser });
       }
 
-      // Sincronizar con el backend en segundo plano (sin bloquear la UI)
-      // Usamos un delay para que la actualización optimista se muestre primero
-      setTimeout(async () => {
-        try {
-          await loadProfile();
-        } catch (syncError) {
-          console.error("Error al sincronizar perfil:", syncError);
-        }
-      }, 1000);
+      // No es necesario recargar el perfil - el store ya está actualizado con la respuesta del backend
+      // Solo recargamos en caso de error (en el catch)
 
       // Limpiar cualquier mensaje de error previo
       if (clearNoticeTimerRef.current) {
@@ -597,15 +590,8 @@ const Profile: React.FC = () => {
       // Eliminar en el backend
       await gameServices.deleteGameById(game_id);
 
-      // Sincronizar con el backend en segundo plano (sin bloquear la UI)
-      // Usamos un delay para que la actualización optimista se muestre primero
-      setTimeout(async () => {
-        try {
-          await loadProfile();
-        } catch (syncError) {
-          console.error("Error al sincronizar perfil:", syncError);
-        }
-      }, 1000);
+      // No es necesario recargar el perfil - la actualización optimista ya es correcta
+      // Solo recargamos en caso de error (en el catch)
 
       // Limpiar cualquier mensaje de error previo
       if (clearNoticeTimerRef.current) {
@@ -659,15 +645,8 @@ const Profile: React.FC = () => {
       // Actualizar en el backend
       await gameServices.updateGameInfo(game_id, hours);
 
-      // Sincronizar con el backend en segundo plano (sin bloquear la UI)
-      // Usamos un delay para que la actualización optimista se muestre primero
-      setTimeout(async () => {
-        try {
-          await loadProfile();
-        } catch (syncError) {
-          console.error("Error al sincronizar perfil:", syncError);
-        }
-      }, 1000);
+      // No es necesario recargar el perfil - la actualización optimista ya es correcta
+      // Solo recargamos en caso de error (en el catch)
 
       // Limpiar cualquier mensaje de error previo
       if (clearNoticeTimerRef.current) {
