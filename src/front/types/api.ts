@@ -1,6 +1,6 @@
 // API request and response types
 
-import { User, Profile, Game, Review, Match, Like, Reject } from "./index";
+import { User, Profile, Game, Review, Match, Like, Reject, UserMatchInfo } from "./index";
 
 // Request types
 export interface RegisterRequest {
@@ -112,11 +112,12 @@ export interface MatchResponse {
 }
 
 export interface MatchesResponse {
-  matches: Match[];
+  matches: UserMatchInfo[];
 }
 
 export interface LikeResponse {
   like: Like;
+  match?: Match;
 }
 
 export interface RejectResponse {

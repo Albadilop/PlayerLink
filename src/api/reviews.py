@@ -90,7 +90,7 @@ def delete_review(review_id: int) -> Tuple[Response, int]:
 def post_review(
     author_id: int,
     receiver_id: int,
-    _author: User,
+    _user: User,
     _data: dict
 ) -> Tuple[Response, int]:
     """Create a new review"""

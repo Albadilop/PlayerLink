@@ -93,7 +93,7 @@ def get_matches_for_user(user_id: int, _user: User) -> Tuple[Response, int]:
 @jwt_required()
 @handle_errors
 @require_user_exists('user1_id')
-def post_match(user1_id: int, user2_id: int, _user1: User) -> Tuple[Response, int]:
+def post_match(user1_id: int, user2_id: int, _user: User) -> Tuple[Response, int]:
     """Create a new match between two users"""
     current_user_id = get_jwt_identity()
     # Verify that the authenticated user is one of the users in the match
@@ -214,7 +214,7 @@ def delete_like(like_id: int) -> Tuple[Response, int] | Response:
 @jwt_required()
 @handle_errors
 @require_user_exists('liker_id')
-def post_like(liker_id: int, liked_id: int, _liker: User) -> Tuple[Response, int]:
+def post_like(liker_id: int, liked_id: int, _user: User) -> Tuple[Response, int]:
     """Create a new like"""
     current_user_id = get_jwt_identity()
     # Verify that the authenticated user is the liker
@@ -320,7 +320,7 @@ def delete_reject(reject_id: int) -> Tuple[Response, int] | Response:
 @jwt_required()
 @handle_errors
 @require_user_exists('rejector_id')
-def post_reject(rejector_id: int, rejected_id: int, _rejector: User) -> Tuple[Response, int]:
+def post_reject(rejector_id: int, rejected_id: int, _user: User) -> Tuple[Response, int]:
     """Create a new reject"""
     current_user_id = get_jwt_identity()
     # Verify that the authenticated user is the rejector

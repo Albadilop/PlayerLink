@@ -440,7 +440,21 @@ const Profile: React.FC = () => {
     const newKey = picMap[fileName] || DEFAULT_VALUES.PROFILE_PHOTO;
     try {
       await userServices.changeUserPhoto(store.user.id, { photo: newKey });
+
+      // Actualizar estado local
       setProfile((prev) => ({ ...prev, photo: newKey }));
+
+      // Actualizar store global para que persista al navegar
+      if (store.user?.profile) {
+        const updatedUser = {
+          ...store.user,
+          profile: {
+            ...store.user.profile,
+            photo: newKey,
+          },
+        };
+        dispatch({ type: "getUserInfo", payload: updatedUser });
+      }
     } catch (err) {
       console.error("Error al cambiar foto:", err);
     } finally {
