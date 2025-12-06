@@ -1,6 +1,11 @@
 import { normalizeUrl } from '../utils/urlHelper';
+import { API_CONFIG } from '../constants';
 
-const BASE_URL = import.meta.env.VITE_BACKEND_URL;
+// Get BASE_URL from environment or use default
+let BASE_URL = import.meta.env.VITE_BACKEND_URL || API_CONFIG.DEFAULT_BACKEND_URL;
+// Remove trailing slash if present
+BASE_URL = BASE_URL.replace(/\/+$/, '');
+console.log('🔧 API Client initialized with BASE_URL:', BASE_URL);
 
 export interface ApiClientConfig {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
@@ -81,6 +86,7 @@ class ApiClient {
     attempt: number = 0
   ): Promise<ApiResponse<T>> {
     try {
+      console.log('🔄 Fetching:', { url, method: config.method || 'GET', body: config.body });
       const response = await fetch(url, {
         method: config.method || 'GET',
         headers: {
@@ -89,6 +95,7 @@ class ApiClient {
         },
         body: config.body ? JSON.stringify(config.body) : undefined,
       });
+      console.log('📡 Response received:', { status: response.status, ok: response.ok });
 
       // Si es 429 (Too Many Requests) y hay intentos restantes, reintentar
       if (response.status === 429 && attempt < (config.retryCount || 0)) {
@@ -103,6 +110,7 @@ class ApiClient {
 
       return this.handleResponse<T>(response);
     } catch (error) {
+      console.error('❌ Fetch error:', error);
       // Si es un error de red y hay intentos restantes, reintentar
       if (attempt < (config.retryCount || 0) && error instanceof TypeError) {
         const delay = (config.retryDelay || 1000) * Math.pow(2, attempt);
@@ -124,6 +132,7 @@ class ApiClient {
     config: ApiClientConfig = {}
   ): Promise<ApiResponse<T>> {
     const url = normalizeUrl(BASE_URL, endpoint);
+    console.log('🌐 API Request:', { BASE_URL, endpoint, finalUrl: url });
     return this.retryRequest<T>(url, config);
   }
 

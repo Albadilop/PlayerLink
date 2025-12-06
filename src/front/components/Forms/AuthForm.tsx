@@ -58,9 +58,14 @@ export const AuthForm: React.FC<AuthFormProps> = ({
 
     if (name === 'password') {
       setFormData(prev => ({ ...prev, password: value }));
-      // Validar contraseña
-      const result = validatePassword(value);
-      setPasswordErrors(result.errors);
+      // Validar contraseña solo en modo registro
+      if (isRegister) {
+        const result = validatePassword(value);
+        setPasswordErrors(result.errors);
+      } else {
+        // En signin, limpiar errores de contraseña
+        setPasswordErrors([]);
+      }
     }
 
     if (name === 'email') {
@@ -82,38 +87,58 @@ export const AuthForm: React.FC<AuthFormProps> = ({
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    console.log('🔵 Form submit triggered', { mode, formData, isRegister });
     setFormError('');
     setEmailError('');
 
     // Validar email
+    if (!formData.email || !formData.email.trim()) {
+      setEmailError('Email is required');
+      console.log('❌ Email is empty');
+      return;
+    }
+
     if (!validateEmail(formData.email)) {
       setEmailError('Please enter a valid email address');
+      console.log('❌ Email validation failed');
       return;
     }
 
-    // Validar contraseña
-    if (passwordErrors.length > 0) {
-      setFormError('Password does not meet the requirements');
+    // Validar que la contraseña no esté vacía
+    if (!formData.password || !formData.password.trim()) {
+      setFormError('Password is required');
+      console.log('❌ Password is empty');
       return;
     }
 
-    // Validar match de contraseñas en registro
+    // Validar contraseña solo en modo registro
     if (isRegister) {
+      if (passwordErrors.length > 0) {
+        setFormError('Password does not meet the requirements');
+        console.log('❌ Password validation failed', passwordErrors);
+        return;
+      }
+      
+      // Validar match de contraseñas
       if (!validatePasswordMatch(formData.password, formData.repeatPassword || '')) {
         setFormError('Passwords do not match');
+        console.log('❌ Passwords do not match');
         return;
       }
 
       // Mostrar modal de términos si no están aceptados
       if (!isTermsAccepted && showTermsModal) {
         showTermsModal();
+        console.log('⚠️ Terms not accepted');
         return;
       }
     }
 
+    console.log('✅ All validations passed, calling onSubmit');
     try {
       await onSubmit(formData);
     } catch (err) {
+      console.error('❌ Error in onSubmit:', err);
       const errorMessage = err instanceof Error ? err.message : 'An error occurred';
       setFormError(errorMessage);
     }
@@ -171,6 +196,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({
                 onChange={handleChange} 
                 className={`w-100 border-0 rounded-2 border-1 ${isRegister ? 'btn-register-card-border' : 'btn-sign-in-card-border'}`}
                 autoComplete="email"
+                required
               />
               {emailError && <h5 className={`text-danger mt-2 ${isRegister ? 'register-message-errors' : 'sign-in-message-errors'}`}>{emailError}</h5>}
 

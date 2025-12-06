@@ -31,7 +31,10 @@ app = Flask(__name__)
 app.url_map.strict_slashes = False
 
 # Configure CORS globally for all routes
-allowed_origins = os.getenv('CORS_ORIGINS', 'http://localhost:5173,http://localhost:3000').split(',')
+# Allow both localhost and 127.0.0.1 for development
+default_origins = 'http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173,http://127.0.0.1:3000'
+allowed_origins = os.getenv('CORS_ORIGINS', default_origins).split(',')
+allowed_origins = [origin.strip() for origin in allowed_origins]  # Remove whitespace
 CORS(app, 
      resources={r"/api/*": {
          "origins": allowed_origins, 

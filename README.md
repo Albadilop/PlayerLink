@@ -70,6 +70,67 @@ Every Github codespace environment will have **its own database**, so if you're 
 1. Install the packages: `$ npm install`
 2. Start coding! start the webpack dev server `$ npm run start`
 
+## Starting the Application
+
+### Starting the Backend
+
+To start the Flask backend server, you have several options:
+
+**Option 1: Using Pipenv (Recommended)**
+```bash
+$ pipenv run start
+```
+
+**Option 2: Using Python directly**
+```bash
+$ cd src
+$ python app.py
+```
+
+**Option 3: Using Flask CLI**
+```bash
+$ cd src
+$ export FLASK_APP=app.py
+$ export FLASK_DEBUG=1
+$ export PORT=3001
+$ python app.py
+```
+
+The backend will start on `http://localhost:3001`
+
+### Starting the Frontend
+
+To start the React frontend development server:
+
+```bash
+$ npm run dev
+```
+
+or
+
+```bash
+$ npm run start
+```
+
+The frontend will start on `http://localhost:5173`
+
+### Running Both Services
+
+You need to run both services in separate terminal windows/tabs:
+
+**Terminal 1 - Backend:**
+```bash
+$ cd src
+$ python app.py
+```
+
+**Terminal 2 - Frontend:**
+```bash
+$ npm run dev
+```
+
+> **Note:** Make sure the backend is running before starting the frontend, as the frontend needs to connect to the backend API.
+
 ## Seguridad
 
 Esta aplicación incluye mejoras de seguridad implementadas para proteger contra vulnerabilidades comunes. Para más detalles, consulta:
