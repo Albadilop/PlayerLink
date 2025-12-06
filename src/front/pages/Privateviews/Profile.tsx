@@ -383,6 +383,29 @@ const Profile: React.FC = () => {
     };
   }, [navigate, dispatch, store.user?.id, loadProfile, store.user]);
 
+  // Sincronizar el estado local profile cuando cambie store.user.profile
+  useEffect(() => {
+    const profileData = store.user?.profile;
+    if (profileData) {
+      setProfile({
+        name: profileData.name || " ",
+        nick_name: profileData.nick_name || "",
+        age: profileData.age || 0,
+        gender: profileData.gender || DEFAULT_VALUES.GENDER_UNDEFINED,
+        location: profileData.location || " ",
+        zodiac: profileData.zodiac || " ",
+        discord: profileData.discord || " ",
+        steam_id: profileData.steam || " ",
+        languages: profileData.language || " ",
+        preferences: profileData.preferences || " ",
+        bio: profileData.bio || " ",
+        photo: profileData.photo || DEFAULT_VALUES.PROFILE_PHOTO,
+      });
+      setSelectedGamingPreferences(parsePreferences(profileData.preferences));
+      setSelectedLanguages(parsePreferences(profileData.language));
+    }
+  }, [store.user?.profile]);
+
   useEffect(() => {
     // Limpiar popovers anteriores
     document.querySelectorAll('[data-bs-toggle="popover"]').forEach((el) => {
