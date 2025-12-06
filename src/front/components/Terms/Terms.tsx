@@ -9,32 +9,11 @@ const TermsComponent: React.FC<TermsProps> = ({ onAccept }) => {
   const [accepted, setAccepted] = useState<boolean>(false);
   const declineButtonRef = useRef<HTMLButtonElement>(null);
 
-  // Debug: Log cuando el componente se monta
-  useEffect(() => {
-    console.log('🔵 Terms component mounted');
-    return () => {
-      console.log('🔴 Terms component unmounted');
-    };
-  }, []);
 
-  // Debug: Log cuando el estado accepted cambia
-  useEffect(() => {
-    console.log('Accepted state changed:', accepted); // Debug temporal
-  }, [accepted]);
-
-  // Función para manejar el checkbox
-  const handleCheckbox = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const isChecked = e.target.checked;
-    console.log('Checkbox changed:', isChecked); // Debug temporal
-    setAccepted(isChecked);
-  };
 
   // Función para el botón Guardar que solo funciona si está aceptado
   const handleSave = () => {
-    console.log('HandleSave called, accepted:', accepted); // Debug
     if (accepted && onAccept) {
-      console.log('Calling onAccept'); // Debug
-      
       // Disparar evento personalizado para que Register lo escuche
       const event = new CustomEvent('termsAccepted', { detail: { accepted: true } });
       window.dispatchEvent(event);
@@ -48,8 +27,6 @@ const TermsComponent: React.FC<TermsProps> = ({ onAccept }) => {
           modal.hide(); // cierra el modal porque si se aceptó
         }
       }
-    } else {
-      console.log('Cannot save: accepted is', accepted, 'onAccept is', !!onAccept); // Debug
     }
   };
 
@@ -64,7 +41,6 @@ const TermsComponent: React.FC<TermsProps> = ({ onAccept }) => {
     
     const handleShow = () => {
       // Resetear el estado cuando el modal se muestra
-      console.log('Modal showing, resetting accepted to false'); // Debug temporal
       setAccepted(false);
     };
 
@@ -104,9 +80,6 @@ const TermsComponent: React.FC<TermsProps> = ({ onAccept }) => {
       modalElement.removeEventListener('hidden.bs.modal', handleHidden);
     };
   }, []); // Solo ejecutar una vez al montar
-
-  // Verificar que el componente se renderiza
-  console.log('🔵 Terms component rendered, accepted:', accepted);
 
   return (
     <>
@@ -171,7 +144,6 @@ const TermsComponent: React.FC<TermsProps> = ({ onAccept }) => {
                 <div 
                   className="form-check d-flex align-items-center"
                   onClick={() => {
-                    console.log('🔵 Checkbox container clicked');
                     setAccepted(!accepted);
                   }}
                   style={{ cursor: 'pointer' }}
@@ -182,11 +154,9 @@ const TermsComponent: React.FC<TermsProps> = ({ onAccept }) => {
                     id="acceptTermsCheckbox"
                     checked={accepted}
                     onChange={(e) => {
-                      console.log('🔵 Checkbox onChange:', e.target.checked);
                       setAccepted(e.target.checked);
                     }}
                     onClick={(e) => {
-                      console.log('🔵 Checkbox onClick:', (e.target as HTMLInputElement).checked);
                       e.stopPropagation();
                     }}
                     style={{ 

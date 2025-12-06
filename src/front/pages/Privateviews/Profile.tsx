@@ -357,6 +357,8 @@ const Profile: React.FC = () => {
             body: JSON.stringify(profile),
           });
           if (!resp.ok) throw new Error('Error al guardar perfil');
+          // Forzar refresh después de actualizar el perfil
+          await userServices.getUserInfo(0, true);
           await loadProfile();
         } catch (err) {
           console.error('Error en updateProfile:', err);
@@ -372,6 +374,8 @@ const Profile: React.FC = () => {
             body: JSON.stringify(profile),
           });
           if (!resp.ok) throw new Error('Error al guardar perfil');
+          // Forzar refresh después de crear el perfil
+          await userServices.getUserInfo(0, true);
           await loadProfile();
         } catch (err) {
           console.error('Error en updateProfile:', err);
