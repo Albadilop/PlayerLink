@@ -31,7 +31,7 @@ interface UserServices {
 // Cache para evitar múltiples llamadas simultáneas a getUserInfo
 let getUserInfoPromise: Promise<UserInfoResponse | Error> | null = null;
 let getUserInfoCache: { data: UserInfoResponse | null; timestamp: number } | null = null;
-const CACHE_DURATION = 5000; // 5 segundos de caché
+const CACHE_DURATION = 10000; // 10 segundos de caché
 
 const userServices: UserServices = {
   register: async (formData: RegisterRequest): Promise<RegisterResponse | Error> => {
@@ -122,8 +122,10 @@ const userServices: UserServices = {
             if (retryCount === 0) {
               console.warn(`Rate limit reached. Waiting ${waitTime}ms before retry...`);
               await new Promise(resolve => setTimeout(resolve, waitTime));
+              // Limpiar la promesa para permitir el retry
+              getUserInfoPromise = null;
               // Llamar recursivamente a getUserInfo con retryCount = 1
-              return await userServices.getUserInfo(1);
+              return await userServices.getUserInfo(1, forceRefresh);
             }
             
             return new Error("Demasiadas solicitudes. Por favor, espera unos segundos e intenta de nuevo.");
@@ -162,14 +164,22 @@ const userServices: UserServices = {
         try {
           const result = await fetchPromise;
           getUserInfoPromise = null;
+          // Si el resultado es exitoso, guardar en caché
+          if (!(result instanceof Error)) {
+            getUserInfoCache = { data: result, timestamp: Date.now() };
+          }
           return result;
         } catch (error) {
           getUserInfoPromise = null;
           throw error;
         }
       } else {
-        // Si es un retry, ejecutar directamente
-        return await fetchPromise;
+        // Si es un retry, ejecutar directamente y guardar en caché si es exitoso
+        const result = await fetchPromise;
+        if (!(result instanceof Error)) {
+          getUserInfoCache = { data: result, timestamp: Date.now() };
+        }
+        return result;
       }
     } catch (error) {
       console.error("getUserInfo error:", error);

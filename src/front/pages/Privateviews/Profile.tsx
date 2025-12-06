@@ -793,6 +793,7 @@ const Profile: React.FC = () => {
                         <div className="mb-3">
                           <label htmlFor="gameName" className="label-sci-fi">Select a game</label>
                           <Select
+                            id="gameName"
                             className="selectorJuegos"
                             options={gameOptions}
                             value={gameOptions.find(opt => opt.value === game.title) || null}

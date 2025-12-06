@@ -47,10 +47,11 @@ export const ResetPassword: React.FC = () => {
                 <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
                   <div className="mx-4">
                     <div>
-                      <label htmlFor="basic-url" className="form-label mb-0 mt-2">Email</label>
+                      <label htmlFor="reset-password-email" className="form-label mb-0 mt-2">Email</label>
                     </div>
                     <input 
                       type="email" 
+                      id="reset-password-email"
                       name="email" 
                       value={email} 
                       onChange={e => setEmail(e.target.value)} 

@@ -148,11 +148,12 @@ export const Register: React.FC<RegisterProps> = ({ onSwitch }) => {
           <form onSubmit={handleSubmit}>
             <div className="mx-4">
               <div>
-                <label htmlFor="basic-url" className="form-label mb-0 mt-2">Email</label>
+                <label htmlFor="register-email" className="form-label mb-0 mt-2">Email</label>
               </div>
 
               <input 
                 type="email" 
+                id="register-email"
                 name="email" 
                 placeholder="email" 
                 value={formData.email} 
@@ -163,11 +164,12 @@ export const Register: React.FC<RegisterProps> = ({ onSwitch }) => {
 
               {errorEmailRegistered && <h5 className="text-danger mt-2 register-message-errors">{errorEmailRegistered}</h5>}
               <div>
-                <label htmlFor="basic-url" className="form-label mt-2 mb-0">Password</label>
+                <label htmlFor="register-password" className="form-label mt-2 mb-0">Password</label>
               </div>
               <div className="d-flex btn-register-card-border rounded-2">
                 <input
                   type={showPassword ? "text" : "password"}
+                  id="register-password"
                   name="password"
                   placeholder="Password"
                   value={formData.password}
@@ -192,11 +194,12 @@ export const Register: React.FC<RegisterProps> = ({ onSwitch }) => {
               )}
 
               <div>
-                <label htmlFor="basic-url" className="form-label mb-0 mt-2">Repeat Password</label>
+                <label htmlFor="register-repeat-password" className="form-label mb-0 mt-2">Repeat Password</label>
               </div>
               <div>
                 <input 
                   type="password" 
+                  id="register-repeat-password"
                   name="repeatPassword" 
                   placeholder="password" 
                   value={formData.repeatPassword} 

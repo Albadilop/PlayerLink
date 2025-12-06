@@ -128,10 +128,11 @@ export const SignIn: React.FC<SignInProps> = ({ onSwitch }) => {
             <form onSubmit={handleSubmit}>
               <div className="mx-4">
                 <div>
-                  <label htmlFor="basic-url" className="form-label mb-0 mt-2">Email</label>
+                  <label htmlFor="signin-email" className="form-label mb-0 mt-2">Email</label>
                 </div>
                 <input 
                   type="email" 
+                  id="signin-email"
                   name="email" 
                   placeholder="email" 
                   value={formData.email} 
@@ -140,12 +141,13 @@ export const SignIn: React.FC<SignInProps> = ({ onSwitch }) => {
                   autoComplete="email"
                 />
                 <div>
-                  <label htmlFor="basic-url" className="form-label mt-3 mb-0">Password</label>
+                  <label htmlFor="signin-password" className="form-label mt-3 mb-0">Password</label>
                 </div>
                 <div>
                   <div className="d-flex btn-register-card-border rounded-2">
                     <input
                       type={showPassword ? "text" : "password"}
+                      id="signin-password"
                       name="password"
                       placeholder="password"
                       value={formData.password}

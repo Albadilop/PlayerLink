@@ -116,17 +116,18 @@ export const Reset: React.FC = () => {
 							<form onSubmit={handleSubmit}>
 								<div className="mx-4">
 
-									<h5 htmlFor="basic-url" className="form-label mb-2 mt-2">
+									<h5 className="form-label mb-2 mt-2">
 										Enter your new password {user && user?.email}
 									</h5>
 									<div>
 										{/* New Password */}
-										<label htmlFor="basic-url" className="form-label mb-0 mt-2">New password</label>
+										<label htmlFor="reset-new-password" className="form-label mb-0 mt-2">New password</label>
 									</div>
 									<div className="d-flex btn-reset-card-border rounded-2">
 
 									<input
 										type={showPassword ? "text" : "password"}
+										id="reset-new-password"
 										onChange={handlePasswordChange}
 										value={password}
 										placeholder="Enter new password"
@@ -144,12 +145,13 @@ export const Reset: React.FC = () => {
 
 									{/* Confirm Password */}
 									<div>
-										<label htmlFor="basic-url" className="form-label mt-3 mb-0">Confirm New Password</label>
+										<label htmlFor="reset-confirm-password" className="form-label mt-3 mb-0">Confirm New Password</label>
 									</div>
 									<div className="d-flex btn-reset-card-border rounded-2">
 
 									<input
 										type="password"
+										id="reset-confirm-password"
 										onChange={handleRepeatPasswordChange}
 										value={repeatPassword}
 										placeholder="Repeat new password"
