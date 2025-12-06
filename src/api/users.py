@@ -7,12 +7,14 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import select
 from api.models import db, User
 from api.validators import validate_email, validate_password_strength, verify_ownership
+from api.rate_limiter import apply_rate_limit_if_available
 from typing import Tuple
 
 users_bp = Blueprint('users', __name__)
 
 
 @users_bp.route('/private', methods=['GET', 'OPTIONS'])
+@apply_rate_limit_if_available("200 per hour")
 def get_user_info() -> Tuple[Response, int] | Response:
     # Handle OPTIONS request for CORS preflight
     if request.method == 'OPTIONS':

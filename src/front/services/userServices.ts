@@ -16,7 +16,7 @@ const url = import.meta.env.VITE_BACKEND_URL;
 interface UserServices {
   register: (formData: RegisterRequest) => Promise<RegisterResponse | Error>;
   login: (formData: LoginRequest) => Promise<LoginResponse | Error>;
-  getUserInfo: () => Promise<UserInfoResponse | Error>;
+  getUserInfo: (retryCount?: number) => Promise<UserInfoResponse | Error>;
   getUserInfoById: (user_id: number) => Promise<UserInfoResponse | Error>;
   changeUserPhoto: (user_id: number, photo: { photo: string }) => Promise<unknown>;
   changeUserEmail: (user_id: number, newEmail: string) => Promise<ApiResponse<unknown>>;
@@ -57,31 +57,82 @@ const userServices: UserServices = {
         },
         body: JSON.stringify(formData),
       });
-      if (!resp.ok) throw Error("Something went wrong");
+      
+      if (!resp.ok) {
+        const errorData = await resp.json().catch(() => ({}));
+        const errorMessage = errorData?.msg || errorData?.message || "Something went wrong";
+        throw new Error(errorMessage);
+      }
+      
       const data = await resp.json() as LoginResponse;
       console.log(data);
       return data;
     } catch (error) {
-      console.log(error);
+      console.error("Login error:", error);
+      // Si es un error de red, proporcionar un mensaje más útil
+      if (error instanceof TypeError && error.message === "Failed to fetch") {
+        return new Error("No se pudo conectar con el servidor. Verifica que el backend esté corriendo.");
+      }
       return error as Error;
     }
   },
 
-  getUserInfo: async (): Promise<UserInfoResponse | Error> => {
+  getUserInfo: async (retryCount: number = 0): Promise<UserInfoResponse | Error> => {
     try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        return new Error("No token found. Please log in again.");
+      }
+
       const resp = await fetch(normalizeUrl(url, "/api/private"), {
         headers: {
           "Content-Type": "application/json",
-          Authorization: "Bearer " + localStorage.getItem("token"),
+          Authorization: "Bearer " + token,
         },
       });
-      if (!resp.ok) throw Error("Something went wrong");
-      const data = await resp.json() as UserInfoResponse;
-      console.log(data);
-      localStorage.setItem("user", JSON.stringify(data.user));
-      return data;
+
+      if (!resp.ok) {
+        // Manejo especial para error 429 (Too Many Requests)
+        if (resp.status === 429) {
+          const retryAfter = resp.headers.get("Retry-After");
+          // Esperar más tiempo: mínimo 5 segundos para dar tiempo al rate limiter
+          const waitTime = retryAfter ? parseInt(retryAfter) * 1000 : Math.min(5000 * (retryCount + 1), 30000);
+          
+          // Si es el primer intento y el error es 429, esperar y reintentar una vez
+          if (retryCount === 0) {
+            console.warn(`Rate limit reached. Waiting ${waitTime}ms before retry...`);
+            await new Promise(resolve => setTimeout(resolve, waitTime));
+            // Llamar recursivamente a getUserInfo con retryCount = 1
+            return await userServices.getUserInfo(1);
+          }
+          
+          return new Error("Demasiadas solicitudes. Por favor, espera unos segundos e intenta de nuevo.");
+        }
+
+        // Manejo especial para error 401 (Unauthorized) - token inválido o expirado
+        if (resp.status === 401) {
+          localStorage.removeItem('token');
+          return new Error("Tu sesión ha expirado. Por favor, inicia sesión de nuevo.");
+        }
+
+        const errorData = await resp.json().catch(() => ({}));
+        const errorMessage = errorData?.error || errorData?.msg || errorData?.message || `HTTP ${resp.status}: ${resp.statusText}`;
+        console.error("getUserInfo error:", resp.status, errorMessage, errorData);
+        throw new Error(errorMessage);
+      }
+
+      const data = await resp.json();
+      
+      // El backend devuelve {success: 'true', user: {...}}
+      // Asegurarse de que el formato sea correcto
+      if (data.user) {
+        localStorage.setItem("user", JSON.stringify(data.user));
+        return { user: data.user } as UserInfoResponse;
+      } else {
+        throw new Error("Invalid response format: user not found");
+      }
     } catch (error) {
-      console.log(error);
+      console.error("getUserInfo error:", error);
       return error as Error;
     }
   },

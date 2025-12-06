@@ -33,10 +33,24 @@ export const NavbarHome: React.FC = () => {
     };
   }, []);
 
-  const handleStartClick = () => {
+  const handleStartClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    // Si el usuario ya está autenticado, navegar directamente sin abrir el modal
     if (store.user && store.user !== "undefined") {
+      e.preventDefault();
+      e.stopPropagation();
+      // Cerrar el modal si está abierto
+      const modalElement = document.getElementById("startModal");
+      if (modalElement && window.bootstrap?.Modal) {
+        // @ts-ignore - Bootstrap modal type not available
+        const modal = window.bootstrap.Modal.getInstance(modalElement);
+        if (modal) {
+          modal.hide();
+        }
+      }
       navigate('/private/profile');
+      return;
     }
+    // Si no hay usuario, dejar que Bootstrap abra el modal normalmente
   };
 
   return (
@@ -83,8 +97,10 @@ export const NavbarHome: React.FC = () => {
                     <button
                       type="button" 
                       className="btn navbar-home-font navbar-home-btn pulsate-bck" 
-                      data-bs-toggle="modal" 
-                      data-bs-target="#startModal" 
+                      {...(store.user && store.user !== "undefined" 
+                        ? {} 
+                        : { "data-bs-toggle": "modal", "data-bs-target": "#startModal" }
+                      )}
                       onClick={handleStartClick}
                     >
                       START

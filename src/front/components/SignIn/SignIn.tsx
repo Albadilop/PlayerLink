@@ -66,9 +66,13 @@ export const SignIn: React.FC<SignInProps> = ({ onSwitch }) => {
               setErrorLogin(ERROR_MESSAGES.GENERIC_ERROR);
             }
           } else {
-            // Si getUserInfo falla, limpiar token y mostrar error
-            localStorage.removeItem('token');
-            setErrorLogin('Error al obtener información del usuario');
+            // Si getUserInfo falla, mostrar el mensaje de error específico
+            const errorMessage = userInfo instanceof Error 
+              ? userInfo.message 
+              : 'Error al obtener información del usuario';
+            console.error('getUserInfo failed:', errorMessage);
+            // No limpiar el token inmediatamente, podría ser un error temporal
+            setErrorLogin(errorMessage);
           }
         } else {
           setErrorLogin(ERROR_MESSAGES.LOGIN_FAILED);
