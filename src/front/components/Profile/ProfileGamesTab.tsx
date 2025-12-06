@@ -18,7 +18,7 @@ export const ProfileGamesTab: React.FC<ProfileGamesTabProps> = ({
   games,
   availableGames: _availableGames,
   gameOptions,
-  loading,
+  loading: _loading,
   onAddGame,
   onDeleteGame,
   onUpdateGame,
@@ -195,7 +195,6 @@ export const ProfileGamesTab: React.FC<ProfileGamesTabProps> = ({
         ) : (
           <p>No games yet</p>
         )}
-        {loading && <p className="text-muted mt-3">Cargando lista de juegos disponibles...</p>}
       </div>
     </div>
   );

@@ -2,8 +2,8 @@
 .review-card {
   margin-bottom: 20px;
   padding: 15px;
-  background: linear-gradient(145deg, #0e0e1a, #1a1a2f);
-  border: 2px solid #7f00ff;
+  background: transparent;
+  border: none;
   border-radius: 10px;
 }
 
@@ -14,8 +14,13 @@
 .review-box {
   margin-top: 10px;
   padding: 10px;
-  background: #1a1a2f;
+  background: transparent;
   border-radius: 5px;
   color: #ccc;
 }
 
+/* Sobrescribir el estilo de .info-section p que aplica fondo negro */
+.info-section p.review-box {
+  background: transparent !important;
+  border: none !important;
+}

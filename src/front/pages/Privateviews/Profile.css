@@ -234,14 +234,18 @@
   width: 100%;
   padding: 10px 12px;
   border-radius: 8px;
-  transition: border 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    border 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
 .info-section input:focus,
 .info-section select:focus,
 .info-section textarea:focus {
   border: 2px solid #a020f0;
-  box-shadow: 0 0 8px #00ffff, 0 0 4px #a020f0;
+  box-shadow:
+    0 0 8px #00ffff,
+    0 0 4px #a020f0;
   outline: none;
 }
 
@@ -438,7 +442,10 @@
   background: #1a0129; /* tono muy oscuro púrpura */
   border: 2px solid #8a2be2; /* morado suave */
   border-radius: 30px;
-  transition: background 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
+  transition:
+    background 0.3s ease,
+    box-shadow 0.3s ease,
+    transform 0.2s ease;
   cursor: pointer;
 }
 
@@ -464,7 +471,7 @@
 }
 
 .review-box {
-  text-decoration: underline;
+  text-decoration: none;
 }
 /*------------Coming soon Activity tab ---------------- 
 .coming-soon-box {
@@ -504,8 +511,11 @@
   color: #fff;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  transition: background-color 200ms ease-in-out, border-color 200ms ease-in-out,
-    transform 150ms ease-out, box-shadow 200ms ease-in-out;
+  transition:
+    background-color 200ms ease-in-out,
+    border-color 200ms ease-in-out,
+    transform 150ms ease-out,
+    box-shadow 200ms ease-in-out;
   cursor: pointer;
 }
 
@@ -539,7 +549,9 @@
   background-color: #111827;
   border: 2px solid #7f00ff;
   border-radius: 16px;
-  box-shadow: 0 0 20px #7f00ff88, 0 0 40px #00f7ff55;
+  box-shadow:
+    0 0 20px #7f00ff88,
+    0 0 40px #00f7ff55;
   color: #ffffff;
 }
 
@@ -614,7 +626,9 @@
 }
 .btn-sci-fi-primary:hover {
   background: linear-gradient(135deg, #80dff7, #d776fd);
-  box-shadow: 0 0 15px #00f7ffaa, 0 0 15px #7f00ffaa;
+  box-shadow:
+    0 0 15px #00f7ffaa,
+    0 0 15px #7f00ffaa;
 }
 
 .btn-sci-fi-secondary {
@@ -638,7 +652,9 @@
   color: #00ffff;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 0 10px #00ffff66, 0 0 20px #ff00ff33;
+  box-shadow:
+    0 0 10px #00ffff66,
+    0 0 20px #ff00ff33;
   text-transform: uppercase;
   letter-spacing: 1px;
   margin-bottom: 4px;
@@ -647,7 +663,9 @@
 .section-button:hover {
   background-color: transparent;
   color: white;
-  box-shadow: 0 0 14px #00ffffcc, 0 0 24px #ff00ff88;
+  box-shadow:
+    0 0 14px #00ffffcc,
+    0 0 24px #ff00ff88;
   transform: scale(1.05);
 }
 

@@ -81,7 +81,7 @@ export interface ReviewsReceived {
 export interface Store {
   user: User | null;
   userMatchesInfo: Match[] | null;
-  itsMatchInfo: Match | null;
+  itsMatchInfo: User | null;
   likesSent: Like[];
   dislikesSent: Reject[];
   starsByUser: number | null;
@@ -107,5 +107,3 @@ export interface Action {
   type: ActionType;
   payload?: unknown;
 }
-
-
