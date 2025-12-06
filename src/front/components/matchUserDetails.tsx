@@ -4,8 +4,7 @@ import userServices from "../services/userServices";
 import useGlobalReducer from "../hooks/useGlobalReducer";
 import "../pages/Privateviews/Profile.css";
 import reviewServices from "../services/reviewServices";
-import { medalAssets } from "../constants/medalAssets";
-import { getPhotoAsset, defaultPhoto } from "../constants/photoAssets";
+import { selectMedal, selectPhoto } from "../utils/profileHelpers";
 import type { Game } from "../types";
 
 interface CommentForm {
@@ -85,19 +84,6 @@ export const MatchUserDetails: React.FC = () => {
     };
   }, [store.itsMatchInfo]);
 
-  const selectMedal = (gamehours: number | string): string => {
-    const hours = typeof gamehours === 'string' ? parseInt(gamehours, 10) : gamehours;
-    if (isNaN(hours)) {
-      return medalAssets.bronze;
-    }
-    if (hours >= 2500) {
-      return medalAssets.gold;
-    } else if (hours >= 500) {
-      return medalAssets.silver;
-    } else {
-      return medalAssets.bronze;
-    }
-  };
 
   const handleSaveComment = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -130,9 +116,6 @@ export const MatchUserDetails: React.FC = () => {
     }
   };
 
-  const selectPhoto = (): string => {
-    return getPhotoAsset(profile.photo) || defaultPhoto;
-  };
 
   return (
     <div className="profile-container">
@@ -140,7 +123,7 @@ export const MatchUserDetails: React.FC = () => {
       <div className="left-panel">
         <div className="avatar-section">
           <img
-            src={selectPhoto()}
+            src={selectPhoto(profile.photo)}
             alt="Profile avatar"
             className="profile-avatar"
           />
