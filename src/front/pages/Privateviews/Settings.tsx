@@ -266,6 +266,7 @@ const SettingsView: React.FC = () => {
                     value={password.actualPassword}
                     className='settings-change-password-input'
                     onChange={handleChange}
+                    autoComplete="current-password"
                   />
                   <i
                     onClick={() => setShowPassword(prev => !prev)}
@@ -283,6 +284,7 @@ const SettingsView: React.FC = () => {
                     value={password.password}
                     className="settings-change-password-input"
                     onChange={handleChange}
+                    autoComplete="new-password"
                   />
                   <i
                     onClick={() => setShowNewPassword(prev => !prev)}
@@ -299,7 +301,7 @@ const SettingsView: React.FC = () => {
                 </h5>
               )}
 
-              <input type="password" placeholder="Confirm New Password" name="confirmedPassword" value={password.confirmedPassword} onChange={handleChange} />
+              <input type="password" placeholder="Confirm New Password" name="confirmedPassword" value={password.confirmedPassword} onChange={handleChange} autoComplete="new-password" />
               {errorPassword && <h6 className="text-danger mt-1">{errorPassword}</h6>}
               {correctPassword && <h6 className="text-success mt-1">{correctPassword}</h6>}
 

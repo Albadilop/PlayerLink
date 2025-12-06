@@ -4,6 +4,7 @@ import '../components/ResetPassword/ResetPassword.css';
 import { Register } from "./Register/Register";
 import { SignIn } from "./SignIn/SignIn";
 import { ResetPassword } from "../components/ResetPassword/ResetPassword";
+import { Terms } from "./Terms/Terms";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import useGlobalReducer from "../hooks/useGlobalReducer";
@@ -129,6 +130,12 @@ export const NavbarHome: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Componente Terms renderizado aquí para que no se desmonte */}
+      <Terms onAccept={() => {
+        // Este callback se manejará desde Register usando eventos o estado global
+        console.log('Terms accepted from NavbarHome');
+      }} />
     </>
   );
 };

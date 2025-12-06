@@ -55,7 +55,8 @@ export const ResetPassword: React.FC = () => {
                       value={email} 
                       onChange={e => setEmail(e.target.value)} 
                       placeholder="email address" 
-                      className='w-100 border-0 rounded-2 btn-reset-card-border' 
+                      className='w-100 border-0 rounded-2 btn-reset-card-border'
+                      autoComplete="email"
                     />
                     <br />
 

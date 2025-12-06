@@ -132,7 +132,8 @@ export const SignIn: React.FC<SignInProps> = ({ onSwitch }) => {
                   placeholder="email" 
                   value={formData.email} 
                   onChange={handleChange} 
-                  className='w-100 border-0 rounded-2 border-1 btn-sign-in-card-border' 
+                  className='w-100 border-0 rounded-2 border-1 btn-sign-in-card-border'
+                  autoComplete="email"
                 />
                 <div>
                   <label htmlFor="basic-url" className="form-label mt-3 mb-0">Password</label>
@@ -146,6 +147,7 @@ export const SignIn: React.FC<SignInProps> = ({ onSwitch }) => {
                       value={formData.password}
                       onChange={handleChange}
                       className="w-100 border-0 "
+                      autoComplete="current-password"
                     />
                     <span
                       className="input-group-text border-0 bg-white"

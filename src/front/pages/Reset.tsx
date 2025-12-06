@@ -125,13 +125,14 @@ export const Reset: React.FC = () => {
 									</div>
 									<div className="d-flex btn-reset-card-border rounded-2">
 
-										<input
-											type={showPassword ? "text" : "password"}
-											onChange={handlePasswordChange}
-											value={password}
-											placeholder="Enter new password"
-											className="w-100 border-0"
-										/>
+									<input
+										type={showPassword ? "text" : "password"}
+										onChange={handlePasswordChange}
+										value={password}
+										placeholder="Enter new password"
+										className="w-100 border-0"
+										autoComplete="new-password"
+									/>
 										<span
 											className="input-group-text border-0 bg-white"
 											onClick={() => setShowPassword(prev => !prev)}
@@ -147,11 +148,12 @@ export const Reset: React.FC = () => {
 									</div>
 									<div className="d-flex btn-reset-card-border rounded-2">
 
-										<input
-											type="password"
-											onChange={handleRepeatPasswordChange}
-											value={repeatPassword}
-											placeholder="Repeat new password"
+									<input
+										type="password"
+										onChange={handleRepeatPasswordChange}
+										value={repeatPassword}
+										placeholder="Repeat new password"
+										autoComplete="new-password"
 											className="w-100 border-0"
 										/>
 

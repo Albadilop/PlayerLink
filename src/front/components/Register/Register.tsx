@@ -1,8 +1,8 @@
 import { useNavigate } from 'react-router-dom';
 import './Register.css';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import React from 'react';
 import userServices from '../../services/userServices';
-import { Terms } from '../Terms/Terms';
 import useGlobalReducer from '../../hooks/useGlobalReducer';
 
 interface RegisterProps {
@@ -12,6 +12,20 @@ interface RegisterProps {
 export const Register: React.FC<RegisterProps> = ({ onSwitch }) => {
   const navigate = useNavigate();
   const { dispatch } = useGlobalReducer();
+
+  // Escuchar el evento de términos aceptados
+  React.useEffect(() => {
+    const handleTermsAccepted = (e: CustomEvent) => {
+      console.log('📢 Terms accepted event received in Register');
+      setIsTermsAccepted(true);
+    };
+
+    window.addEventListener('termsAccepted', handleTermsAccepted as EventListener);
+    
+    return () => {
+      window.removeEventListener('termsAccepted', handleTermsAccepted as EventListener);
+    };
+  }, []);
 
   const [formData, setFormData] = useState({
     email: "",
@@ -80,12 +94,20 @@ export const Register: React.FC<RegisterProps> = ({ onSwitch }) => {
     // Muestra los T&C si aún no han sido aceptados
     if (!isTermsAccepted) {
       setShowTerms(true);
-      const modalElement = document.getElementById('TermsAndConditionsModal');
-      if (modalElement) {
-        // @ts-ignore - Bootstrap modal type not available
-        const modal = new bootstrap.Modal(modalElement);
-        modal.show();
-      }
+      // Usar setTimeout para asegurar que el componente Terms se haya renderizado
+      setTimeout(() => {
+        const modalElement = document.getElementById('TermsAndConditionsModal');
+        if (modalElement && window.bootstrap?.Modal) {
+          // @ts-ignore - Bootstrap modal type not available
+          // Usar getOrCreateInstance para evitar crear múltiples instancias
+          const modal = window.bootstrap.Modal.getOrCreateInstance(modalElement, {
+            backdrop: true,
+            keyboard: true,
+            focus: true
+          });
+          modal.show();
+        }
+      }, 150);
       return;
     }
 
@@ -105,15 +127,13 @@ export const Register: React.FC<RegisterProps> = ({ onSwitch }) => {
   };
 
   const handleTermsAccepted = () => {
+    console.log('✅ Terms accepted in Register');
     setIsTermsAccepted(true);
-    navigate('/private');
+    // No navegar aquí, dejar que el usuario continúe con el registro
   };
 
   return (
     <div className='d-flex justify-content-center'>
-      {/* MODAL TÉRMINOS */}
-      <Terms onAccept={() => setIsTermsAccepted(true)} />
-
       <div className='card register-card mt-5'>
         <div className="card-body">
           <div className="d-flex mb-1">
@@ -137,7 +157,8 @@ export const Register: React.FC<RegisterProps> = ({ onSwitch }) => {
                 placeholder="email" 
                 value={formData.email} 
                 onChange={handleChange} 
-                className='w-100 border-0 rounded-2 btn-register-card-border' 
+                className='w-100 border-0 rounded-2 btn-register-card-border'
+                autoComplete="email"
               />
 
               {errorEmailRegistered && <h5 className="text-danger mt-2 register-message-errors">{errorEmailRegistered}</h5>}
@@ -152,6 +173,7 @@ export const Register: React.FC<RegisterProps> = ({ onSwitch }) => {
                   value={formData.password}
                   onChange={handleChange}
                   className="w-100 border-0"
+                  autoComplete="new-password"
                 />
                 <span 
                   className="input-group-text border-0 bg-white" 
@@ -179,7 +201,8 @@ export const Register: React.FC<RegisterProps> = ({ onSwitch }) => {
                   placeholder="password" 
                   value={formData.repeatPassword} 
                   onChange={handleChange} 
-                  className="w-100 rounded-2 btn-register-card-border" 
+                  className="w-100 rounded-2 btn-register-card-border"
+                  autoComplete="new-password"
                 />
               </div>
               {/* Mensaje si la contraseña no es la misma */}
@@ -190,8 +213,7 @@ export const Register: React.FC<RegisterProps> = ({ onSwitch }) => {
         </div>
       </div>
 
-      {/* Solo renderiza Terms si showTerms es true */}
-      {showTerms && <Terms onAccept={handleTermsAccepted} />}
+      {/* Terms ahora se renderiza en NavbarHome para evitar desmontajes */}
     </div>
   );
 };
