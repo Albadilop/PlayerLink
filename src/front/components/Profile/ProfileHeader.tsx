@@ -10,6 +10,8 @@ export interface ProfileHeaderProps {
   bio: string;
   topThreeGames: Game[];
   onPhotoEdit: () => void;
+  isEditing?: boolean;
+  onBioChange?: (value: string) => void;
 }
 
 export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
@@ -19,6 +21,8 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   bio,
   topThreeGames,
   onPhotoEdit,
+  isEditing = false,
+  onBioChange,
 }) => {
   return (
     <div className="profile-header">
@@ -41,11 +45,19 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
       </p>
 
       {/* Bio */}
-      {bio && (
-        <div className="profile-bio">
-          <p>{bio}</p>
-        </div>
-      )}
+      <div className="profile-bio">
+        {isEditing ? (
+          <textarea
+            className="profile-bio-textarea"
+            rows={3}
+            value={bio}
+            onChange={(e) => onBioChange?.(e.target.value)}
+            placeholder="Write something about yourself..."
+          />
+        ) : (
+          <p>{bio || "No bio yet"}</p>
+        )}
+      </div>
 
       {/* Top Games */}
       {topThreeGames.length > 0 && (

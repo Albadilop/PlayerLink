@@ -725,6 +725,8 @@ const Profile: React.FC = () => {
           bio={profile.bio}
           topThreeGames={topThreeGames}
           onPhotoEdit={() => setShowModal(true)}
+          isEditing={isEditing}
+          onBioChange={(value) => handleInputChange("bio", value)}
         />
 
         <div className="right-panel">

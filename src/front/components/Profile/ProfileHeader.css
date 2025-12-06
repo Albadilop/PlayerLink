@@ -128,6 +128,30 @@
   font-style: italic;
 }
 
+.profile-bio-textarea {
+  width: 100%;
+  padding: 0.8rem;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(0, 240, 255, 0.3);
+  border-radius: 10px;
+  color: #fff;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  resize: vertical;
+  transition: all 0.3s ease;
+}
+
+.profile-bio-textarea:focus {
+  outline: none;
+  border-color: #00f0ff;
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
+}
+
+.profile-bio-textarea::placeholder {
+  color: #666;
+  font-style: italic;
+}
+
 /* ===== TOP GAMES ===== */
 .profile-top-games {
   width: 100%;
