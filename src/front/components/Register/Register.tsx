@@ -75,6 +75,10 @@ export const Register: React.FC<RegisterProps> = ({ onSwitch }) => {
     }
   };
 
+  const handleClose = () => {
+    setErrorEmailRegistered("");
+  };
+
   return (
     <AuthForm
       mode="register"
@@ -84,6 +88,7 @@ export const Register: React.FC<RegisterProps> = ({ onSwitch }) => {
       isLoading={isLoading}
       showTermsModal={showTermsModal}
       isTermsAccepted={isTermsAccepted}
+      onClose={handleClose}
     />
   );
 };

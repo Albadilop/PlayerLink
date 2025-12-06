@@ -123,7 +123,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({
 
   return (
     <div className='d-flex justify-content-center'>
-      <div className={`card ${mode}-card mt-5`}>
+      <div className={`card ${mode === 'signin' ? 'sign-in-card' : 'register-card'} mt-5`}>
         <div className="card-body">
           <div className="d-flex mb-1">
             {onClose && (
@@ -139,7 +139,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({
           <h2 className="card-title text-center">
             {isRegister ? 'Create an account' : 'Sign In'}
           </h2>
-          <h6 className={`card-subtitle mb-2 ${mode}-card-subtitle text-end me-4 pe-2 mb-3`}>
+          <h6 className={`card-subtitle mb-2 ${mode === 'signin' ? 'sign-in-card-subtitle' : 'register-card-subtitle'} text-end me-4 pe-2 mb-3`}>
             {isRegister ? (
               <>
                 Already have an account?{' '}
@@ -169,16 +169,16 @@ export const AuthForm: React.FC<AuthFormProps> = ({
                 placeholder="email" 
                 value={formData.email} 
                 onChange={handleChange} 
-                className='w-100 border-0 rounded-2 border-1 btn-sign-in-card-border'
+                className={`w-100 border-0 rounded-2 border-1 ${isRegister ? 'btn-register-card-border' : 'btn-sign-in-card-border'}`}
                 autoComplete="email"
               />
-              {emailError && <h5 className="text-danger mt-2 register-message-errors">{emailError}</h5>}
+              {emailError && <h5 className={`text-danger mt-2 ${isRegister ? 'register-message-errors' : 'sign-in-message-errors'}`}>{emailError}</h5>}
 
               <div className="mt-3">
                 <label htmlFor={`${mode}-password`} className="form-label mb-0">
                   Password
                 </label>
-                <div className="d-flex btn-register-card-border rounded-2">
+                <div className={`d-flex ${isRegister ? 'btn-register-card-border' : 'btn-sign-in-card-border'} rounded-2`}>
                   <input
                     type={showPassword ? "text" : "password"}
                     id={`${mode}-password`}
@@ -199,7 +199,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({
                   </span>
                 </div>
                 {passwordErrors.length > 0 && (
-                  <h5 className={`mt-2 register-message-errors ${isRegister ? 'text-warning' : 'text-danger'}`}>
+                  <h5 className={`mt-2 ${isRegister ? 'register-message-errors' : 'sign-in-message-errors'} ${isRegister ? 'text-warning' : 'text-danger'}`}>
                     Password must contain {passwordErrors.join(", ")}.
                   </h5>
                 )}
@@ -211,7 +211,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({
                     <label htmlFor={`${mode}-repeat-password`} className="form-label mb-0">
                       Repeat Password
                     </label>
-                    <div className="d-flex btn-register-card-border rounded-2">
+                    <div className={`d-flex ${isRegister ? 'btn-register-card-border' : 'btn-sign-in-card-border'} rounded-2`}>
                       <input
                         type={showRepeatPassword ? "text" : "password"}
                         id={`${mode}-repeat-password`}
@@ -236,7 +236,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({
               )}
 
               {!isRegister && (
-                <div className="form-text sign-in-password-subtitle mt-2" id="basic-addon4">
+                <div className={`form-text ${isRegister ? 'register-password-subtitle' : 'sign-in-password-subtitle'} mt-2`} id="basic-addon4">
                   Forgot your password? It's ok{' '}
                   <a
                     href="#"
@@ -258,7 +258,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({
               <input 
                 type="submit" 
                 value="Continue" 
-                className={`w-100 rounded-2 ${isRegister ? 'mt-4' : 'mt-5'} text-white bg-black btn-sign-in-card-border`}
+                className={`w-100 rounded-2 mt-4 text-white bg-black ${isRegister ? 'btn-register-card-border' : 'btn-sign-in-card-border'}`}
                 disabled={isLoading}
               />
             </div>
