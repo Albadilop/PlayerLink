@@ -1,28 +1,95 @@
 .matchCardd {
-  /* Quitamos width: 20rem; para que ocupe el 100% de la columna */
-  /* width: 20rem; */
-
-  /* Altura automática para respetar el contenido */
   height: auto;
-  border: 2px solid rgb(255, 255, 255); /* borde sutil en vez de blanco puro */
-  color: white;
+  background: linear-gradient(145deg, #0a0f1c, #1a1a2f);
+  border: 2px solid #00f0ff;
+  border-radius: 16px;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 240, 255, 0.1);
+}
 
-  /* Gradiente diagonal en tonos neón */
-  background: linear-gradient(
-    135deg,
-    #72e1ff,
-    #ef9af1
-  );
+.matchCardd:hover {
+  transform: translateY(-5px);
+  border-color: #8f00ff;
+  box-shadow:
+    0 8px 25px rgba(0, 240, 255, 0.2),
+    0 0 20px rgba(143, 0, 255, 0.15);
+}
+
+.matchCardd:hover .match-card-nickname {
+  color: #00f0ff;
+  text-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+}
+
+.match-card-nickname {
+  font-family: "Orbitron", "Segoe UI", sans-serif;
+  font-weight: 600;
+  font-size: 1.5rem;
+  color: #fff;
+  transition: all 0.3s ease;
+  letter-spacing: 0.5px;
+}
+
+.match-card-info {
+  color: #a0a0a0;
+  font-size: 0.9rem;
+}
+
+.match-card-info span {
+  color: #00f0ff;
+}
+
+.match-card-location {
+  color: #8f00ff;
+}
+
+.medalsBox {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(0, 240, 255, 0.2);
+  padding: 10px;
+  margin-top: 10px;
 }
 
 .imagenminicard {
-  border: 2px solid transparent;
-  border-radius: 12px;
+  border: 2px solid rgba(0, 240, 255, 0.4);
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
 
-  /* Borde multicolor: efecto neón con borde doble */
-  box-shadow: 
-    0 0 8px #8a00ff,     /* morado suave */
-    0 0 10px #00c0ff;     /* azul más brillante */
+.imagenminicard:hover {
+  border-color: #8f00ff;
+  box-shadow:
+    0 0 10px rgba(143, 0, 255, 0.4),
+    0 0 20px rgba(0, 240, 255, 0.2);
+  transform: scale(1.05);
+}
 
-  display: inline-block;
+.medal-img {
+  transition: transform 0.2s ease;
+}
+
+.medal-img:hover {
+  transform: scale(1.15);
+}
+
+.no-games-text {
+  color: #666;
+  font-style: italic;
+}
+
+/* Efecto de brillo sutil en el borde */
+@keyframes borderGlow {
+  0%,
+  100% {
+    box-shadow: 0 0 5px rgba(0, 240, 255, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(0, 240, 255, 0.5);
+  }
+}
+
+.matchCardd:hover {
+  animation: borderGlow 2s ease-in-out infinite;
 }

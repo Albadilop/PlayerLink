@@ -1,11 +1,11 @@
 // MatchMiniCard.tsx
-import React, { useEffect } from 'react';
-import './matchMiniCard.css';
+import React, { useEffect } from "react";
+import "./matchMiniCard.css";
 import goldMedal from "../assets/img/medals/gold-medal.png";
 import silverMedal from "../assets/img/medals/silver-medal.png";
 import bronzeMedal from "../assets/img/medals/bronze-medal.png";
-import { useNavigate } from 'react-router-dom';
-import type { Game } from '../types';
+import { useNavigate } from "react-router-dom";
+import type { Game } from "../types";
 
 interface MatchMiniCardProps {
   id: number | string;
@@ -18,33 +18,36 @@ interface MatchMiniCardProps {
 
 declare global {
   interface Window {
-    bootstrap: typeof import('bootstrap');
+    bootstrap: typeof import("bootstrap");
   }
 }
 
-export const MatchMiniCard: React.FC<MatchMiniCardProps> = ({ id, nickname, gender, games, age, location }) => {
+export const MatchMiniCard: React.FC<MatchMiniCardProps> = ({
+  id,
+  nickname,
+  gender,
+  games,
+  age,
+  location,
+}) => {
   useEffect(() => {
     // Selecciona todas las imágenes con data-bs-toggle="popover" y crea un Popover de Bootstrap para cada una
-    document
-      .querySelectorAll('[data-bs-toggle="popover"]')
-      .forEach((el) => {
-        if (window.bootstrap?.Popover) {
-          new window.bootstrap.Popover(el);
-        }
-      });
+    document.querySelectorAll('[data-bs-toggle="popover"]').forEach((el) => {
+      if (window.bootstrap?.Popover) {
+        new window.bootstrap.Popover(el);
+      }
+    });
   }, []); // Se ejecuta solo al montar
 
   const navigate = useNavigate();
 
   // Dentro del componente (antes del return), calcula los 3 juegos con más horas:
   const topThreeGames = games
-    ? [...games]
-      .sort((a, b) => (b.gameHoursPlayed || 0) - (a.gameHoursPlayed || 0))
-      .slice(0, 3)
+    ? [...games].sort((a, b) => (b.gameHoursPlayed || 0) - (a.gameHoursPlayed || 0)).slice(0, 3)
     : [];
 
   const selectMedal = (gamehours: number | string): string => {
-    const hours = typeof gamehours === 'string' ? parseInt(gamehours, 10) : gamehours;
+    const hours = typeof gamehours === "string" ? parseInt(gamehours, 10) : gamehours;
     if (isNaN(hours)) {
       return bronzeMedal;
     }
@@ -58,61 +61,65 @@ export const MatchMiniCard: React.FC<MatchMiniCardProps> = ({ id, nickname, gend
   };
 
   return (
-    <>
-      <div
-        className="match-card card h-100 w-100 matchCardd text-dark"
-        onClick={() => navigate(`matchDetails/${id}`)}
-      >
-        <div className="card-body d-flex flex-column p-3 pb-0">
-          <div className="row d-flex align-items-center mb-2">
-            <h5 className="col-12 card-title text-truncate mb-0 display-6">{nickname}</h5>
+    <div className="card h-100 w-100 matchCardd" onClick={() => navigate(`matchDetails/${id}`)}>
+      <div className="card-body d-flex flex-column p-3">
+        {/* Nickname */}
+        <div className="mb-2">
+          <h5 className="match-card-nickname text-truncate mb-0">{nickname}</h5>
+        </div>
+
+        {/* Info del usuario */}
+        <div className="row match-card-info mb-3">
+          <div className="col-12 col-lg-6 d-flex align-items-center mb-1">
+            <span className="fa-solid fa-location-dot me-2 match-card-location"></span>
+            <span className="text-truncate">{location}</span>
           </div>
-          <div className='row d-flex justify-content-around'>
-            <div className='col-lg-6 col-md-12 d-flex my-1 align-items-center'>
-              <span className='fa-solid fa-location-dot me-2'></span>
-              <p className='m-0'>{location}</p>
-            </div>
-            <div className='col-lg-6 col-md-12 d-flex my-1 align-items-center'>
-              <span className="fa-solid fa-user me-2"></span>
-              <p className='m-0'>{gender} • {age}</p>
-            </div>
-          </div>
-          <div className="flex-grow-1 overflow-auto align-content-center medalsBox rounded">
-            {topThreeGames && topThreeGames.length > 0 ? (
-              <div className="col-lg-4 col-md-6 col-lg-12 d-flex flex-row flex-nowrap justify-content-around">
-                {topThreeGames.map((el, index) => (
-                  <div key={el.id || index} className="d-flex flex-column justify-content-center align-items-center">
-                    <img
-                      src={el.gameImage}
-                      className="img-fluid imagenminicard"
-                      style={{ width: '100px', height: '50px', cursor: 'pointer', objectFit: 'cover' }}
-                      alt={el.gameTitle}
-                    />
-                    <img
-                      src={selectMedal(el.gameHoursPlayed)}
-                      className="img-fluid"
-                      style={{ width: '3rem', height: 'auto', cursor: 'pointer' }}
-                      alt="Medal"
-                      role="button"
-                      data-bs-toggle="popover"
-                      data-bs-trigger="hover focus"
-                      data-bs-container="body"
-                      data-bs-placement="bottom"
-                      data-bs-content={`${el.gameTitle} — ${el.gameHoursPlayed} horas`}
-                    />
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-center text-light mb-0">
-                <small>Este usuario no tiene juegos</small>
-              </p>
-            )}
+          <div className="col-12 col-lg-6 d-flex align-items-center mb-1">
+            <span className="fa-solid fa-user me-2"></span>
+            <span>
+              {gender} • {age}
+            </span>
           </div>
         </div>
+
+        {/* Games y Medallas */}
+        <div className="flex-grow-1 medalsBox rounded">
+          {topThreeGames && topThreeGames.length > 0 ? (
+            <div className="d-flex flex-row flex-nowrap justify-content-around align-items-center">
+              {topThreeGames.map((el, index) => (
+                <div
+                  key={el.id || index}
+                  className="d-flex flex-column justify-content-center align-items-center mx-1"
+                >
+                  <img
+                    src={el.gameImage}
+                    className="img-fluid imagenminicard mb-1"
+                    style={{ width: "80px", height: "45px", objectFit: "cover" }}
+                    alt={el.gameTitle}
+                  />
+                  <img
+                    src={selectMedal(el.gameHoursPlayed)}
+                    className="img-fluid medal-img"
+                    style={{ width: "2.5rem", height: "auto" }}
+                    alt="Medal"
+                    role="button"
+                    data-bs-toggle="popover"
+                    data-bs-trigger="hover focus"
+                    data-bs-container="body"
+                    data-bs-placement="bottom"
+                    data-bs-content={`${el.gameTitle} — ${el.gameHoursPlayed} hours`}
+                  />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-center no-games-text mb-0">
+              <i className="fa-solid fa-gamepad me-2"></i>
+              No games yet
+            </p>
+          )}
+        </div>
       </div>
-    </>
+    </div>
   );
 };
-
-
