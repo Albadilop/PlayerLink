@@ -1,37 +1,19 @@
 .profile-container {
   display: flex;
   flex-wrap: wrap;
-  padding: 20px;
+  gap: 2rem;
+  padding: 1.5rem;
   color: #fff;
 }
 
 .left-panel {
-  flex: 1 1 200px;
-  text-align: center;
-  width: 50px;
+  flex: 0 0 280px;
+  max-width: 280px;
 }
 
 .right-panel {
-  flex: 3 1 600px;
-  padding-left: 30px;
-}
-
-.profile-avatar {
-  width: 190px;
-  height: 280px;
-  border-radius: 20px;
-  border: 3px solid cyan;
-}
-
-.gear-btn {
-  background: transparent;
-  border: none;
-  font-size: 18px;
-  cursor: pointer;
-  position: relative;
-  top: -120px;
-  right: 1px;
-  color: cyan;
+  flex: 1;
+  min-width: 0;
 }
 .textareastyle {
   border: 2px solid #00ffff;
@@ -102,18 +84,25 @@
 }
 
 .edit-btn {
-  padding: 10px 20px;
-  border: 2px solid cyan;
+  padding: 12px 24px;
+  border: 2px solid #00f0ff;
   background: transparent;
-  color: cyan;
-  border-radius: 10px;
+  color: #00f0ff;
+  border-radius: 12px;
   cursor: pointer;
-  transition: 0.3s;
+  font-weight: 500;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
 }
 
 .edit-btn:hover {
-  background: cyan;
-  color: black;
+  background: rgba(0, 240, 255, 0.15);
+  box-shadow: 0 0 20px rgba(0, 240, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+.edit-btn:active {
+  transform: translateY(0);
 }
 
 .modal-overlay {
@@ -211,10 +200,14 @@
 
 .info-section {
   padding: 1.5rem;
-  background: linear-gradient(145deg, #0e0e1a, #1a1a2f);
-  border-radius: 12px;
-  border: 3px solid cyan;
-  box-shadow: 0 0 15px rgba(4, 0, 255, 0.1);
+  background: linear-gradient(145deg, #0a0f1c, #12182b);
+  border-radius: 16px;
+  border: 2px solid transparent;
+  background-image:
+    linear-gradient(145deg, #0a0f1c, #12182b), linear-gradient(135deg, #00f0ff, #8f00ff);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
 }
 
 .info-section label {
@@ -228,25 +221,29 @@
 .info-section input,
 .info-section select,
 .info-section textarea {
-  background: #111;
-  border: 2px solid cyan;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(0, 240, 255, 0.3);
   color: white;
   width: 100%;
-  padding: 10px 12px;
-  border-radius: 8px;
-  transition:
-    border 0.3s ease,
-    box-shadow 0.3s ease;
+  padding: 12px 14px;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  font-size: 0.95rem;
 }
 
 .info-section input:focus,
 .info-section select:focus,
 .info-section textarea:focus {
-  border: 2px solid #a020f0;
-  box-shadow:
-    0 0 8px #00ffff,
-    0 0 4px #a020f0;
+  border-color: #00f0ff;
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
   outline: none;
+  background: rgba(0, 240, 255, 0.05);
+}
+
+.info-section input:hover,
+.info-section select:hover,
+.info-section textarea:hover {
+  border-color: rgba(0, 240, 255, 0.5);
 }
 
 .info-section p {

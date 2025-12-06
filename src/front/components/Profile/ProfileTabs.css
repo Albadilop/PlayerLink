@@ -1,29 +1,116 @@
-.tabs {
+/* ===== PROFILE TABS ===== */
+.profile-tabs {
   display: flex;
-  gap: 10px;
-  margin: 20px 0;
-  border-bottom: 2px solid #7f00ff;
+  gap: 0.5rem;
+  margin: 1.5rem 0;
+  padding: 0.5rem;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 16px;
+  border: 1px solid rgba(0, 240, 255, 0.1);
 }
 
-.tabs button {
+.profile-tab {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 0.9rem 1.2rem;
   background: transparent;
   border: none;
-  padding: 10px 20px;
-  color: #fff;
+  border-radius: 12px;
+  color: #a0a0a0;
+  font-size: 0.95rem;
+  font-weight: 500;
   cursor: pointer;
-  border-bottom: 3px solid transparent;
-  transition: all 0.3s;
-  font-size: 16px;
+  transition: all 0.3s ease;
+  overflow: hidden;
 }
 
-.tabs button:hover {
-  color: #00ffff;
-  border-bottom-color: #00ffff;
+.profile-tab i {
+  font-size: 1rem;
+  transition: all 0.3s ease;
 }
 
-.tabs button.active {
-  color: #00ffff;
-  border-bottom-color: #00ffff;
-  font-weight: bold;
+/* Hover state */
+.profile-tab:hover {
+  color: #fff;
+  background: rgba(0, 240, 255, 0.1);
 }
 
+.profile-tab:hover i {
+  color: #00f0ff;
+}
+
+/* Active state */
+.profile-tab.active {
+  color: #fff;
+  background: linear-gradient(135deg, rgba(0, 240, 255, 0.2), rgba(143, 0, 255, 0.15));
+  box-shadow:
+    0 0 20px rgba(0, 240, 255, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.profile-tab.active i {
+  color: #00f0ff;
+  text-shadow: 0 0 10px rgba(0, 240, 255, 0.8);
+}
+
+/* Active indicator */
+.profile-tab-indicator {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40%;
+  height: 3px;
+  background: linear-gradient(90deg, #00f0ff, #8f00ff);
+  border-radius: 3px 3px 0 0;
+  animation: indicator-appear 0.3s ease-out;
+}
+
+@keyframes indicator-appear {
+  0% {
+    width: 0;
+    opacity: 0;
+  }
+  100% {
+    width: 40%;
+    opacity: 1;
+  }
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .profile-tabs {
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+
+  .profile-tab {
+    justify-content: flex-start;
+    padding: 0.8rem 1rem;
+  }
+
+  .profile-tab-indicator {
+    left: 0;
+    bottom: auto;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 60%;
+    border-radius: 0 3px 3px 0;
+  }
+
+  @keyframes indicator-appear {
+    0% {
+      height: 0;
+      opacity: 0;
+    }
+    100% {
+      height: 60%;
+      opacity: 1;
+    }
+  }
+}

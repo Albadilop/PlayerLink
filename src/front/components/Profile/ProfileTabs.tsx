@@ -1,5 +1,5 @@
-import React from 'react';
-import './ProfileTabs.css';
+import React from "react";
+import "./ProfileTabs.css";
 
 export interface ProfileTabsProps {
   activeTab: string;
@@ -7,23 +7,30 @@ export interface ProfileTabsProps {
   tabs?: string[];
 }
 
+const tabIcons: Record<string, string> = {
+  info: "fa-solid fa-user",
+  Games: "fa-solid fa-gamepad",
+  comments: "fa-solid fa-comments",
+};
+
 export const ProfileTabs: React.FC<ProfileTabsProps> = ({
   activeTab,
   onTabChange,
-  tabs = ['info', 'Games', 'comments'],
+  tabs = ["info", "Games", "comments"],
 }) => {
   return (
-    <div className="tabs">
-      {tabs.map(tab => (
+    <div className="profile-tabs">
+      {tabs.map((tab) => (
         <button
           key={tab}
-          className={activeTab === tab ? 'active' : ''}
+          className={`profile-tab ${activeTab === tab ? "active" : ""}`}
           onClick={() => onTabChange(tab)}
         >
-          {tab.charAt(0).toUpperCase() + tab.slice(1)}
+          <i className={tabIcons[tab] || "fa-solid fa-circle"} />
+          <span>{tab.charAt(0).toUpperCase() + tab.slice(1)}</span>
+          {activeTab === tab && <span className="profile-tab-indicator" />}
         </button>
       ))}
     </div>
   );
 };
-
