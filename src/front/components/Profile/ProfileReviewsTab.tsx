@@ -131,15 +131,15 @@ export const ProfileReviewsTab: React.FC<ProfileReviewsTabProps> = ({
           {safeReviews && safeReviews.length > 0 ? (
             <>
               {paginationData.currentReviews.map((review) => (
-                <div key={review.id} className="review-card">
+                <div key={review.id} className="col-12 review-card">
                   <div className="review-container">
                     <div className="review-header">
                       <span className="review-author">{review.author_nickname}</span>
                       <div className="review-stars">{renderStars(review.stars)}</div>
                     </div>
                     <p className="m-0 border-0 review-box">
-                      <span className="fa-solid fa-comment"></span>
-                      {review.comment}
+                      <i className="fa-solid fa-comment"></i>
+                      <span>{review.comment}</span>
                     </p>
                   </div>
                 </div>
