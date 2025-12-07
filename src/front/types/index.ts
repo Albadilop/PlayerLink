@@ -40,6 +40,7 @@ export interface Review {
   author_nickname: string;
   stars: number;
   comment: string | null;
+  created_at?: string;
 }
 
 export interface Like {

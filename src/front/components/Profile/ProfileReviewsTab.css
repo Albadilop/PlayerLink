@@ -53,10 +53,31 @@
   gap: 0.5rem;
 }
 
+.review-header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
 .review-author {
   font-weight: 600;
   color: #00f0ff;
   font-size: 0.9rem;
+}
+
+.review-date {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  color: #999;
+  font-style: italic;
+}
+
+.review-date i {
+  font-size: 0.7rem;
+  color: #8f00ff;
 }
 
 .review-stars {

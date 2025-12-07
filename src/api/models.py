@@ -124,6 +124,9 @@ class Review(db.Model):
         'users.id', ondelete='CASCADE'), nullable=False)
     stars: Mapped[int] = mapped_column(Integer, nullable=False)
     comment: Mapped[str] = mapped_column(String(100), nullable=True)
+    created_at: Mapped[DateTime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
 
     # Relaciones
     user: Mapped[User] = relationship(
@@ -139,7 +142,8 @@ class Review(db.Model):
             'author_id': self.author_id,
             'author_nickname': self.author.profile.nick_name if self.author.profile and self.author.profile.nick_name else "undefinied",
             "stars": self.stars,
-            "comment": self.comment
+            "comment": self.comment,
+            "created_at": self.created_at.isoformat() if self.created_at else None
         }
 
 
