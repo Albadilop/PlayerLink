@@ -5,7 +5,7 @@ import os
 from werkzeug.utils import secure_filename
 from flask import Blueprint, request, jsonify, Response
 from flask_jwt_extended import get_jwt_identity, jwt_required
-from sqlalchemy import select, not_
+from sqlalchemy import select, not_, or_, func
 from api.models import db, User, Profile
 from api.validators import (
     verify_ownership,
@@ -196,22 +196,95 @@ def put_profile(user_id: int, _user: User, _profile: Profile, _data: dict) -> Tu
 @require_user_exists('user_id')
 def profiles_to_explore(user_id: int, _user: User) -> Tuple[Response, int]:
     """Get profiles available for exploration (excluding already liked/rejected)"""
+    from api.models import UserSettings, BlockedUser
+    
     # Obtener los IDs de usuarios a los que ya le dio like
     liked_user_ids = [like.liked_id for like in _user.likes_given]
 
     # Obtener los IDs de usuarios a los que ya le dio reject
     rejected_user_ids = [reject.rejected_id for reject in _user.rejects_given]
+    
+    # Obtener usuarios bloqueados
+    blocked_user_ids = [
+        block.blocked_id for block in db.session.execute(
+            select(BlockedUser).where(BlockedUser.blocker_id == user_id)
+        ).scalars().all()
+    ]
 
     # IDs a excluir
-    exclude_ids = set(liked_user_ids + rejected_user_ids + [user_id])
+    exclude_ids = set(liked_user_ids + rejected_user_ids + blocked_user_ids + [user_id])
+    
+    # Obtener preferencias de matching del usuario
+    settings = db.session.execute(
+        select(UserSettings).where(UserSettings.user_id == user_id)
+    ).scalar_one_or_none()
+    
+    # Construir query base
+    query = db.session.query(Profile).join(User).filter(not_(User.id.in_(exclude_ids)))
+    
+    # Aplicar filtros de preferencias si existen
+    if settings:
+        # Filtro de visibilidad - solo mostrar perfiles visibles y searchable
+        # Obtener IDs de usuarios que tienen visibilidad desactivada
+        hidden_user_ids = db.session.query(UserSettings.user_id).filter(
+            or_(
+                UserSettings.profile_visible == False,
+                UserSettings.searchable == False
+            )
+        ).subquery()
+        # Excluir usuarios ocultos
+        query = query.filter(~User.id.in_(select(hidden_user_ids.c.user_id)))
+        
+        # Filtro de edad
+        if settings.min_age_preference is not None:
+            query = query.filter(Profile.age >= settings.min_age_preference)
+        if settings.max_age_preference is not None:
+            query = query.filter(Profile.age <= settings.max_age_preference)
+        
+        # Filtro de género
+        if settings.gender_preference:
+            query = query.filter(Profile.gender == settings.gender_preference)
+        
+        # Filtro de idioma
+        if settings.language_preference:
+            # Buscar perfiles que tengan al menos uno de los idiomas preferidos
+            preferred_languages = [lang.strip() for lang in settings.language_preference.split(',')]
+            language_filters = [Profile.language.contains(lang) for lang in preferred_languages]
+            if language_filters:
+                query = query.filter(or_(*language_filters))
+        
+        # Filtro de gaming preferences
+        if settings.gaming_preference:
+            preferred_gaming = [pref.strip() for pref in settings.gaming_preference.split(',')]
+            gaming_filters = [Profile.preferences.contains(pref) for pref in preferred_gaming]
+            if gaming_filters:
+                query = query.filter(or_(*gaming_filters))
+        
+        # Solo juegos en común
+        if settings.only_common_games and _user.profile and _user.profile.games:
+            user_game_titles = {game.game_title for game in _user.profile.games if game.game_title}
+            if user_game_titles:
+                from api.models import Game
+                # Buscar perfiles que tengan al menos un juego en común
+                profiles_with_common_games = db.session.query(Game.profile_id).filter(
+                    Game.game_title.in_(user_game_titles)
+                ).distinct().subquery()
+                query = query.filter(Profile.id.in_(select(profiles_with_common_games.c.profile_id)))
+        
+        # Mínimo de horas jugadas
+        if settings.min_hours_played is not None:
+            from api.models import Game
+            # Calcular total de horas por perfil
+            profile_hours = db.session.query(
+                Game.profile_id,
+                func.sum(Game.game_hoursPlayed).label('total_hours')
+            ).group_by(Game.profile_id).having(
+                func.sum(Game.game_hoursPlayed) >= settings.min_hours_played
+            ).subquery()
+            query = query.filter(Profile.id.in_(select(profile_hours.c.profile_id)))
 
-    # Buscar usuarios que no estén en exclude_ids y que tengan perfil
-    profiles = (
-        db.session.query(Profile)
-        .join(User)
-        .filter(not_(User.id.in_(exclude_ids)))
-        .all()
-    )
+    # Ejecutar query
+    profiles = query.all()
 
     # Serializar perfiles
     result = [profile.serialize() for profile in profiles]

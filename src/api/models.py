@@ -259,3 +259,116 @@ class Reject(db.Model):
             "rejector_id": self.rejector_id,
             "rejected_id": self.rejected_id
         }
+
+
+class UserSettings(db.Model):
+    """User settings and preferences"""
+    __tablename__ = 'user_settings'
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey('users.id'), unique=True, nullable=False)
+    
+    # Matching Preferences
+    min_age_preference: Mapped[int] = mapped_column(Integer, nullable=True)
+    max_age_preference: Mapped[int] = mapped_column(Integer, nullable=True)
+    gender_preference: Mapped[str] = mapped_column(String(30), nullable=True)
+    language_preference: Mapped[str] = mapped_column(String(200), nullable=True)
+    gaming_preference: Mapped[str] = mapped_column(String(200), nullable=True)
+    min_hours_played: Mapped[int] = mapped_column(Integer, nullable=True)
+    only_common_games: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    discovery_enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    
+    # Privacy Settings
+    profile_visible: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    show_age: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    show_location: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    show_hours_played: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    show_steam_id: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    show_discord: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    searchable: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    
+    # Notification Preferences
+    email_match_notifications: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    email_like_notifications: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    email_review_notifications: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    email_weekly_summary: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    app_sound_notifications: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    app_push_notifications: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    
+    # Gaming Preferences
+    steam_sync_enabled: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    steam_sync_frequency: Mapped[str] = mapped_column(String(20), default='manual', nullable=True)  # manual, daily, weekly
+    show_steam_library: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    
+    # Social Preferences
+    chat_from_matches_only: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    read_receipts_enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    
+    # Relationship
+    user: Mapped[User] = relationship('User', backref='settings')
+    
+    def serialize(self):
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
+            "matching": {
+                "min_age_preference": self.min_age_preference,
+                "max_age_preference": self.max_age_preference,
+                "gender_preference": self.gender_preference,
+                "language_preference": self.language_preference,
+                "gaming_preference": self.gaming_preference,
+                "min_hours_played": self.min_hours_played,
+                "only_common_games": self.only_common_games,
+                "discovery_enabled": self.discovery_enabled,
+            },
+            "privacy": {
+                "profile_visible": self.profile_visible,
+                "show_age": self.show_age,
+                "show_location": self.show_location,
+                "show_hours_played": self.show_hours_played,
+                "show_steam_id": self.show_steam_id,
+                "show_discord": self.show_discord,
+                "searchable": self.searchable,
+            },
+            "notifications": {
+                "email_match_notifications": self.email_match_notifications,
+                "email_like_notifications": self.email_like_notifications,
+                "email_review_notifications": self.email_review_notifications,
+                "email_weekly_summary": self.email_weekly_summary,
+                "app_sound_notifications": self.app_sound_notifications,
+                "app_push_notifications": self.app_push_notifications,
+            },
+            "gaming": {
+                "steam_sync_enabled": self.steam_sync_enabled,
+                "steam_sync_frequency": self.steam_sync_frequency,
+                "show_steam_library": self.show_steam_library,
+            },
+            "social": {
+                "chat_from_matches_only": self.chat_from_matches_only,
+                "read_receipts_enabled": self.read_receipts_enabled,
+            }
+        }
+
+
+class BlockedUser(db.Model):
+    """Blocked users"""
+    __tablename__ = 'blocked_users'
+    id: Mapped[int] = mapped_column(primary_key=True)
+    blocker_id: Mapped[int] = mapped_column(ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    blocked_id: Mapped[int] = mapped_column(ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    reason: Mapped[str] = mapped_column(String(200), nullable=True)
+    created_at: Mapped[DateTime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    
+    # Relationships
+    blocker: Mapped[User] = relationship('User', foreign_keys=[blocker_id], backref='blocked_users')
+    blocked: Mapped[User] = relationship('User', foreign_keys=[blocked_id], backref='blocked_by_users')
+    
+    def serialize(self):
+        return {
+            "id": self.id,
+            "blocker_id": self.blocker_id,
+            "blocked_id": self.blocked_id,
+            "reason": self.reason,
+            "created_at": self.created_at.isoformat() if self.created_at else None
+        }

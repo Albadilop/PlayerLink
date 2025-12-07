@@ -1,38 +1,21 @@
-import React, { type ReactElement } from 'react';
-import { render, type RenderOptions } from '@testing-library/react';
-import { StoreProvider } from './hooks/useGlobalReducer';
-import type { Store } from './types';
-import { initialStore } from './store';
+import React, { type ReactElement } from "react";
+import { render, type RenderOptions } from "@testing-library/react";
+import { StoreProvider } from "./hooks/useGlobalReducer";
 
-interface CustomRenderOptions extends Omit<RenderOptions, 'wrapper'> {
-  preloadedState?: Partial<Store>;
-}
+interface CustomRenderOptions extends Omit<RenderOptions, "wrapper"> {}
 
-const AllTheProviders = ({ children, preloadedState }: { children: React.ReactNode; preloadedState?: Partial<Store> }) => {
-  const store = { ...initialStore(), ...preloadedState };
-  return (
-    <StoreProvider>
-      {children}
-    </StoreProvider>
-  );
+// eslint-disable-next-line react-refresh/only-export-components
+const AllTheProviders = ({ children }: { children: React.ReactNode }) => {
+  return <StoreProvider>{children}</StoreProvider>;
 };
 
-const customRender = (
-  ui: ReactElement,
-  options: CustomRenderOptions = {}
-) => {
-  const { preloadedState, ...renderOptions } = options;
+const customRender = (ui: ReactElement, options: CustomRenderOptions = {}) => {
   return render(ui, {
-    wrapper: ({ children }) => (
-      <AllTheProviders preloadedState={preloadedState}>
-        {children}
-      </AllTheProviders>
-    ),
-    ...renderOptions,
+    wrapper: ({ children }) => <AllTheProviders>{children}</AllTheProviders>,
+    ...options,
   });
 };
 
-export * from '@testing-library/react';
+// eslint-disable-next-line react-refresh/only-export-components
+export * from "@testing-library/react";
 export { customRender as render };
-
-

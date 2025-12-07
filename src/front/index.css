@@ -1,14 +1,53 @@
+:root {
+  /* Dark theme (default) */
+  --bg-primary: #0a0f1c;
+  --bg-secondary: #12182b;
+  --bg-tertiary: #121212;
+  --text-primary: #ffffff;
+  --text-secondary: #a0a0a0;
+  --accent-cyan: #00f0ff;
+  --accent-purple: #8f00ff;
+  --border-color: rgba(0, 240, 255, 0.3);
+  --shadow-color: rgba(0, 0, 0, 0.5);
+}
+
+body.light-theme {
+  --bg-primary: #f5f5f5;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #e8e8e8;
+  --text-primary: #121212;
+  --text-secondary: #4a4a4a;
+  --accent-cyan: #00a8b5;
+  --accent-purple: #6b1fb8;
+  --border-color: rgba(0, 168, 181, 0.3);
+  --shadow-color: rgba(0, 0, 0, 0.1);
+}
+
 * {
-  font-family: 'Audiowide', sans-serif;
+  font-family: "Audiowide", sans-serif;
   box-sizing: border-box;
 }
 
 body.modal-open {
   padding-right: 0 !important;
-  
 }
 
-body{
+body {
   padding: 0 !important;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 
+/* Animation control */
+body.no-animations *,
+body.no-animations *::before,
+body.no-animations *::after {
+  animation-duration: 0s !important;
+  animation-delay: 0s !important;
+  transition-duration: 0s !important;
+  transition-delay: 0s !important;
+  scroll-behavior: auto !important;
+}

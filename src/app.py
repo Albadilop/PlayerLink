@@ -93,6 +93,7 @@ from api.games import games_bp
 from api.reviews import reviews_bp
 from api.matches import matches_bp
 from api.chat import chat_bp
+from api.settings import settings_bp
 
 # Register main API blueprint
 app.register_blueprint(api, url_prefix='/api')
@@ -105,6 +106,7 @@ app.register_blueprint(games_bp, url_prefix='/api')
 app.register_blueprint(reviews_bp, url_prefix='/api')
 app.register_blueprint(matches_bp, url_prefix='/api')
 app.register_blueprint(chat_bp, url_prefix='/api')
+app.register_blueprint(settings_bp, url_prefix='/api')
 
 # Make limiter available to rate_limiter module
 from api.rate_limiter import set_limiter
