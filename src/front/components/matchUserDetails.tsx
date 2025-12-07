@@ -491,76 +491,75 @@ export const MatchUserDetails: React.FC = () => {
               aria-labelledby="commentModalLabel"
               aria-hidden="true"
             >
-              <div className="modal-dialog">
-                <div className="modal-content modal-sci-fi">
-                  <div className="modal-header modal-sci-fi-header">
-                    <h5 className="modal-title modal-sci-fi-title" id="commentModalLabel">
-                      Leave a new comment
-                    </h5>
+              <div className="modal-dialog modal-dialog-centered">
+                <div className="modal-content onboarding-game-modal">
+                  <div className="modal-header onboarding-game-header">
+                    <div className="onboarding-game-title-wrapper">
+                      <i className="fa-solid fa-comment onboarding-game-icon"></i>
+                      <h3 className="onboarding-game-title" id="commentModalLabel">
+                        Leave a new comment
+                      </h3>
+                    </div>
                     <button
                       type="button"
-                      className="btn-close"
+                      className="modal-close onboarding-game-close"
                       data-bs-dismiss="modal"
                       aria-label="Close"
-                    />
+                    >
+                      <i className="fa-solid fa-times" />
+                    </button>
                   </div>
-                  <div className="modal-body">
-                    <div className="modal-body modal-sci-fi-body">
-                      {/* Rating */}
-                      <div className="mb-3 text-warning">
-                        <label className="form-label">Stars</label>
-                        <div>
-                          {[1, 2, 3, 4, 5].map((star) => (
-                            <i
-                              key={star}
-                              className={`fa-star fa-2x ${
-                                (hoverRating || newComment.stars) >= star
-                                  ? "fa-solid"
-                                  : "fa-regular"
-                              }`}
-                              style={{ cursor: "pointer", marginRight: "0.5rem" }}
-                              onClick={() => setNewComment((prev) => ({ ...prev, stars: star }))}
-                              onMouseEnter={() => setHoverRating(star)}
-                              onMouseLeave={() => setHoverRating(0)}
-                            />
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Comment textarea */}
-                      <div className="mb-3">
-                        <label htmlFor="newComment" className="form-label">
-                          Comment
-                        </label>
-                        <textarea
-                          id="newComment"
-                          className="form-control"
-                          rows={3}
-                          value={newComment.comment}
-                          onChange={(e) =>
-                            setNewComment((prev) => ({ ...prev, comment: e.target.value }))
-                          }
-                        />
+                  <div className="modal-body onboarding-game-body">
+                    {/* Rating */}
+                    <div className="form-group onboarding-game-group">
+                      <label className="onboarding-game-label">
+                        <i className="fa-solid fa-star onboarding-game-label-icon"></i>
+                        Rating
+                      </label>
+                      <div className="comment-rating-stars">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <i
+                            key={star}
+                            className={`fa-star comment-star ${
+                              (hoverRating || newComment.stars) >= star ? "fa-solid" : "fa-regular"
+                            }`}
+                            onClick={() => setNewComment((prev) => ({ ...prev, stars: star }))}
+                            onMouseEnter={() => setHoverRating(star)}
+                            onMouseLeave={() => setHoverRating(0)}
+                          />
+                        ))}
                       </div>
                     </div>
+
+                    {/* Comment textarea */}
+                    <div className="form-group onboarding-game-group">
+                      <label className="onboarding-game-label" htmlFor="newComment">
+                        <i className="fa-solid fa-comment-dots onboarding-game-label-icon"></i>
+                        Comment
+                      </label>
+                      <textarea
+                        id="newComment"
+                        className="onboarding-game-textarea"
+                        rows={4}
+                        value={newComment.comment}
+                        onChange={(e) =>
+                          setNewComment((prev) => ({ ...prev, comment: e.target.value }))
+                        }
+                        placeholder="Write your comment here..."
+                      />
+                    </div>
                   </div>
-                  <div className="modal-footer modal-sci-fi-footer">
+                  <div className="modal-footer onboarding-game-footer">
                     <button
                       type="button"
-                      className="btn btn-sci-fi-primary"
-                      data-bs-dismiss="modal"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="button"
-                      className="btn-sci-fi-primary"
+                      className="btn onboarding-game-btn-add"
                       onClick={(e) => {
                         e.preventDefault();
                         handleSaveComment(e as unknown as React.FormEvent<HTMLFormElement>);
                       }}
                       disabled={!newComment.comment.trim() || newComment.stars === 0}
                     >
+                      <i className="fa-solid fa-check"></i>
                       Save comment
                     </button>
                   </div>
