@@ -165,7 +165,7 @@ export const Onboarding: React.FC = () => {
         await userServices.getUserInfo(0, true);
       } catch (err) {
         console.error("Error saving field:", err);
-        setSaveError("Error al guardar. Intenta de nuevo.");
+        setSaveError("Error saving. Please try again.");
       } finally {
         setIsSaving(false);
       }
@@ -259,10 +259,10 @@ export const Onboarding: React.FC = () => {
       <div className="onboarding-content">
         <div className="onboarding-header">
           <h1 className="onboarding-title">
-            <i className="fa-solid fa-rocket" /> Completa tu Perfil
+            <i className="fa-solid fa-rocket" /> Complete Your Profile
           </h1>
           <p className="onboarding-subtitle">
-            Completa estos campos para desbloquear todas las funcionalidades de PlayerLink
+            Complete these fields to unlock all PlayerLink features
           </p>
         </div>
 
@@ -272,7 +272,7 @@ export const Onboarding: React.FC = () => {
             <div className="progress-bar-fill" style={{ width: `${completionPercentage}%` }} />
           </div>
           <p className="progress-text">
-            {completionPercentage}% completado ({6 - missingFields.length}/6 campos)
+            {completionPercentage}% complete ({6 - missingFields.length}/6 fields)
           </p>
         </div>
 
@@ -280,7 +280,7 @@ export const Onboarding: React.FC = () => {
         {isComplete && (
           <div className="onboarding-success">
             <i className="fa-solid fa-check-circle" />
-            <p>¡Perfil completo! Redirigiendo...</p>
+            <p>Profile complete! Redirecting...</p>
           </div>
         )}
 
@@ -288,14 +288,14 @@ export const Onboarding: React.FC = () => {
         {saveError && (
           <div className="onboarding-error">
             <i className="fa-solid fa-exclamation-circle" />
-            <p>{saveError}</p>
+            <p>Error saving. Please try again.</p>
           </div>
         )}
 
         {/* Missing Fields Indicator */}
         {missingFields.length > 0 && !isComplete && (
           <div className="onboarding-missing">
-            <p className="missing-title">Campos pendientes:</p>
+            <p className="missing-title">Pending fields:</p>
             <ul className="missing-list">
               {missingFields.map((field) => (
                 <li key={field}>
@@ -310,23 +310,23 @@ export const Onboarding: React.FC = () => {
         {/* Form */}
         <div className="onboarding-form">
           <div className="form-section">
-            <h3 className="section-title">Información Básica</h3>
+            <h3 className="section-title">Basic Information</h3>
 
             {/* Name */}
             <div className="form-group">
               <label className={missingFields.includes("name") ? "required" : ""}>
-                Nombre <span className="required-mark">*</span>
+                Name <span className="required-mark">*</span>
               </label>
               <input
                 type="text"
                 value={formState.name}
                 onChange={(e) => handleInputChange("name", e.target.value)}
-                placeholder="Tu nombre"
+                placeholder="Your name"
                 maxLength={40}
                 className={missingFields.includes("name") ? "error" : ""}
               />
               {missingFields.includes("name") && (
-                <span className="field-error">Mínimo 2 caracteres</span>
+                <span className="field-error">Minimum 2 characters</span>
               )}
             </div>
 
@@ -339,12 +339,12 @@ export const Onboarding: React.FC = () => {
                 type="text"
                 value={formState.nick_name}
                 onChange={(e) => handleInputChange("nick_name", e.target.value)}
-                placeholder="Tu nickname"
+                placeholder="Your nickname"
                 maxLength={21}
                 className={missingFields.includes("nick_name") ? "error" : ""}
               />
               {missingFields.includes("nick_name") && (
-                <span className="field-error">Mínimo 2 caracteres</span>
+                <span className="field-error">Minimum 2 characters</span>
               )}
             </div>
 
@@ -352,7 +352,7 @@ export const Onboarding: React.FC = () => {
             <div className="form-row">
               <div className="form-group">
                 <label className={missingFields.includes("age") ? "required" : ""}>
-                  Edad <span className="required-mark">*</span>
+                  Age <span className="required-mark">*</span>
                 </label>
                 <input
                   type="number"
@@ -364,13 +364,13 @@ export const Onboarding: React.FC = () => {
                   className={missingFields.includes("age") ? "error" : ""}
                 />
                 {missingFields.includes("age") && (
-                  <span className="field-error">Debes ser mayor de 18 años</span>
+                  <span className="field-error">You must be 18 or older</span>
                 )}
               </div>
 
               <div className="form-group">
                 <label className={missingFields.includes("gender") ? "required" : ""}>
-                  Género <span className="required-mark">*</span>
+                  Gender <span className="required-mark">*</span>
                 </label>
                 <select
                   value={formState.gender}
@@ -384,7 +384,7 @@ export const Onboarding: React.FC = () => {
                   ))}
                 </select>
                 {missingFields.includes("gender") && (
-                  <span className="field-error">Selecciona un género</span>
+                  <span className="field-error">Please select a gender</span>
                 )}
               </div>
             </div>
@@ -392,18 +392,18 @@ export const Onboarding: React.FC = () => {
             {/* Location */}
             <div className="form-group">
               <label className={missingFields.includes("location") ? "required" : ""}>
-                Ubicación <span className="required-mark">*</span>
+                Location <span className="required-mark">*</span>
               </label>
               <input
                 type="text"
                 value={formState.location}
                 onChange={(e) => handleInputChange("location", e.target.value)}
-                placeholder="Tu ciudad o país"
+                placeholder="Your city or country"
                 maxLength={50}
                 className={missingFields.includes("location") ? "error" : ""}
               />
               {missingFields.includes("location") && (
-                <span className="field-error">Mínimo 2 caracteres</span>
+                <span className="field-error">Minimum 2 characters</span>
               )}
             </div>
           </div>
@@ -411,9 +411,9 @@ export const Onboarding: React.FC = () => {
           {/* Games Section */}
           <div className="form-section">
             <h3 className="section-title">
-              Juegos <span className="required-mark">*</span>
+              Games <span className="required-mark">*</span>
             </h3>
-            <p className="section-description">Agrega al menos un juego a tu perfil</p>
+            <p className="section-description">Add at least one game to your profile</p>
 
             {/* Games List */}
             {userGames.length > 0 && (
@@ -429,11 +429,11 @@ export const Onboarding: React.FC = () => {
 
             {/* Add Game Button */}
             <button type="button" className="btn-add-game" onClick={() => setShowGameForm(true)}>
-              <i className="fa-solid fa-plus" /> Agregar Juego
+              <i className="fa-solid fa-plus" /> Add Game
             </button>
 
             {missingFields.includes("games") && (
-              <span className="field-error">Agrega al menos un juego</span>
+              <span className="field-error">Add at least one game</span>
             )}
           </div>
         </div>
@@ -447,11 +447,10 @@ export const Onboarding: React.FC = () => {
               disabled={!isComplete || isSaving}
               onClick={() => navigate("/private/profile")}
             >
-              {isSaving ? "Guardando..." : "Continuar"}
+              {isSaving ? "Saving..." : "Continue"}
             </button>
             <p className="help-text">
-              Los campos se guardan automáticamente. Completa todos los campos marcados con * para
-              continuar.
+              Fields are saved automatically. Complete all fields marked with * to continue.
             </p>
           </div>
         )}
@@ -462,7 +461,7 @@ export const Onboarding: React.FC = () => {
         <div className="modal-overlay" onClick={() => setShowGameForm(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>Agregar Juego</h3>
+              <h3>Add Game</h3>
               <button
                 type="button"
                 className="modal-close"
@@ -476,7 +475,7 @@ export const Onboarding: React.FC = () => {
             </div>
             <div className="modal-body">
               <div className="form-group">
-                <label>Selecciona un juego</label>
+                <label>Select a game</label>
                 <Select
                   options={gameOptions}
                   value={gameOptions.find((opt) => opt.value === gameFormData.title) || null}
@@ -488,7 +487,7 @@ export const Onboarding: React.FC = () => {
                   }
                   isSearchable
                   isClearable
-                  placeholder="Buscar juego..."
+                  placeholder="Search game..."
                   isLoading={loadingGames}
                 />
                 {gameFormErrors.repeatedGame && (
@@ -496,7 +495,7 @@ export const Onboarding: React.FC = () => {
                 )}
               </div>
               <div className="form-group">
-                <label>Horas jugadas</label>
+                <label>Hours played</label>
                 <input
                   type="number"
                   value={gameFormData.hours_played || ""}
@@ -506,7 +505,7 @@ export const Onboarding: React.FC = () => {
                       hours_played: Number(e.target.value),
                     }))
                   }
-                  placeholder="Ej: 42"
+                  placeholder="e.g. 42"
                   min={1}
                   max={10000}
                 />
@@ -524,10 +523,10 @@ export const Onboarding: React.FC = () => {
                   setGameFormErrors({});
                 }}
               >
-                Cancelar
+                Cancel
               </button>
               <button type="button" className="btn-save" onClick={handleAddGame}>
-                Agregar
+                Add
               </button>
             </div>
           </div>

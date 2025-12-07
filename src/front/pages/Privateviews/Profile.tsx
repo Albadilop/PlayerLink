@@ -756,10 +756,10 @@ const Profile: React.FC = () => {
             </div>
             <div className="completion-banner-text">
               <h4 className="completion-banner-title">
-                Perfil Incompleto ({completionPercentage}% completado)
+                Incomplete Profile ({completionPercentage}% complete)
               </h4>
               <p className="completion-banner-message">
-                Completa los siguientes campos para desbloquear todas las funcionalidades:
+                Complete the following fields to unlock all features:
               </p>
               <ul className="completion-banner-fields">
                 {missingFields.map((field) => (
@@ -773,7 +773,7 @@ const Profile: React.FC = () => {
                 className="completion-banner-button"
                 onClick={() => navigate("/private/onboarding")}
               >
-                <i className="fa-solid fa-rocket" /> Completar Perfil
+                <i className="fa-solid fa-rocket" /> Complete Profile
               </button>
             </div>
           </div>
@@ -783,7 +783,7 @@ const Profile: React.FC = () => {
       {isComplete && (
         <div className="profile-completion-success">
           <i className="fa-solid fa-check-circle" />
-          <span>¡Perfil completo! Ya puedes usar todas las funcionalidades de PlayerLink.</span>
+          <span>Profile complete! You can now use all PlayerLink features.</span>
         </div>
       )}
 

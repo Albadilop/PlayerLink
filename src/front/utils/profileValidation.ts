@@ -79,12 +79,12 @@ export function isProfileComplete(profile: Profile | null): ProfileValidationRes
  */
 export function getFieldLabel(fieldName: string): string {
   const labels: Record<string, string> = {
-    name: "Nombre",
+    name: "Name",
     nick_name: "Nickname",
-    age: "Edad",
-    gender: "Género",
-    location: "Ubicación",
-    games: "Juegos",
+    age: "Age",
+    gender: "Gender",
+    location: "Location",
+    games: "Games",
   };
 
   return labels[fieldName] || fieldName;
