@@ -32,7 +32,9 @@
   background-origin: border-box;
   background-clip: padding-box, border-box;
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
-  height: fit-content;
+  height: 750px; /* Altura fija para mantener el tamaño constante */
+  box-sizing: border-box;
+  overflow: hidden; /* Evitar que el contenido se desborde */
 }
 
 /* Avatar */
@@ -101,20 +103,56 @@
 /* Bio */
 .match-bio {
   width: 100%;
+  height: 120px; /* Altura fija para la bio */
   padding: 1rem;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
   background: rgba(0, 0, 0, 0.3);
   border-radius: 12px;
   border: 1px solid rgba(143, 0, 255, 0.3);
-  margin-bottom: 1rem;
+  box-sizing: border-box;
+  overflow-y: auto; /* Permitir scroll vertical */
+  overflow-x: hidden; /* Ocultar scroll horizontal */
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  display: flex;
+  align-items: flex-start; /* Alinear al inicio para mejor scroll */
+  justify-content: center;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+/* Estilos para el scrollbar personalizado */
+.match-bio::-webkit-scrollbar {
+  width: 6px;
+}
+
+.match-bio::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+}
+
+.match-bio::-webkit-scrollbar-thumb {
+  background: rgba(143, 0, 255, 0.5);
+  border-radius: 10px;
+  transition: background 0.3s ease;
+}
+
+.match-bio::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 240, 255, 0.7);
 }
 
 .match-bio p {
   margin: 0;
   color: #c0c0c0;
   font-size: 0.9rem;
-  line-height: 1.5;
+  line-height: 1.4;
   text-align: center;
   font-style: italic;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
+  white-space: normal;
 }
 
 /* Top Games */
@@ -613,6 +651,20 @@
     flex: none;
     max-width: 100%;
     width: 100%;
+    height: 700px; /* Altura ligeramente menor en móvil */
+  }
+
+  .match-avatar-wrapper {
+    width: 150px;
+    height: 180px;
+  }
+
+  .match-nickname {
+    font-size: 1.5rem;
+  }
+
+  .match-bio {
+    height: 100px; /* Altura ligeramente menor en móvil */
   }
 
   .match-info-grid {
