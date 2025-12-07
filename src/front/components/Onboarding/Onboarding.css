@@ -715,6 +715,44 @@
   z-index: 9999 !important;
 }
 
+.onboarding-game-select :global(.onboarding-select__menu-portal) {
+  z-index: 10000 !important;
+}
+
+/* Estilos para el menú cuando se renderiza en el portal */
+.onboarding-select__menu {
+  background: linear-gradient(145deg, #0e0e1a, #1a1a2f) !important;
+  border: 2px solid #7f00ff !important;
+  border-radius: 10px !important;
+  box-shadow:
+    0 10px 30px rgba(127, 0, 255, 0.4),
+    0 0 20px rgba(0, 240, 255, 0.2),
+    inset 0 0 20px rgba(127, 0, 255, 0.1) !important;
+}
+
+.onboarding-select__menu-list {
+  padding: 0.5rem !important;
+  max-height: 300px !important;
+}
+
+.onboarding-select__menu-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.onboarding-select__menu-list::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+.onboarding-select__menu-list::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #7f00ff, #00f0ff);
+  border-radius: 4px;
+}
+
+.onboarding-select__menu-list::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #8f00ff, #00ffff);
+}
+
 .onboarding-game-select :global(.onboarding-select__menu-list) {
   padding: 0.5rem !important;
   max-height: 300px !important;
