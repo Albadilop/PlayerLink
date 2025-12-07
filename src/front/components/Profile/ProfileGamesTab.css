@@ -342,7 +342,20 @@
 
 .section-title-icon {
   color: #00f0ff;
-  font-size: 1.5rem;
+  font-size: 1.2rem;
+  margin-right: 0.5rem;
+}
+
+.info-section h3 {
+  color: #fff;
+  font-size: 1.75rem;
+  font-weight: 500;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: inherit;
+  text-shadow: none;
 }
 
 .tooltip-wrapper {
@@ -501,6 +514,158 @@
 .medal-info-bronze {
   color: #cd7f32;
   font-size: 1rem;
+}
+
+/* ===== MEDAL SYSTEM INFO CARD ===== */
+.medal-system-info-card {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(0, 240, 255, 0.2);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  margin: 1rem 0 1rem 0;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  width: fit-content;
+  max-width: 100%;
+  margin-left: 0;
+  margin-right: auto;
+}
+
+.medal-system-info-card::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.1), transparent);
+  transition: left 0.5s ease;
+}
+
+.medal-system-info-card:hover {
+  background: rgba(0, 0, 0, 0.5);
+  border-color: rgba(0, 240, 255, 0.4);
+  box-shadow: 0 4px 15px rgba(0, 240, 255, 0.15);
+  transform: translateY(-2px);
+}
+
+.medal-system-info-card:hover::after {
+  left: 100%;
+}
+
+.medal-system-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(0, 240, 255, 0.2);
+}
+
+.medal-system-icon {
+  color: #00f0ff;
+  font-size: 0.9rem;
+  filter: drop-shadow(0 0 5px rgba(0, 240, 255, 0.5));
+}
+
+.medal-system-title {
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin: 0;
+  font-family: "Orbitron", "Segoe UI", sans-serif;
+  text-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.medal-system-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.medal-system-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0;
+  transition: all 0.2s ease;
+}
+
+.medal-system-item:hover {
+  padding-left: 0.25rem;
+  color: #fff;
+}
+
+.medal-system-item i {
+  font-size: 0.85rem;
+  width: 16px;
+  text-align: center;
+}
+
+.medal-system-gold {
+  color: #ffd700;
+  filter: drop-shadow(0 0 3px rgba(255, 215, 0, 0.5));
+}
+
+.medal-system-silver {
+  color: #c0c0c0;
+  filter: drop-shadow(0 0 3px rgba(192, 192, 192, 0.5));
+}
+
+.medal-system-bronze {
+  color: #cd7f32;
+  filter: drop-shadow(0 0 3px rgba(205, 127, 50, 0.5));
+}
+
+.medal-system-label {
+  color: #00f0ff;
+  font-weight: 600;
+  font-size: 0.75rem;
+  min-width: 50px;
+  font-family: "Orbitron", "Segoe UI", sans-serif;
+}
+
+.medal-system-value {
+  color: #c0c0c0;
+  font-size: 0.7rem;
+  flex: 1;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .medal-system-info-card {
+    padding: 0.6rem 0.875rem;
+    margin: 0.75rem 0;
+  }
+
+  .medal-system-header {
+    margin-bottom: 0.4rem;
+    padding-bottom: 0.4rem;
+  }
+
+  .medal-system-title {
+    font-size: 0.8rem;
+  }
+
+  .medal-system-content {
+    gap: 0.3rem;
+  }
+
+  .medal-system-item {
+    padding: 0.2rem 0;
+  }
+
+  .medal-system-label {
+    font-size: 0.7rem;
+    min-width: 45px;
+  }
+
+  .medal-system-value {
+    font-size: 0.65rem;
+  }
 }
 
 /* Área de contenido de games */

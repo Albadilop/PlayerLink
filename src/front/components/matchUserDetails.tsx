@@ -264,8 +264,8 @@ export const MatchUserDetails: React.FC = () => {
   if (isLoading || !store.itsMatchInfo) {
     return (
       <div className="match-profile-loading">
-        <div className="spinner-border text-info" role="status" />
-        <p>Loading profile...</p>
+        <div className="loading-matches-spinner"></div>
+        <h4 className="loading-matches-text">Loading profile...</h4>
       </div>
     );
   }
@@ -364,9 +364,9 @@ export const MatchUserDetails: React.FC = () => {
         {/* Games Tab */}
         {activeTab === "Games" && (
           <div className="container info-section">
-            <div className="row d-flex justify-content-around align-items-center">
-              <div className="col-lg-6 col-md-12 col-sm-12 mt-3">
-                <h2 className="section-title">
+            <div className="row justify-content-between align-items-center mb-3">
+              <div className="col-auto">
+                <h3 className="m-0">
                   <i className="fa-solid fa-gamepad section-title-icon"></i>
                   Games
                   <span className="tooltip-wrapper">
@@ -386,7 +386,7 @@ export const MatchUserDetails: React.FC = () => {
                       <span className="medal-info-tooltip-arrow"></span>
                     </span>
                   </span>
-                </h2>
+                </h3>
               </div>
             </div>
             <div className="games-content-area">
