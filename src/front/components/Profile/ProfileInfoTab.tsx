@@ -1,9 +1,9 @@
-import React from 'react';
-import { GENDER_OPTIONS } from '../../constants';
-import { formatPreferences, parsePreferences } from '../../utils/formatters';
-import { GamingPreferencesModal } from '../ProfileModals/GamingPreferencesModal';
-import { LanguageModal } from '../ProfileModals/LanguageModal';
-import './ProfileInfoTab.css';
+import React from "react";
+import { GENDER_OPTIONS } from "../../constants";
+import { formatPreferences } from "../../utils/formatters";
+import { GamingPreferencesModal } from "../ProfileModals/GamingPreferencesModal";
+import { LanguageModal } from "../ProfileModals/LanguageModal";
+import "./ProfileInfoTab.css";
 
 export interface ProfileInfoTabProps {
   profile: {
@@ -29,13 +29,22 @@ export interface ProfileInfoTabProps {
   onLanguagesChange: (languages: string[]) => void;
   onShowGamingPreferencesModal: (show: boolean) => void;
   onShowLanguageModal: (show: boolean) => void;
-  onSave: () => void;
+  onSave?: () => void;
 }
 
 const zodiacSigns = [
-  "Aries", "Taurus", "Gemini", "Cancer",
-  "Leo", "Virgo", "Libra", "Scorpio",
-  "Sagittarius", "Capricorn", "Aquarius", "Pisces"
+  "Aries",
+  "Taurus",
+  "Gemini",
+  "Cancer",
+  "Leo",
+  "Virgo",
+  "Libra",
+  "Scorpio",
+  "Sagittarius",
+  "Capricorn",
+  "Aquarius",
+  "Pisces",
 ];
 
 export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
@@ -55,12 +64,12 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
   const genders = [...GENDER_OPTIONS];
 
   const handleGamingPreferencesSave = () => {
-    onInputChange('preferences', formatPreferences(selectedGamingPreferences));
+    onInputChange("preferences", formatPreferences(selectedGamingPreferences));
     onShowGamingPreferencesModal(false);
   };
 
   const handleLanguagesSave = () => {
-    onInputChange('languages', formatPreferences(selectedLanguages));
+    onInputChange("languages", formatPreferences(selectedLanguages));
     onShowLanguageModal(false);
   };
 
@@ -68,14 +77,14 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
     <div className="info-section container">
       {/* Nombre y Nickname */}
       <div className="row">
-        {(['name', 'nick_name'] as const).map((f, i) => (
+        {(["name", "nick_name"] as const).map((f, i) => (
           <div key={i} className="col-md-6">
-            <label>{f === 'nick_name' ? 'Nickname' : 'Name'}</label>
+            <label>{f === "nick_name" ? "Nickname" : "Name"}</label>
             {isEditing ? (
               <input
                 type="text"
                 value={profile[f]}
-                onChange={e => onInputChange(f, e.target.value)}
+                onChange={(e) => onInputChange(f, e.target.value)}
                 maxLength={11}
               />
             ) : (
@@ -92,7 +101,7 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
             <input
               type="number"
               value={profile.age}
-              onChange={e => onInputChange('age', +e.target.value)}
+              onChange={(e) => onInputChange("age", +e.target.value)}
               max={120}
               min={1}
             />
@@ -105,9 +114,11 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
           {isEditing ? (
             <select
               value={profile.gender}
-              onChange={e => onInputChange('gender', e.target.value)}
+              onChange={(e) => onInputChange("gender", e.target.value)}
             >
-              {genders.map((g, idx) => <option key={idx}>{g}</option>)}
+              {genders.map((g, idx) => (
+                <option key={idx}>{g}</option>
+              ))}
             </select>
           ) : (
             <p>{profile.gender}</p>
@@ -118,9 +129,11 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
           {isEditing ? (
             <select
               value={profile.zodiac}
-              onChange={e => onInputChange('zodiac', e.target.value)}
+              onChange={(e) => onInputChange("zodiac", e.target.value)}
             >
-              {zodiacSigns.map((z, idx) => <option key={idx}>{z}</option>)}
+              {zodiacSigns.map((z, idx) => (
+                <option key={idx}>{z}</option>
+              ))}
             </select>
           ) : (
             <p>{profile.zodiac}</p>
@@ -129,19 +142,21 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
       </div>
       {/* Contacto y preferencias */}
       <div className="row">
-        {(['discord', 'steam_id'] as const).map((f, i) => (
+        {(["discord", "steam_id"] as const).map((f, i) => (
           <div key={i} className="col-md-6">
             <label className="d-flex align-items-center gap-2 mt-1 mb-1">
-              {f === 'steam_id' ? 'Steam Friend ID' : 'Discord'}
+              {f === "steam_id" ? "Steam Friend ID" : "Discord"}
               <div>
                 <span className="tooltip-wrapper">
                   <i className="fa-solid fa-circle-info fa-xl discord-info-icon"></i>
                   <span className="tooltip-text discord-info-tooltip-text">
                     <strong>Connect with your matches</strong>
                     <div>
-                      The Discord or Steam info<br />
+                      The Discord or Steam info
+                      <br />
                       in your profile will be <br />
-                      used by your matches<br />
+                      used by your matches
+                      <br />
                       to reach out to you.
                     </div>
                   </span>
@@ -152,7 +167,7 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
               <input
                 type="text"
                 value={profile[f]}
-                onChange={e => onInputChange(f, e.target.value)}
+                onChange={(e) => onInputChange(f, e.target.value)}
                 maxLength={30}
               />
             ) : (
@@ -203,7 +218,7 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
             <input
               type="text"
               value={profile.location}
-              onChange={e => onInputChange('location', e.target.value)}
+              onChange={(e) => onInputChange("location", e.target.value)}
               maxLength={20}
               minLength={4}
             />
@@ -217,10 +232,7 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
             {isEditing ? (
               <>
                 <div className="section-container">
-                  <button
-                    onClick={() => onShowLanguageModal(true)}
-                    className="section-button"
-                  >
+                  <button onClick={() => onShowLanguageModal(true)} className="section-button">
                     Select Languages
                   </button>
                   <p style={{ minHeight: "38px" }}>
@@ -247,14 +259,17 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
           </div>
         </div>
       </div>
-      <div className="row mt-3">
-        <div className="col text-left">
-          <button className="edit-btn" onClick={onSave}>
-            {isEditing ? 'Save' : 'Edit'}
-          </button>
+      {/* Solo mostrar botón de edición si no es solo lectura (isEditing puede ser false pero aún así queremos mostrar el botón) */}
+      {/* Para el perfil del match, pasaremos una prop adicional o simplemente no mostraremos el botón */}
+      {onSave && (
+        <div className="row mt-3">
+          <div className="col text-left">
+            <button className="edit-btn" onClick={onSave}>
+              {isEditing ? "Save" : "Edit"}
+            </button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
-

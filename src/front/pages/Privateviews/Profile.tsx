@@ -206,21 +206,21 @@ const Profile: React.FC = () => {
 
   const getReviews = useCallback(async () => {
     if (!store.user?.id) {
-      console.log("getReviews: No user ID available");
       return;
     }
-    console.log("getReviews: Fetching reviews for user ID:", store.user.id);
     try {
       const data = await reviewServices.getAllReviewsReceived(store.user.id);
-      console.log("getReviews: Response data:", data);
       if (!(data instanceof Error)) {
-        console.log("getReviews: Dispatching reviews to store:", data);
         dispatch({ type: "matchReviewsReceived", payload: data });
       } else {
         console.error("Error loading reviews:", data);
+        // Guardar un objeto vacío en lugar del Error
+        dispatch({ type: "matchReviewsReceived", payload: { reviews_received: [] } });
       }
     } catch (error) {
       console.error("Error in getReviews:", error);
+      // Guardar un objeto vacío en caso de error
+      dispatch({ type: "matchReviewsReceived", payload: { reviews_received: [] } });
     }
   }, [store.user?.id, dispatch]);
 
@@ -768,10 +768,13 @@ const Profile: React.FC = () => {
     }
   };
 
-  const reviews = store.matchReviewsReceived?.reviews_received || [];
-  console.log("Profile component - reviews from store:", reviews);
-  console.log("Profile component - store.matchReviewsReceived:", store.matchReviewsReceived);
-  console.log("Profile component - reviews length:", reviews.length);
+  // Asegurar que matchReviewsReceived no sea un Error
+  const reviewsData =
+    store.matchReviewsReceived instanceof Error
+      ? { reviews_received: [] }
+      : store.matchReviewsReceived;
+
+  const reviews = reviewsData?.reviews_received || [];
 
   return (
     <>

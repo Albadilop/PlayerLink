@@ -270,6 +270,11 @@
     linear-gradient(145deg, #0a0f1c, #12182b), linear-gradient(135deg, #00f0ff, #8f00ff);
   background-origin: border-box;
   background-clip: padding-box, border-box;
+  transition: all 0.3s ease;
+}
+
+.match-info-section:hover {
+  box-shadow: 0 6px 40px rgba(143, 0, 255, 0.2);
 }
 
 .match-section-title {
@@ -294,10 +299,18 @@
 }
 
 .match-info-item {
-  padding: 1rem;
+  padding: 1.25rem;
   background: rgba(0, 0, 0, 0.3);
   border-radius: 12px;
   border: 1px solid rgba(0, 240, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.match-info-item:hover {
+  background: rgba(0, 0, 0, 0.4);
+  border-color: rgba(0, 240, 255, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 240, 255, 0.1);
 }
 
 .match-info-item.full-width {
@@ -308,17 +321,31 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   color: #00f0ff;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+  text-shadow: 0 0 8px rgba(0, 240, 255, 0.3);
 }
 
 .match-info-item p {
   margin: 0;
-  color: #fff;
+  color: #e0e0e0;
   font-size: 1rem;
+  padding: 0.5rem 0;
+  transition: all 0.3s ease;
+}
+
+.match-info-item p:empty::before {
+  content: "—";
+  color: #666;
+  font-style: italic;
+}
+
+.match-info-item:hover p {
+  color: #fff;
 }
 
 .match-contact {

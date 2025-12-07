@@ -208,14 +208,25 @@
   background-origin: border-box;
   background-clip: padding-box, border-box;
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+}
+
+.info-section:hover {
+  box-shadow: 0 6px 40px rgba(143, 0, 255, 0.2);
 }
 
 .info-section label {
-  color: white;
-  font-weight: bold;
+  color: #00f0ff;
+  font-weight: 600;
   margin-top: 1rem;
-  display: block;
-  font-size: 0.95rem;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-shadow: 0 0 8px rgba(0, 240, 255, 0.3);
 }
 
 .info-section input,
@@ -248,12 +259,27 @@
 
 .info-section p {
   padding: 10px 12px;
-  background: #111;
-  border: 2px solid #da11b8;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(0, 240, 255, 0.2);
   border-radius: 8px;
-  color: white;
+  color: #e0e0e0;
   margin-bottom: 0.5rem;
   white-space: pre-line;
+  transition: all 0.3s ease;
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+}
+
+.info-section p:empty::before {
+  content: "—";
+  color: #666;
+  font-style: italic;
+}
+
+.info-section p:hover {
+  border-color: rgba(0, 240, 255, 0.4);
+  background: rgba(0, 0, 0, 0.4);
 }
 
 /* === Resoluciones pequeñas pantalla general. === */
@@ -460,16 +486,7 @@
   transform: translateY(0);
 }
 
-.review-container {
-  border: 2px solid rgb(238, 112, 247);
-  border-radius: 20px;
-  padding: 1rem;
-  margin: 5px;
-}
-
-.review-box {
-  text-decoration: none;
-}
+/* Review styles moved to ProfileReviewsTab.css for better organization */
 /*------------Coming soon Activity tab ---------------- 
 .coming-soon-box {
   margin-top: 20px;

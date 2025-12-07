@@ -7,6 +7,9 @@ import "../pages/Privateviews/Profile.css";
 import "./Profile/ProfileGamesTab.css";
 import reviewServices from "../services/reviewServices";
 import { selectMedal, selectPhoto } from "../utils/profileHelpers";
+import { ProfileInfoTab } from "./Profile/ProfileInfoTab";
+import { ProfileReviewsTab } from "./Profile/ProfileReviewsTab";
+import { parsePreferences } from "../utils/formatters";
 import type { Game, Profile } from "../types";
 
 const GAMES_PER_PAGE = 4;
@@ -30,19 +33,7 @@ declare global {
   }
 }
 
-const renderStars = (stars: number) => {
-  return [...Array(5)].map((_, i) => (
-    <i
-      key={i}
-      className={`fa-star ${i < stars ? "fa-solid" : "fa-regular"}`}
-      style={{
-        color: "#ffc107",
-        opacity: i >= stars ? 0.4 : 1,
-        textShadow: i < stars ? "0 0 8px rgba(255, 193, 7, 0.5)" : "none",
-      }}
-    />
-  ));
-};
+// renderStars removido - ahora se usa ProfileReviewsTab que tiene su propia función
 
 const tabIcons: Record<string, string> = {
   info: "fa-solid fa-user",
@@ -158,16 +149,39 @@ export const MatchUserDetails: React.FC = () => {
 
       const userId = parseInt(id, 10);
 
-      Promise.all([
-        userServices.getUserInfoById(userId),
-        reviewServices.getAllReviewsReceived(userId),
-      ])
-        .then(([userData, reviewsData]) => {
-          dispatch({ type: "getItsMatchInfo", payload: userData });
-          dispatch({ type: "matchReviewsReceived", payload: reviewsData });
+      // Cargar datos del usuario y reviews por separado para mejor manejo de errores
+      userServices
+        .getUserInfoById(userId)
+        .then((userData) => {
+          if (!(userData instanceof Error)) {
+            dispatch({ type: "getItsMatchInfo", payload: userData });
+          } else {
+            console.error("Error loading user info:", userData);
+          }
         })
-        .catch((err) => console.error("Failed to load user info:", err))
-        .finally(() => setIsLoading(false));
+        .catch((err) => {
+          console.error("Failed to load user info:", err);
+        });
+
+      // Cargar reviews por separado con un pequeño delay para evitar problemas de timing
+      setTimeout(() => {
+        reviewServices
+          .getAllReviewsReceived(userId)
+          .then((reviewsData) => {
+            // Verificar que reviewsData no sea un Error
+            if (reviewsData instanceof Error) {
+              console.error("Error loading reviews:", reviewsData);
+              dispatch({ type: "matchReviewsReceived", payload: { reviews_received: [] } });
+            } else {
+              dispatch({ type: "matchReviewsReceived", payload: reviewsData });
+            }
+          })
+          .catch((err) => {
+            console.error("Failed to load reviews:", err);
+            dispatch({ type: "matchReviewsReceived", payload: { reviews_received: [] } });
+          })
+          .finally(() => setIsLoading(false));
+      }, 100); // Pequeño delay para asegurar que el backend esté listo
     }
   }, [navigate, store.user, id, dispatch]);
 
@@ -187,20 +201,28 @@ export const MatchUserDetails: React.FC = () => {
   const profile = useMemo(() => {
     const p: Partial<Profile> = store.itsMatchInfo?.profile ?? {};
     return {
-      name: p.name ?? "No data",
-      nickname: p.nick_name ?? "No data",
-      age: p.age ?? "No data",
-      gender: p.gender ?? "No data",
-      location: p.location ?? "No data",
-      zodiac: p.zodiac ?? "No data",
-      discord: p.discord ?? "No data",
-      steam: p.steam ?? "No data",
-      languages: p.language ?? "No data",
-      gamingPrefs: p.preferences ?? "No data",
-      bio: p.bio ?? "No bio available",
-      photo: p.photo ?? "",
+      name: p.name?.trim() || " ",
+      nick_name: p.nick_name?.trim() || "",
+      age: p.age || 0,
+      gender: p.gender?.trim() || " ",
+      location: p.location?.trim() || " ",
+      zodiac: p.zodiac?.trim() || " ",
+      discord: p.discord?.trim() || " ",
+      steam_id: p.steam?.trim() || " ",
+      languages: p.language?.trim() || " ",
+      preferences: p.preferences?.trim() || " ",
+      bio: p.bio?.trim() || " ",
+      photo: p.photo || "",
     };
   }, [store.itsMatchInfo]);
+
+  // Preparar datos para ProfileInfoTab (solo lectura)
+  const profileForInfoTab = useMemo(() => profile, [profile]);
+  const selectedGamingPreferences = useMemo(
+    () => parsePreferences(profile.preferences),
+    [profile.preferences]
+  );
+  const selectedLanguages = useMemo(() => parsePreferences(profile.languages), [profile.languages]);
 
   const handleSaveComment = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -220,7 +242,18 @@ export const MatchUserDetails: React.FC = () => {
         const userId = parseInt(id, 10);
         reviewServices
           .getAllReviewsReceived(userId)
-          .then((data) => dispatch({ type: "matchReviewsReceived", payload: data }));
+          .then((data) => {
+            if (data instanceof Error) {
+              console.error("Error loading reviews after comment:", data);
+              dispatch({ type: "matchReviewsReceived", payload: { reviews_received: [] } });
+            } else {
+              dispatch({ type: "matchReviewsReceived", payload: data });
+            }
+          })
+          .catch((err) => {
+            console.error("Error loading reviews after comment:", err);
+            dispatch({ type: "matchReviewsReceived", payload: { reviews_received: [] } });
+          });
       }
     } catch (error) {
       console.error("Error saving comment:", error);
@@ -245,7 +278,7 @@ export const MatchUserDetails: React.FC = () => {
           <img src={selectPhoto(profile.photo)} alt="Avatar" className="match-avatar-img" />
         </div>
 
-        <h2 className="match-nickname">{profile.nickname}</h2>
+        <h2 className="match-nickname">{profile.nick_name || "Player"}</h2>
         <p className="match-location">
           <i className="fa-solid fa-location-dot" />
           {profile.location}
@@ -305,58 +338,20 @@ export const MatchUserDetails: React.FC = () => {
 
         {/* Info Tab */}
         {activeTab === "info" && (
-          <div className="match-info-section">
-            <div className="match-info-grid">
-              <div className="match-info-item">
-                <label>Name</label>
-                <p>{profile.name}</p>
-              </div>
-              <div className="match-info-item">
-                <label>Nickname</label>
-                <p>{profile.nickname}</p>
-              </div>
-              <div className="match-info-item">
-                <label>Age</label>
-                <p>{profile.age}</p>
-              </div>
-              <div className="match-info-item">
-                <label>Gender</label>
-                <p>{profile.gender}</p>
-              </div>
-              <div className="match-info-item">
-                <label>Zodiac</label>
-                <p>{profile.zodiac}</p>
-              </div>
-              <div className="match-info-item">
-                <label>Location</label>
-                <p>{profile.location}</p>
-              </div>
-              <div className="match-info-item full-width">
-                <label>
-                  <i className="fa-brands fa-discord" /> Discord
-                </label>
-                <p className="match-contact">{profile.discord}</p>
-              </div>
-              <div className="match-info-item full-width">
-                <label>
-                  <i className="fa-brands fa-steam" /> Steam ID
-                </label>
-                <p className="match-contact">{profile.steam}</p>
-              </div>
-              <div className="match-info-item full-width">
-                <label>
-                  <i className="fa-solid fa-gamepad" /> Gaming Preferences
-                </label>
-                <p>{profile.gamingPrefs}</p>
-              </div>
-              <div className="match-info-item full-width">
-                <label>
-                  <i className="fa-solid fa-language" /> Languages
-                </label>
-                <p>{profile.languages}</p>
-              </div>
-            </div>
-          </div>
+          <ProfileInfoTab
+            profile={profileForInfoTab}
+            isEditing={false}
+            selectedGamingPreferences={selectedGamingPreferences}
+            selectedLanguages={selectedLanguages}
+            showGamingPreferencesModal={false}
+            showLanguageModal={false}
+            onInputChange={() => {}}
+            onGamingPreferencesChange={() => {}}
+            onLanguagesChange={() => {}}
+            onShowGamingPreferencesModal={() => {}}
+            onShowLanguageModal={() => {}}
+            onSave={undefined}
+          />
         )}
 
         {/* Games Tab */}
@@ -491,125 +486,103 @@ export const MatchUserDetails: React.FC = () => {
 
         {/* Comments Tab */}
         {activeTab === "comments" && (
-          <div className="match-info-section container">
-            <div className="row justify-content-around">
-              <h3 className="col-1 m-2 mb-4">Comments</h3>
-              <div className="col-auto m-2 mb-4">
-                <button
-                  type="button"
-                  className="btn botonLeaveComment"
-                  data-bs-toggle="modal"
-                  data-bs-target="#commentModal"
-                >
-                  Leave a new comment
-                </button>
-                {/* Modal de nuevo comentario */}
-                <div
-                  className="modal fade"
-                  id="commentModal"
-                  tabIndex={-1}
-                  aria-labelledby="commentModalLabel"
-                  aria-hidden="true"
-                >
-                  <div className="modal-dialog">
-                    <div className="modal-content modal-sci-fi">
-                      <div className="modal-header modal-sci-fi-header">
-                        <h5 className="modal-title modal-sci-fi-title" id="commentModalLabel">
-                          Leave a new comment
-                        </h5>
-                        <button
-                          type="button"
-                          className="btn-close"
-                          data-bs-dismiss="modal"
-                          aria-label="Close"
-                        />
-                      </div>
-                      <div className="modal-body">
-                        <div className="modal-body modal-sci-fi-body">
-                          {/* Rating */}
-                          <div className="mb-3 text-warning">
-                            <label className="form-label">Stars</label>
-                            <div>
-                              {[1, 2, 3, 4, 5].map((star) => (
-                                <i
-                                  key={star}
-                                  className={`fa-star fa-2x ${
-                                    (hoverRating || newComment.stars) >= star
-                                      ? "fa-solid"
-                                      : "fa-regular"
-                                  }`}
-                                  style={{ cursor: "pointer", marginRight: "0.5rem" }}
-                                  onClick={() =>
-                                    setNewComment((prev) => ({ ...prev, stars: star }))
-                                  }
-                                  onMouseEnter={() => setHoverRating(star)}
-                                  onMouseLeave={() => setHoverRating(0)}
-                                />
-                              ))}
-                            </div>
-                          </div>
-
-                          {/* Comment textarea */}
-                          <div className="mb-3">
-                            <label htmlFor="newComment" className="form-label">
-                              Comment
-                            </label>
-                            <textarea
-                              id="newComment"
-                              className="form-control"
-                              rows={3}
-                              value={newComment.comment}
-                              onChange={(e) =>
-                                setNewComment((prev) => ({ ...prev, comment: e.target.value }))
-                              }
+          <>
+            {/* Modal de nuevo comentario */}
+            <div
+              className="modal fade"
+              id="commentModal"
+              tabIndex={-1}
+              aria-labelledby="commentModalLabel"
+              aria-hidden="true"
+            >
+              <div className="modal-dialog">
+                <div className="modal-content modal-sci-fi">
+                  <div className="modal-header modal-sci-fi-header">
+                    <h5 className="modal-title modal-sci-fi-title" id="commentModalLabel">
+                      Leave a new comment
+                    </h5>
+                    <button
+                      type="button"
+                      className="btn-close"
+                      data-bs-dismiss="modal"
+                      aria-label="Close"
+                    />
+                  </div>
+                  <div className="modal-body">
+                    <div className="modal-body modal-sci-fi-body">
+                      {/* Rating */}
+                      <div className="mb-3 text-warning">
+                        <label className="form-label">Stars</label>
+                        <div>
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <i
+                              key={star}
+                              className={`fa-star fa-2x ${
+                                (hoverRating || newComment.stars) >= star
+                                  ? "fa-solid"
+                                  : "fa-regular"
+                              }`}
+                              style={{ cursor: "pointer", marginRight: "0.5rem" }}
+                              onClick={() => setNewComment((prev) => ({ ...prev, stars: star }))}
+                              onMouseEnter={() => setHoverRating(star)}
+                              onMouseLeave={() => setHoverRating(0)}
                             />
-                          </div>
+                          ))}
                         </div>
                       </div>
-                      <div className="modal-footer modal-sci-fi-footer">
-                        <button
-                          type="button"
-                          className="btn btn-sci-fi-primary"
-                          data-bs-dismiss="modal"
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          type="button"
-                          className="btn-sci-fi-primary"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            handleSaveComment(e as unknown as React.FormEvent<HTMLFormElement>);
-                          }}
-                          disabled={!newComment.comment.trim() || newComment.stars === 0}
-                        >
-                          Save comment
-                        </button>
+
+                      {/* Comment textarea */}
+                      <div className="mb-3">
+                        <label htmlFor="newComment" className="form-label">
+                          Comment
+                        </label>
+                        <textarea
+                          id="newComment"
+                          className="form-control"
+                          rows={3}
+                          value={newComment.comment}
+                          onChange={(e) =>
+                            setNewComment((prev) => ({ ...prev, comment: e.target.value }))
+                          }
+                        />
                       </div>
                     </div>
+                  </div>
+                  <div className="modal-footer modal-sci-fi-footer">
+                    <button
+                      type="button"
+                      className="btn btn-sci-fi-primary"
+                      data-bs-dismiss="modal"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-sci-fi-primary"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleSaveComment(e as unknown as React.FormEvent<HTMLFormElement>);
+                      }}
+                      disabled={!newComment.comment.trim() || newComment.stars === 0}
+                    >
+                      Save comment
+                    </button>
                   </div>
                 </div>
               </div>
             </div>
-            <div className="row">
-              {store.matchReviewsReceived?.reviews_received &&
-              store.matchReviewsReceived.reviews_received.length > 0 ? (
-                store.matchReviewsReceived.reviews_received.map((el) => (
-                  <div key={el.id} className="review-card">
-                    <div className="review-container">
-                      {el.author_nickname} — {renderStars(el.stars)}
-                      <p className="m-0 border-0 review-box">
-                        <span className="fa-solid fa-comment mx-2"></span>
-                        {el.comment}
-                      </p>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <p>No comments yet.</p>
-              )}
-            </div>
-          </div>
+
+            {(() => {
+              // Asegurar que matchReviewsReceived no sea un Error
+              const reviewsData =
+                store.matchReviewsReceived instanceof Error
+                  ? { reviews_received: [] }
+                  : store.matchReviewsReceived;
+
+              const reviews = reviewsData?.reviews_received || [];
+              return <ProfileReviewsTab reviews={reviews} showLeaveCommentButton={true} />;
+            })()}
+          </>
         )}
       </main>
     </div>

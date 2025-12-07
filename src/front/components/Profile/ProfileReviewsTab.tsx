@@ -4,6 +4,7 @@ import "./ProfileReviewsTab.css";
 
 export interface ProfileReviewsTabProps {
   reviews: Review[];
+  showLeaveCommentButton?: boolean;
 }
 
 const REVIEWS_PER_PAGE = 3;
@@ -18,17 +19,23 @@ const renderStars = (stars: number) => {
   ));
 };
 
-export const ProfileReviewsTab: React.FC<ProfileReviewsTabProps> = ({ reviews }) => {
-  console.log("ProfileReviewsTab - received reviews:", reviews);
-  console.log("ProfileReviewsTab - reviews length:", reviews?.length);
+export const ProfileReviewsTab: React.FC<ProfileReviewsTabProps> = ({
+  reviews,
+  showLeaveCommentButton = false,
+}) => {
+  // Asegurar que reviews sea un array
+  const safeReviews = useMemo(() => {
+    return Array.isArray(reviews) ? reviews : [];
+  }, [reviews]);
+
   const [currentPage, setCurrentPage] = useState(1);
 
   // Calcular paginación
   const paginationData = useMemo(() => {
-    const totalPages = Math.ceil(reviews.length / REVIEWS_PER_PAGE);
+    const totalPages = Math.ceil(safeReviews.length / REVIEWS_PER_PAGE);
     const startIndex = (currentPage - 1) * REVIEWS_PER_PAGE;
     const endIndex = startIndex + REVIEWS_PER_PAGE;
-    const currentReviews = reviews.slice(startIndex, endIndex);
+    const currentReviews = safeReviews.slice(startIndex, endIndex);
 
     return {
       currentReviews,
@@ -36,12 +43,12 @@ export const ProfileReviewsTab: React.FC<ProfileReviewsTabProps> = ({ reviews })
       startIndex,
       endIndex,
     };
-  }, [reviews, currentPage]);
+  }, [safeReviews, currentPage]);
 
   // Resetear a página 1 cuando cambian los reviews
   React.useEffect(() => {
     setCurrentPage(1);
-  }, [reviews.length]);
+  }, [safeReviews.length]);
 
   const handlePrevious = () => {
     if (currentPage > 1) {
@@ -102,19 +109,35 @@ export const ProfileReviewsTab: React.FC<ProfileReviewsTabProps> = ({ reviews })
 
   return (
     <div className="info-section container">
-      <div className="row justify-content-around ms-5 mt-2">
-        <h3 className="m-2 mb-4">Comments</h3>
-        <div className="col-auto m-2 mb-4"></div>
+      <div className="row justify-content-between align-items-center mb-3">
+        <div className="col-auto">
+          <h3 className="m-0">Comments</h3>
+        </div>
+        {showLeaveCommentButton && (
+          <div className="col-auto">
+            <button
+              type="button"
+              className="btn botonLeaveComment"
+              data-bs-toggle="modal"
+              data-bs-target="#commentModal"
+            >
+              Leave a new comment
+            </button>
+          </div>
+        )}
       </div>
       <div className="row">
-        {reviews && reviews.length > 0 ? (
+        {safeReviews && safeReviews.length > 0 ? (
           <>
             {paginationData.currentReviews.map((review) => (
               <div key={review.id} className="review-card">
                 <div className="review-container">
-                  {review.author_nickname} — {renderStars(review.stars)}
+                  <div className="review-header">
+                    <span className="review-author">{review.author_nickname}</span>
+                    <div className="review-stars">{renderStars(review.stars)}</div>
+                  </div>
                   <p className="m-0 border-0 review-box">
-                    <span className="fa-solid fa-comment mx-2"></span>
+                    <span className="fa-solid fa-comment"></span>
                     {review.comment}
                   </p>
                 </div>
@@ -170,12 +193,18 @@ export const ProfileReviewsTab: React.FC<ProfileReviewsTabProps> = ({ reviews })
             {paginationData.totalPages > 1 && (
               <div className="pagination-info">
                 Showing {paginationData.startIndex + 1} -{" "}
-                {Math.min(paginationData.endIndex, reviews.length)} of {reviews.length} comments
+                {Math.min(paginationData.endIndex, safeReviews.length)} of {safeReviews.length}{" "}
+                comments
               </div>
             )}
           </>
         ) : (
-          <p>No comments yet.</p>
+          <div className="reviews-empty-state">
+            <div className="reviews-empty-state-icon">
+              <i className="fa-solid fa-comments"></i>
+            </div>
+            <p className="reviews-empty-state-text">No comments yet.</p>
+          </div>
         )}
       </div>
     </div>
