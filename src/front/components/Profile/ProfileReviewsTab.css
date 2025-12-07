@@ -14,7 +14,7 @@
 
 .review-container {
   color: #fff;
-  padding: 1.25rem;
+  padding: 0.9rem;
   background: linear-gradient(145deg, rgba(10, 15, 28, 0.8), rgba(18, 24, 43, 0.8));
   border: 2px solid transparent;
   border-radius: 12px;
@@ -110,7 +110,7 @@
 /* Empty state para reviews */
 .reviews-empty-state {
   text-align: center;
-  padding: 3rem 1.5rem;
+  padding: 1.5rem 1rem;
   color: #999;
 }
 
@@ -132,9 +132,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  margin: 30px 0 20px 0;
+  gap: 8px;
+  margin: 0.75rem 0 0.5rem 0;
   flex-wrap: wrap;
+  flex-shrink: 0;
 }
 
 .pagination-btn {
@@ -170,15 +171,15 @@
 }
 
 .pagination-number {
-  min-width: 40px;
-  height: 40px;
-  padding: 8px 12px;
+  min-width: 32px;
+  height: 32px;
+  padding: 6px 10px;
   background: transparent;
   border: 2px solid rgba(255, 255, 255, 0.2);
   border-radius: 8px;
   color: #fff;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
@@ -207,6 +208,8 @@
   text-align: center;
   color: #ccc;
   font-size: 0.85rem;
+  flex-shrink: 0;
+  margin-bottom: 0.5rem;
   margin-top: 10px;
   margin-bottom: 20px;
 }

@@ -294,7 +294,7 @@ export const ProfileGamesTab: React.FC<ProfileGamesTabProps> = ({
           }}
         />
       </div>
-      <div className="row mt-5 gap-3 d-flez justify-content-center gamesbigbox p-2">
+      <div className="row mt-3 gap-2 d-flez justify-content-center gamesbigbox p-2">
         {games.length > 0 ? (
           <>
             {paginationData.currentGames.map((el, i) => (
@@ -380,60 +380,6 @@ export const ProfileGamesTab: React.FC<ProfileGamesTabProps> = ({
                 </div>
               </div>
             ))}
-
-            {/* Controles de paginación */}
-            {paginationData.totalPages > 1 && (
-              <div className="pagination-container">
-                <button
-                  className="pagination-btn"
-                  onClick={handlePrevious}
-                  disabled={currentPage === 1}
-                  aria-label="Previous page"
-                >
-                  <i className="fa-solid fa-chevron-left"></i> Previous
-                </button>
-
-                <div className="pagination-numbers">
-                  {getPageNumbers().map((page, index) => {
-                    if (page === "...") {
-                      return (
-                        <span key={`ellipsis-${index}`} className="pagination-ellipsis">
-                          ...
-                        </span>
-                      );
-                    }
-                    return (
-                      <button
-                        key={page}
-                        className={`pagination-number ${currentPage === page ? "active" : ""}`}
-                        onClick={() => handlePageClick(page as number)}
-                        aria-label={`Go to page ${page}`}
-                      >
-                        {page}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                <button
-                  className="pagination-btn"
-                  onClick={handleNext}
-                  disabled={currentPage === paginationData.totalPages}
-                  aria-label="Next page"
-                >
-                  Next <i className="fa-solid fa-chevron-right"></i>
-                </button>
-              </div>
-            )}
-
-            {/* Información de paginación */}
-            {paginationData.totalPages > 1 && (
-              <div className="pagination-info">
-                Showing {paginationData.startIndex + 1} -{" "}
-                {Math.min(paginationData.endIndex, sortedGames.length)} of {sortedGames.length}{" "}
-                games
-              </div>
-            )}
           </>
         ) : (
           <div className="empty-state">
@@ -455,6 +401,52 @@ export const ProfileGamesTab: React.FC<ProfileGamesTabProps> = ({
           </div>
         )}
       </div>
+      {/* Controles de paginación - siempre visible */}
+      {games.length > 0 && paginationData.totalPages > 1 && (
+        <>
+          <div className="pagination-container">
+            <button
+              className="pagination-btn"
+              onClick={handlePrevious}
+              disabled={currentPage === 1}
+              aria-label="Previous page"
+            >
+              <i className="fa-solid fa-chevron-left"></i> Previous
+            </button>
+
+            <div className="pagination-numbers">
+              {getPageNumbers().map((page, index) => {
+                if (page === "...") {
+                  return (
+                    <span key={`ellipsis-${index}`} className="pagination-ellipsis">
+                      ...
+                    </span>
+                  );
+                }
+                return (
+                  <button
+                    key={page}
+                    className={`pagination-number ${currentPage === page ? "active" : ""}`}
+                    onClick={() => handlePageClick(page as number)}
+                    aria-label={`Go to page ${page}`}
+                  >
+                    {page}
+                  </button>
+                );
+              })}
+            </div>
+
+            <button
+              className="pagination-btn"
+              onClick={handleNext}
+              disabled={currentPage === paginationData.totalPages}
+              aria-label="Next page"
+            >
+              Next <i className="fa-solid fa-chevron-right"></i>
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 };

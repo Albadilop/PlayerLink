@@ -466,15 +466,6 @@ export const MatchUserDetails: React.FC = () => {
                       </button>
                     </div>
                   )}
-
-                  {/* Información de paginación */}
-                  {paginationData.totalPages > 1 && (
-                    <div className="pagination-info">
-                      Showing {paginationData.startIndex + 1} -{" "}
-                      {Math.min(paginationData.endIndex, sortedGames.length)} of{" "}
-                      {sortedGames.length} games
-                    </div>
-                  )}
                 </>
               ) : (
                 <div className="empty-state">

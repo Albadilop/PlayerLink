@@ -143,60 +143,6 @@ export const ProfileReviewsTab: React.FC<ProfileReviewsTabProps> = ({
                 </div>
               </div>
             ))}
-
-            {/* Controles de paginación */}
-            {paginationData.totalPages > 1 && (
-              <div className="pagination-container">
-                <button
-                  className="pagination-btn"
-                  onClick={handlePrevious}
-                  disabled={currentPage === 1}
-                  aria-label="Página anterior"
-                >
-                  <i className="fa-solid fa-chevron-left"></i> Previous
-                </button>
-
-                <div className="pagination-numbers">
-                  {getPageNumbers().map((page, index) => {
-                    if (page === "...") {
-                      return (
-                        <span key={`ellipsis-${index}`} className="pagination-ellipsis">
-                          ...
-                        </span>
-                      );
-                    }
-                    return (
-                      <button
-                        key={page}
-                        className={`pagination-number ${currentPage === page ? "active" : ""}`}
-                        onClick={() => handlePageClick(page as number)}
-                        aria-label={`Ir a página ${page}`}
-                      >
-                        {page}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                <button
-                  className="pagination-btn"
-                  onClick={handleNext}
-                  disabled={currentPage === paginationData.totalPages}
-                  aria-label="Página siguiente"
-                >
-                  Next <i className="fa-solid fa-chevron-right"></i>
-                </button>
-              </div>
-            )}
-
-            {/* Información de paginación */}
-            {paginationData.totalPages > 1 && (
-              <div className="pagination-info">
-                Showing {paginationData.startIndex + 1} -{" "}
-                {Math.min(paginationData.endIndex, safeReviews.length)} of {safeReviews.length}{" "}
-                comments
-              </div>
-            )}
           </>
         ) : (
           <div className="reviews-empty-state">
@@ -207,6 +153,52 @@ export const ProfileReviewsTab: React.FC<ProfileReviewsTabProps> = ({
           </div>
         )}
       </div>
+      {/* Controles de paginación - siempre visible */}
+      {safeReviews && safeReviews.length > 0 && paginationData.totalPages > 1 && (
+        <>
+          <div className="pagination-container">
+            <button
+              className="pagination-btn"
+              onClick={handlePrevious}
+              disabled={currentPage === 1}
+              aria-label="Página anterior"
+            >
+              <i className="fa-solid fa-chevron-left"></i> Previous
+            </button>
+
+            <div className="pagination-numbers">
+              {getPageNumbers().map((page, index) => {
+                if (page === "...") {
+                  return (
+                    <span key={`ellipsis-${index}`} className="pagination-ellipsis">
+                      ...
+                    </span>
+                  );
+                }
+                return (
+                  <button
+                    key={page}
+                    className={`pagination-number ${currentPage === page ? "active" : ""}`}
+                    onClick={() => handlePageClick(page as number)}
+                    aria-label={`Ir a página ${page}`}
+                  >
+                    {page}
+                  </button>
+                );
+              })}
+            </div>
+
+            <button
+              className="pagination-btn"
+              onClick={handleNext}
+              disabled={currentPage === paginationData.totalPages}
+              aria-label="Página siguiente"
+            >
+              Next <i className="fa-solid fa-chevron-right"></i>
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 };

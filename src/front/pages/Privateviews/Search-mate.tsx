@@ -223,10 +223,6 @@ export const SearchMate: React.FC = () => {
         </>
       ) : (
         <>
-          <div className="d-flex justify-content-center">
-            <h1 className="search-mate-font">Search a mate</h1>
-          </div>
-
           {store.searchMatchProfiles &&
             store.searchMatchProfiles.length > 0 &&
             store.searchMatchProfiles[currentUser] &&

@@ -1,9 +1,9 @@
 /* ProfileGamesTab styles are inherited from Profile.css */
 .gamesbigbox {
-  margin-top: 20px;
+  margin-top: 10px;
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 10px;
 }
 
 /* ===== GAME CARD ===== */
@@ -11,7 +11,7 @@
   background: linear-gradient(145deg, #0a0f1c, #12182b);
   border: 2px solid transparent;
   border-radius: 15px;
-  padding: 20px;
+  padding: 12px;
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
@@ -507,10 +507,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  margin: 30px 0 20px 0;
+  gap: 8px;
+  margin: 0.75rem 0 0.5rem 0;
   flex-wrap: wrap;
   width: 100%;
+  flex-shrink: 0;
 }
 
 .pagination-btn {
@@ -546,15 +547,15 @@
 }
 
 .pagination-number {
-  min-width: 40px;
-  height: 40px;
-  padding: 8px 12px;
+  min-width: 32px;
+  height: 32px;
+  padding: 6px 10px;
   background: transparent;
   border: 2px solid rgba(255, 255, 255, 0.2);
   border-radius: 8px;
   color: #fff;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
@@ -583,8 +584,9 @@
   text-align: center;
   color: #ccc;
   font-size: 0.85rem;
-  margin-top: 10px;
-  margin-bottom: 20px;
+  flex-shrink: 0;
+  margin-top: 0;
+  margin-bottom: 0.5rem;
   width: 100%;
 }
 
