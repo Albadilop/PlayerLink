@@ -6,6 +6,8 @@ import "../../pages/Privateviews/Profile.css";
 
 // Hooks y servicios
 import useGlobalReducer from "../../hooks/useGlobalReducer";
+import { useProfileCompletion } from "../../hooks/useProfileCompletion";
+import { getFieldLabel } from "../../utils/profileValidation";
 import userServices from "../../services/userServices";
 import reviewServices from "../../services/reviewServices";
 import gameServices from "../../services/gameServices";
@@ -23,7 +25,7 @@ import {
   ProfileInfoTab,
   ProfileGamesTab,
   ProfileReviewsTab,
-  GameFormData,
+  type GameFormData,
 } from "../../components/Profile";
 
 import { useNavigate } from "react-router-dom";
@@ -61,6 +63,7 @@ const Profile: React.FC = () => {
   const [availableGames, setAvailableGames] = useState<string[]>([]);
   const [loadingAvailableGames, setLoadingAvailableGames] = useState<boolean>(false);
   const { store, dispatch } = useGlobalReducer();
+  const { isComplete, missingFields, completionPercentage } = useProfileCompletion();
   const rawgApi = import.meta.env.VITE_RAWG_KEY;
   const gameOptions: SelectOption[] = availableGames.map((name) => ({ value: name, label: name }));
 
@@ -163,54 +166,29 @@ const Profile: React.FC = () => {
 
       setSelectedGamingPreferences(parsePreferences(profileData.preferences));
       setSelectedLanguages(parsePreferences(profileData.language));
-
-      const isIncomplete =
-        !profileData.name ||
-        profileData.name.length < 2 ||
-        !profileData.nick_name ||
-        profileData.nick_name.length < 2 ||
-        !profileData.age ||
-        profileData.age <= 0 ||
-        !profileData.gender ||
-        profileData.gender.length < 2 ||
-        !profileData.location ||
-        profileData.location.length < 2 ||
-        !profileData.zodiac ||
-        profileData.zodiac.length < 2 ||
-        !profileData.discord ||
-        profileData.discord.length < 2 ||
-        !profileData.steam ||
-        profileData.steam.length < 2 ||
-        !profileData.language ||
-        profileData.language.length < 2 ||
-        !profileData.preferences ||
-        profileData.preferences.length < 2 ||
-        !profileData.bio ||
-        profileData.bio.length < 2 ||
-        !profileData.photo ||
-        profileData.photo.length < 2;
-
-      if (isIncomplete) {
-        setNotice(
-          <h4 className="text-center text-danger">
-            <i className="fa-solid fa-triangle-exclamation text-warning fa-xl"></i> Profile
-            incomplete. Remember to complete it to unlock the full potential of PlayerLink.
-          </h4>
-        );
-        clearNoticeTimerRef.current = setTimeout(() => setNotice(""), 10000);
-      }
     } catch (error) {
       console.error("Error en loadProfile:", error);
     }
   }, [store.user, navigate, dispatch]);
 
   const getReviews = useCallback(async () => {
-    if (!store.user?.id) return;
-    reviewServices.getAllReviewsReceived(store.user.id).then((data) => {
+    if (!store.user?.id) {
+      return;
+    }
+    try {
+      const data = await reviewServices.getAllReviewsReceived(store.user.id);
       if (!(data instanceof Error)) {
         dispatch({ type: "matchReviewsReceived", payload: data });
+      } else {
+        console.error("Error loading reviews:", data);
+        // Guardar un objeto vacío en lugar del Error
+        dispatch({ type: "matchReviewsReceived", payload: { reviews_received: [] } });
       }
-    });
+    } catch (error) {
+      console.error("Error in getReviews:", error);
+      // Guardar un objeto vacío en caso de error
+      dispatch({ type: "matchReviewsReceived", payload: { reviews_received: [] } });
+    }
   }, [store.user?.id, dispatch]);
 
   const fetchGames = useCallback(async () => {
@@ -431,6 +409,13 @@ const Profile: React.FC = () => {
     }
   }, [activeTab, availableGames.length, fetchGames, getReviews]);
 
+  // Cargar reviews cuando el usuario esté disponible
+  useEffect(() => {
+    if (store.user?.id) {
+      getReviews();
+    }
+  }, [store.user?.id, getReviews]);
+
   const handlePicChange = async (fileName: string) => {
     if (!store.user?.id) {
       console.error("User not available");
@@ -456,6 +441,46 @@ const Profile: React.FC = () => {
       }
     } catch (err) {
       console.error("Error al cambiar foto:", err);
+    } finally {
+      setShowModal(false);
+    }
+  };
+
+  const handlePhotoUpload = async (file: File) => {
+    if (!store.user?.id) {
+      console.error("User not available");
+      return;
+    }
+    try {
+      const result = await userServices.uploadUserPhoto(store.user.id, file);
+      const newKey = result.photo;
+
+      // Actualizar estado local
+      setProfile((prev) => ({ ...prev, photo: newKey }));
+
+      // Actualizar store global para que persista al navegar
+      if (store.user?.profile) {
+        const updatedUser = {
+          ...store.user,
+          profile: {
+            ...store.user.profile,
+            photo: newKey,
+          },
+        };
+        dispatch({ type: "getUserInfo", payload: updatedUser });
+      }
+    } catch (err) {
+      console.error("Error uploading photo:", err);
+      setNotice(
+        <h4 className="text-center text-danger">
+          <i className="fa-solid fa-triangle-exclamation text-warning fa-xl"></i>
+          Error uploading photo. Please try again.
+        </h4>
+      );
+      if (clearNoticeTimerRef.current) {
+        clearTimeout(clearNoticeTimerRef.current);
+      }
+      clearNoticeTimerRef.current = setTimeout(() => setNotice(""), 5000);
     } finally {
       setShowModal(false);
     }
@@ -490,6 +515,30 @@ const Profile: React.FC = () => {
     }
 
     setIsEditing(!isEditing);
+  };
+
+  const handleCancel = () => {
+    // Restaurar los valores originales del perfil
+    const profileData = store.user?.profile;
+    if (profileData) {
+      setProfile({
+        name: profileData.name || " ",
+        nick_name: profileData.nick_name || "",
+        age: profileData.age || 0,
+        gender: profileData.gender || DEFAULT_VALUES.GENDER_UNDEFINED,
+        location: profileData.location || " ",
+        zodiac: profileData.zodiac || " ",
+        discord: profileData.discord || " ",
+        steam_id: profileData.steam || " ",
+        languages: profileData.language || " ",
+        preferences: profileData.preferences || " ",
+        bio: profileData.bio || " ",
+        photo: profileData.photo || DEFAULT_VALUES.PROFILE_PHOTO,
+      });
+      setSelectedGamingPreferences(parsePreferences(profileData.preferences));
+      setSelectedLanguages(parsePreferences(profileData.language));
+    }
+    setIsEditing(false);
   };
 
   const handleInputChange = (field: keyof ProfileState, value: string | number) => {
@@ -710,11 +759,51 @@ const Profile: React.FC = () => {
     }
   };
 
-  const reviews = store.matchReviewsReceived?.reviews_received || [];
+  // Asegurar que matchReviewsReceived no sea un Error
+  const reviewsData =
+    store.matchReviewsReceived instanceof Error
+      ? { reviews_received: [] }
+      : store.matchReviewsReceived;
+
+  const reviews = reviewsData?.reviews_received || [];
 
   return (
     <>
       {notice && <div className="alert alert-danger">{notice}</div>}
+
+      {/* Profile Completion Banner */}
+      {!isComplete && missingFields.length > 0 && (
+        <div className="profile-completion-banner">
+          <div className="completion-banner-content">
+            <div className="completion-banner-icon">
+              <i className="fa-solid fa-exclamation-triangle" />
+            </div>
+            <div className="completion-banner-text">
+              <h4 className="completion-banner-title">
+                Incomplete Profile ({completionPercentage}% complete)
+              </h4>
+              <p className="completion-banner-message">
+                Complete the following fields to unlock all features:
+              </p>
+              <ul className="completion-banner-fields">
+                {missingFields.map((field) => (
+                  <li key={field}>
+                    <i className="fa-solid fa-circle-xmark" />
+                    {getFieldLabel(field)}
+                  </li>
+                ))}
+              </ul>
+              <button
+                className="completion-banner-button"
+                onClick={() => navigate("/private/onboarding")}
+              >
+                <i className="fa-solid fa-rocket" /> Complete Profile
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="profile-container">
         <ProfileHeader
           photo={profile.photo}
@@ -744,6 +833,7 @@ const Profile: React.FC = () => {
               onShowGamingPreferencesModal={setShowGamingPreferencesModal}
               onShowLanguageModal={setShowLanguageModal}
               onSave={updateProfile}
+              onCancel={handleCancel}
             />
           )}
 
@@ -766,6 +856,7 @@ const Profile: React.FC = () => {
           isOpen={showModal}
           currentPhoto={profile.photo}
           onSelect={handlePicChange}
+          onUpload={handlePhotoUpload}
           onClose={() => setShowModal(false)}
         />
       </div>

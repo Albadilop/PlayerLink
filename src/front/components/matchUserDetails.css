@@ -11,9 +11,68 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 400px;
-  gap: 1rem;
-  color: #a0a0a0;
+  min-height: 60vh;
+  padding: 3rem 2rem;
+  text-align: center;
+  background: linear-gradient(145deg, rgba(10, 15, 28, 0.6), rgba(18, 24, 43, 0.6));
+  border-radius: 20px;
+  border: 2px solid transparent;
+  background-image:
+    linear-gradient(145deg, rgba(10, 15, 28, 0.8), rgba(18, 24, 43, 0.8)),
+    linear-gradient(135deg, rgba(0, 240, 255, 0.1), rgba(143, 0, 255, 0.1));
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  margin: 2rem auto;
+  max-width: 600px;
+  width: 100%;
+  gap: 1.5rem;
+}
+
+.loading-matches-spinner {
+  width: 60px;
+  height: 60px;
+  border: 4px solid rgba(0, 240, 255, 0.2);
+  border-top: 4px solid #00f0ff;
+  border-radius: 50%;
+  animation: loading-spin 1s linear infinite;
+  box-shadow: 0 0 20px rgba(0, 240, 255, 0.5);
+}
+
+@keyframes loading-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-matches-text {
+  color: #fff;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0;
+  text-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
+  line-height: 1.4;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .match-profile-loading {
+    padding: 2rem 1.5rem;
+    margin: 1rem;
+  }
+
+  .loading-matches-spinner {
+    width: 50px;
+    height: 50px;
+    border-width: 3px;
+  }
+
+  .loading-matches-text {
+    font-size: 1.25rem;
+  }
 }
 
 /* ===== LEFT PANEL - PROFILE HEADER ===== */
@@ -32,7 +91,9 @@
   background-origin: border-box;
   background-clip: padding-box, border-box;
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
-  height: fit-content;
+  height: 750px; /* Altura fija para mantener el tamaño constante */
+  box-sizing: border-box;
+  overflow: hidden; /* Evitar que el contenido se desborde */
 }
 
 /* Avatar */
@@ -101,20 +162,56 @@
 /* Bio */
 .match-bio {
   width: 100%;
+  height: 120px; /* Altura fija para la bio */
   padding: 1rem;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
   background: rgba(0, 0, 0, 0.3);
   border-radius: 12px;
   border: 1px solid rgba(143, 0, 255, 0.3);
-  margin-bottom: 1rem;
+  box-sizing: border-box;
+  overflow-y: auto; /* Permitir scroll vertical */
+  overflow-x: hidden; /* Ocultar scroll horizontal */
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  display: flex;
+  align-items: flex-start; /* Alinear al inicio para mejor scroll */
+  justify-content: center;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+/* Estilos para el scrollbar personalizado */
+.match-bio::-webkit-scrollbar {
+  width: 6px;
+}
+
+.match-bio::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+}
+
+.match-bio::-webkit-scrollbar-thumb {
+  background: rgba(143, 0, 255, 0.5);
+  border-radius: 10px;
+  transition: background 0.3s ease;
+}
+
+.match-bio::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 240, 255, 0.7);
 }
 
 .match-bio p {
   margin: 0;
   color: #c0c0c0;
   font-size: 0.9rem;
-  line-height: 1.5;
+  line-height: 1.4;
   text-align: center;
   font-style: italic;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
+  white-space: normal;
 }
 
 /* Top Games */
@@ -199,6 +296,11 @@
 .match-profile-content {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  height: 750px; /* Misma altura que match-profile-header */
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 /* Tabs */
@@ -210,6 +312,7 @@
   background: rgba(0, 0, 0, 0.3);
   border-radius: 16px;
   border: 1px solid rgba(0, 240, 255, 0.1);
+  flex-shrink: 0; /* No se encoge */
 }
 
 .match-tab {
@@ -262,7 +365,7 @@
 
 /* Info Section */
 .match-info-section {
-  padding: 1.5rem;
+  padding: 1rem;
   background: linear-gradient(145deg, #0a0f1c, #12182b);
   border: 2px solid transparent;
   border-radius: 16px;
@@ -270,13 +373,55 @@
     linear-gradient(145deg, #0a0f1c, #12182b), linear-gradient(135deg, #00f0ff, #8f00ff);
   background-origin: border-box;
   background-clip: padding-box, border-box;
+  transition: all 0.3s ease;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+  box-sizing: border-box;
+}
+
+/* Aplicar los mismos estilos a .info-section cuando está dentro de .match-profile-content */
+.match-profile-content .info-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+  box-sizing: border-box;
+  padding: 1rem;
+  gap: 0.75rem;
+}
+
+/* Área de contenido de games en match profile */
+.match-profile-content .games-content-area {
+  flex: 1;
+  min-height: 0;
+}
+
+/* Estilos de paginación para match profile */
+.match-profile-content .pagination-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 0.75rem;
+  flex-wrap: wrap;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.match-info-section:hover {
+  box-shadow: 0 6px 40px rgba(143, 0, 255, 0.2);
 }
 
 .match-section-title {
   font-family: "Orbitron", sans-serif;
-  font-size: 1.2rem;
+  font-size: 1rem;
   color: #fff;
-  margin: 0 0 1.5rem;
+  margin: 0 0 0.75rem;
   display: flex;
   align-items: center;
   gap: 0.8rem;
@@ -290,14 +435,22 @@
 .match-info-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
+  gap: 0.5rem;
 }
 
 .match-info-item {
-  padding: 1rem;
+  padding: 0.75rem;
   background: rgba(0, 0, 0, 0.3);
   border-radius: 12px;
   border: 1px solid rgba(0, 240, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.match-info-item:hover {
+  background: rgba(0, 0, 0, 0.4);
+  border-color: rgba(0, 240, 255, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 240, 255, 0.1);
 }
 
 .match-info-item.full-width {
@@ -308,17 +461,31 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: #00f0ff;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-bottom: 0.5rem;
+  font-weight: 600;
+  text-shadow: 0 0 8px rgba(0, 240, 255, 0.3);
 }
 
 .match-info-item p {
   margin: 0;
+  color: #e0e0e0;
+  font-size: 0.85rem;
+  padding: 0.25rem 0;
+  transition: all 0.3s ease;
+}
+
+.match-info-item p:empty::before {
+  content: "—";
+  color: #666;
+  font-style: italic;
+}
+
+.match-info-item:hover p {
   color: #fff;
-  font-size: 1rem;
 }
 
 .match-contact {
@@ -586,6 +753,24 @@
     flex: none;
     max-width: 100%;
     width: 100%;
+    height: 700px; /* Altura ligeramente menor en móvil */
+  }
+
+  .match-profile-content {
+    height: 700px; /* Altura ligeramente menor en móvil */
+  }
+
+  .match-avatar-wrapper {
+    width: 150px;
+    height: 180px;
+  }
+
+  .match-nickname {
+    font-size: 1.5rem;
+  }
+
+  .match-bio {
+    height: 100px; /* Altura ligeramente menor en móvil */
   }
 
   .match-info-grid {
@@ -637,5 +822,243 @@
 
   .match-leave-comment-btn {
     justify-content: center;
+  }
+}
+
+/* Medal Badges in Header */
+.medal-badges-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.medal-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.5rem;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(0, 240, 255, 0.2);
+  border-radius: 6px;
+  font-size: 0.7rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.medal-badge:hover {
+  background: rgba(0, 0, 0, 0.6);
+  border-color: rgba(0, 240, 255, 0.4);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 240, 255, 0.15);
+}
+
+.medal-badge i {
+  font-size: 0.75rem;
+}
+
+.medal-badge-text {
+  font-weight: 600;
+  font-size: 0.65rem;
+  white-space: nowrap;
+}
+
+.medal-badge-gold {
+  border-color: rgba(255, 215, 0, 0.3);
+}
+
+.medal-badge-gold i {
+  color: #ffd700;
+  filter: drop-shadow(0 0 3px rgba(255, 215, 0, 0.5));
+}
+
+.medal-badge-gold .medal-badge-text {
+  color: #ffd700;
+}
+
+.medal-badge-silver {
+  border-color: rgba(192, 192, 192, 0.3);
+}
+
+.medal-badge-silver i {
+  color: #c0c0c0;
+  filter: drop-shadow(0 0 3px rgba(192, 192, 192, 0.5));
+}
+
+.medal-badge-silver .medal-badge-text {
+  color: #c0c0c0;
+}
+
+.medal-badge-bronze {
+  border-color: rgba(205, 127, 50, 0.3);
+}
+
+.medal-badge-bronze i {
+  color: #cd7f32;
+  filter: drop-shadow(0 0 3px rgba(205, 127, 50, 0.5));
+}
+
+.medal-badge-bronze .medal-badge-text {
+  color: #cd7f32;
+}
+
+/* Medal Info Modal */
+.medal-info-modal {
+  max-width: 500px;
+  width: 90%;
+}
+
+.medal-info-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid rgba(0, 240, 255, 0.2);
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.medal-info-title-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.medal-info-icon {
+  font-size: 1.5rem;
+  filter: drop-shadow(0 0 5px currentColor);
+}
+
+.medal-info-icon.medal-info-gold {
+  color: #ffd700;
+}
+
+.medal-info-icon.medal-info-silver {
+  color: #c0c0c0;
+}
+
+.medal-info-icon.medal-info-bronze {
+  color: #cd7f32;
+}
+
+.medal-info-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #fff;
+  font-family: "Orbitron", "Segoe UI", sans-serif;
+}
+
+.medal-info-close {
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  transition: all 0.2s ease;
+  border-radius: 4px;
+}
+
+.medal-info-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #00f0ff;
+}
+
+.medal-info-body {
+  padding: 1.5rem;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.medal-info-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.medal-info-description {
+  margin: 0;
+  color: #c0c0c0;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.medal-info-description strong {
+  color: #fff;
+  font-weight: 600;
+}
+
+.medal-info-hours {
+  color: #00f0ff;
+  font-weight: 700;
+  text-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+}
+
+.medal-info-range {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(0, 240, 255, 0.2);
+  border-radius: 8px;
+}
+
+.medal-info-label {
+  color: #999;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.medal-info-value {
+  color: #00f0ff;
+  font-size: 1rem;
+  font-weight: 700;
+  font-family: "Orbitron", "Segoe UI", sans-serif;
+  text-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+}
+
+@media (max-width: 768px) {
+  .medal-badges-container {
+    gap: 0.4rem;
+  }
+
+  .medal-badge {
+    padding: 0.2rem 0.4rem;
+    font-size: 0.65rem;
+  }
+
+  .medal-badge i {
+    font-size: 0.7rem;
+  }
+
+  .medal-badge-text {
+    font-size: 0.6rem;
+  }
+
+  .medal-info-modal {
+    width: 95%;
+    max-width: none;
+  }
+
+  .medal-info-header {
+    padding: 0.75rem 1rem;
+  }
+
+  .medal-info-title {
+    font-size: 1.1rem;
+  }
+
+  .medal-info-body {
+    padding: 1rem;
+  }
+
+  .medal-info-description {
+    font-size: 0.9rem;
+  }
+
+  .medal-info-range {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
   }
 }

@@ -1,6 +1,8 @@
-import React from 'react';
-import Select from 'react-select';
-import './GameForm.css';
+import React, { useEffect, useRef } from "react";
+import ReactDOM from "react-dom";
+import Select from "react-select";
+import "../Onboarding/Onboarding.css";
+import "./GameForm.css";
 
 export interface GameFormData {
   title: string;
@@ -34,87 +36,288 @@ export const GameForm: React.FC<GameFormProps> = ({
 }) => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    onChange(name as keyof GameFormData, name === 'hours_played' ? Number(value) : value);
+    onChange(name as keyof GameFormData, name === "hours_played" ? Number(value) : value);
   };
 
   const handleSelectChange = (selected: SelectOption | null) => {
-    onChange('title', selected?.value || '');
+    onChange("title", selected?.value || "");
   };
 
-  return (
-    <div className="modal fade" id="commentModal" tabIndex={-1} aria-hidden="true">
-      <div className="modal-dialog">
-        <div className="modal-content modal-sci-fi">
-          <div className="modal-header modal-sci-fi-header">
-            <h5 className="modal-title modal-sci-fi-title" id="commentModalLabel">
-              Add a new game
-            </h5>
+  const modalInitializedRef = useRef(false);
+
+  useEffect(() => {
+    // Esperar a que el modal esté en el DOM antes de inicializarlo
+    const initModal = () => {
+      if (modalInitializedRef.current) return;
+
+      const modalEl = document.getElementById("gameFormModal");
+      if (modalEl && window.bootstrap?.Modal) {
+        // Limpiar cualquier instancia existente
+        const existingInstance = window.bootstrap.Modal.getInstance(modalEl);
+        if (existingInstance) {
+          existingInstance.dispose();
+        }
+
+        // Crear una nueva instancia limpia
+        new window.bootstrap.Modal(modalEl, {
+          backdrop: "static",
+          keyboard: false,
+        });
+
+        modalInitializedRef.current = true;
+      }
+    };
+
+    // Intentar inicializar inmediatamente
+    initModal();
+
+    // Si no está disponible, intentar después de un pequeño delay
+    if (!modalInitializedRef.current) {
+      const timeoutId = setTimeout(initModal, 100);
+      return () => {
+        clearTimeout(timeoutId);
+        // Cleanup al desmontar
+        const modalEl = document.getElementById("gameFormModal");
+        if (modalEl && window.bootstrap?.Modal) {
+          const existingInstance = window.bootstrap.Modal.getInstance(modalEl);
+          if (existingInstance) {
+            existingInstance.dispose();
+          }
+        }
+        modalInitializedRef.current = false;
+      };
+    }
+
+    return () => {
+      // Cleanup al desmontar
+      const modalEl = document.getElementById("gameFormModal");
+      if (modalEl && window.bootstrap?.Modal) {
+        const existingInstance = window.bootstrap.Modal.getInstance(modalEl);
+        if (existingInstance) {
+          existingInstance.dispose();
+        }
+      }
+      modalInitializedRef.current = false;
+    };
+  }, []);
+
+  const handleCancel = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onCancel();
+
+    // Cerrar el modal usando Bootstrap
+    const modalEl = document.getElementById("gameFormModal");
+    if (modalEl && window.bootstrap?.Modal) {
+      const modal = window.bootstrap.Modal.getInstance(modalEl);
+      if (modal) {
+        modal.hide();
+      }
+    }
+  };
+
+  const handleSubmit = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onSubmit();
+  };
+
+  const modalContent = (
+    <div
+      className="modal fade"
+      id="gameFormModal"
+      tabIndex={-1}
+      aria-hidden="true"
+      aria-labelledby="gameFormModalLabel"
+    >
+      <div className="modal-dialog modal-dialog-centered">
+        <div className="modal-content onboarding-game-modal">
+          <div className="modal-header onboarding-game-header">
+            <div className="onboarding-game-title-wrapper">
+              <i className="fa-solid fa-gamepad onboarding-game-icon"></i>
+              <h5 className="modal-title onboarding-game-title" id="gameFormModalLabel">
+                Add Game
+              </h5>
+            </div>
             <button
               type="button"
-              className="btn-close btn-sci-fi"
+              className="modal-close onboarding-game-close"
               data-bs-dismiss="modal"
-              aria-label="Cerrar"
-            />
+              aria-label="Close"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleCancel(e);
+              }}
+            >
+              <i className="fa-solid fa-times" />
+            </button>
           </div>
-          <div className="modal-body modal-sci-fi-body">
-            <div className="mb-3">
-              <label htmlFor="gameName" className="label-sci-fi">
+          <div className="modal-body onboarding-game-body">
+            <div className="form-group onboarding-game-group">
+              <label htmlFor="gameName" className="onboarding-game-label">
+                <i className="fa-solid fa-list onboarding-game-label-icon"></i>
                 Select a game
               </label>
-              <Select
-                id="gameName"
-                className="selectorJuegos"
-                options={gameOptions}
-                value={gameOptions.find(opt => opt.value === game.title) || null}
-                onChange={handleSelectChange}
-                isClearable
-                isSearchable
-                placeholder="-- Select a game --"
-              />
+              <div className="onboarding-game-select-wrapper">
+                <Select
+                  id="gameName"
+                  className="onboarding-game-select"
+                  classNamePrefix="onboarding-select"
+                  options={gameOptions}
+                  value={gameOptions.find((opt) => opt.value === game.title) || null}
+                  onChange={handleSelectChange}
+                  isClearable
+                  isSearchable
+                  placeholder="Search for a game..."
+                  menuPortalTarget={document.body}
+                  styles={{
+                    menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                    menu: (base) => ({
+                      ...base,
+                      background: "linear-gradient(145deg, #0e0e1a, #1a1a2f)",
+                      border: "2px solid #7f00ff",
+                      borderRadius: "10px",
+                      boxShadow:
+                        "0 10px 30px rgba(127, 0, 255, 0.4), 0 0 20px rgba(0, 240, 255, 0.2), inset 0 0 20px rgba(127, 0, 255, 0.1)",
+                      marginTop: "0.5rem",
+                      overflow: "hidden",
+                    }),
+                    menuList: (base) => ({
+                      ...base,
+                      padding: "0.5rem",
+                      maxHeight: "300px",
+                    }),
+                    option: (base, state) => ({
+                      ...base,
+                      backgroundColor: state.isSelected
+                        ? "rgba(127, 0, 255, 0.3)"
+                        : state.isFocused
+                          ? "rgba(0, 240, 255, 0.15)"
+                          : "transparent",
+                      background: state.isSelected
+                        ? "linear-gradient(90deg, rgba(127, 0, 255, 0.3), rgba(0, 240, 255, 0.3))"
+                        : undefined,
+                      color: state.isSelected || state.isFocused ? "#00f0ff" : "#ffffff",
+                      padding: "0.75rem 1rem",
+                      cursor: "pointer",
+                      borderRadius: "6px",
+                      margin: "0.25rem 0",
+                      fontWeight: state.isSelected ? 600 : 400,
+                      textShadow: state.isFocused ? "0 0 5px rgba(0, 240, 255, 0.5)" : "none",
+                      "&:hover": {
+                        backgroundColor: "rgba(0, 240, 255, 0.1)",
+                        color: "#00f0ff",
+                      },
+                    }),
+                    control: (base, state) => ({
+                      ...base,
+                      backgroundColor: state.isFocused
+                        ? "rgba(0, 0, 0, 0.5)"
+                        : "rgba(0, 0, 0, 0.4)",
+                      border: "2px solid",
+                      borderColor: state.isFocused
+                        ? "#00f0ff"
+                        : state.isHovered
+                          ? "#8f00ff"
+                          : "#7f00ff",
+                      borderRadius: "10px",
+                      boxShadow: state.isFocused
+                        ? "inset 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 15px rgba(0, 240, 255, 0.4), 0 0 25px rgba(0, 240, 255, 0.2)"
+                        : state.isHovered
+                          ? "inset 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 15px rgba(143, 0, 255, 0.3)"
+                          : "inset 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 10px rgba(127, 0, 255, 0.2)",
+                      minHeight: "48px",
+                      cursor: "pointer",
+                      "&:hover": {
+                        borderColor: "#8f00ff",
+                      },
+                    }),
+                    placeholder: (base) => ({
+                      ...base,
+                      color: "rgba(255, 255, 255, 0.4)",
+                    }),
+                    singleValue: (base) => ({
+                      ...base,
+                      color: "#ffffff",
+                      fontWeight: 500,
+                    }),
+                    input: (base) => ({
+                      ...base,
+                      color: "#ffffff",
+                      caretColor: "#00f0ff",
+                    }),
+                    indicatorSeparator: (base) => ({
+                      ...base,
+                      backgroundColor: "rgba(127, 0, 255, 0.3)",
+                    }),
+                    dropdownIndicator: (base) => ({
+                      ...base,
+                      color: "#7f00ff",
+                      "&:hover": {
+                        color: "#00f0ff",
+                      },
+                    }),
+                    clearIndicator: (base) => ({
+                      ...base,
+                      color: "rgba(255, 107, 107, 0.7)",
+                      "&:hover": {
+                        color: "#ff6b6b",
+                      },
+                    }),
+                  }}
+                />
+              </div>
+              {errorRepeatedGame && (
+                <div className="onboarding-game-error">
+                  <i className="fa-solid fa-exclamation-circle"></i>
+                  <span>{errorRepeatedGame}</span>
+                </div>
+              )}
             </div>
-            <div className="mb-3">
-              <label htmlFor="hoursPlayed" className="label-sci-fi">
+            <div className="form-group onboarding-game-group">
+              <label htmlFor="hoursPlayed" className="onboarding-game-label">
+                <i className="fa-solid fa-clock onboarding-game-label-icon"></i>
                 Hours played
               </label>
               <input
                 type="number"
-                className="input-sci-fi"
+                className="onboarding-game-input"
                 id="hoursPlayed"
                 name="hours_played"
                 value={game.hours_played}
                 onChange={handleChange}
-                placeholder="Eg.: 42"
+                placeholder="e.g., 42"
                 min="1"
                 max="10000"
               />
               {errorHoursPlayed && (
-                <h6 className="text-danger ms-2 mt-2">{errorHoursPlayed}</h6>
-              )}
-              {errorRepeatedGame && (
-                <h6 className="text-danger ms-2 mt-2">{errorRepeatedGame}</h6>
+                <div className="onboarding-game-error">
+                  <i className="fa-solid fa-exclamation-circle"></i>
+                  <span>{errorHoursPlayed}</span>
+                </div>
               )}
             </div>
           </div>
-          <div className="modal-footer modal-sci-fi-footer">
+          <div className="modal-footer onboarding-game-footer">
             <button
               type="button"
-              className="btn-sci-fi-primary"
-              data-bs-dismiss="modal"
-              onClick={onCancel}
+              className="btn onboarding-game-btn-add"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleSubmit(e);
+              }}
             >
-              Cancel
-            </button>
-            <button
-              type="button"
-              className="btn-sci-fi-primary"
-              onClick={onSubmit}
-            >
-              Add
+              <i className="fa-solid fa-plus"></i>
+              Add Game
             </button>
           </div>
         </div>
       </div>
     </div>
   );
-};
 
+  // Renderizar el modal directamente en el body usando Portal
+  return ReactDOM.createPortal(modalContent, document.body);
+};

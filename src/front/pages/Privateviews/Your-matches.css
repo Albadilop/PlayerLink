@@ -1,13 +1,5 @@
-.search-mate-font {
-  color: #00f0ff;
-}
-
-.search-mate-btn-close-modal {
-  background-color: #00f0ff !important;
-}
-
-/* ===== NO PLAYERS EMPTY STATE ===== */
-.no-players-empty-state {
+/* ===== NO MATCHES EMPTY STATE ===== */
+.no-matches-empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -26,25 +18,26 @@
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
   margin: 2rem auto;
   max-width: 600px;
+  width: 100%;
 }
 
-.no-players-icon {
+.no-matches-icon {
   margin-bottom: 1.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.no-players-logo {
+.no-matches-logo {
   width: 120px;
   height: 120px;
   object-fit: contain;
   filter: drop-shadow(0 0 20px rgba(143, 0, 255, 0.5));
-  animation: pulse-glow 2s ease-in-out infinite;
+  animation: pulse-glow-matches 2s ease-in-out infinite;
   transition: all 0.3s ease;
 }
 
-@keyframes pulse-glow {
+@keyframes pulse-glow-matches {
   0%,
   100% {
     transform: scale(1);
@@ -58,7 +51,7 @@
   }
 }
 
-.no-players-title {
+.no-matches-title {
   color: #fff;
   font-size: 1.75rem;
   font-weight: 600;
@@ -67,12 +60,7 @@
   line-height: 1.4;
 }
 
-.no-players-title .search-mate-font {
-  color: #00f0ff;
-  text-shadow: 0 0 15px rgba(0, 240, 255, 0.6);
-}
-
-.no-players-message {
+.no-matches-message {
   color: #ccc;
   font-size: 1.1rem;
   line-height: 1.6;
@@ -81,14 +69,14 @@
   font-style: italic;
 }
 
-.no-players-actions {
+.no-matches-actions {
   display: flex;
   gap: 1rem;
   justify-content: center;
   flex-wrap: wrap;
 }
 
-.btn-refresh-profiles {
+.btn-search-now {
   background: linear-gradient(135deg, #8f00ff, #6b00cc);
   border: 2px solid rgba(0, 240, 255, 0.5);
   color: #fff;
@@ -104,39 +92,106 @@
   box-shadow: 0 4px 15px rgba(143, 0, 255, 0.3);
 }
 
-.btn-refresh-profiles:hover {
+.btn-search-now:hover {
   background: linear-gradient(135deg, #a64dff, #8f00ff);
   border-color: #00f0ff;
   transform: translateY(-2px);
   box-shadow: 0 6px 25px rgba(143, 0, 255, 0.5);
 }
 
-.btn-refresh-profiles i {
+.btn-search-now i {
   font-size: 0.9rem;
   transition: transform 0.3s ease;
 }
 
-.btn-refresh-profiles:hover i {
-  transform: rotate(180deg);
+.btn-search-now:hover i {
+  transform: scale(1.2);
+}
+
+/* ===== LOADING STATE ===== */
+.loading-matches-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  padding: 3rem 2rem;
+  text-align: center;
+  background: linear-gradient(145deg, rgba(10, 15, 28, 0.6), rgba(18, 24, 43, 0.6));
+  border-radius: 20px;
+  border: 2px solid transparent;
+  background-image:
+    linear-gradient(145deg, rgba(10, 15, 28, 0.8), rgba(18, 24, 43, 0.8)),
+    linear-gradient(135deg, rgba(0, 240, 255, 0.1), rgba(143, 0, 255, 0.1));
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  margin: 2rem auto;
+  max-width: 600px;
+  width: 100%;
+  gap: 1.5rem;
+}
+
+.loading-matches-spinner {
+  width: 60px;
+  height: 60px;
+  border: 4px solid rgba(0, 240, 255, 0.2);
+  border-top: 4px solid #00f0ff;
+  border-radius: 50%;
+  animation: loading-spin 1s linear infinite;
+  box-shadow: 0 0 20px rgba(0, 240, 255, 0.5);
+}
+
+@keyframes loading-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-matches-text {
+  color: #fff;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0;
+  text-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
+  line-height: 1.4;
 }
 
 /* Responsive */
 @media (max-width: 768px) {
-  .no-players-empty-state {
+  .no-matches-empty-state {
     padding: 2rem 1.5rem;
     margin: 1rem;
   }
 
-  .no-players-logo {
+  .no-matches-logo {
     width: 100px;
     height: 100px;
   }
 
-  .no-players-title {
+  .no-matches-title {
     font-size: 1.5rem;
   }
 
-  .no-players-message {
+  .no-matches-message {
     font-size: 1rem;
+  }
+
+  .loading-matches-state {
+    padding: 2rem 1.5rem;
+    margin: 1rem;
+  }
+
+  .loading-matches-spinner {
+    width: 50px;
+    height: 50px;
+    border-width: 3px;
+  }
+
+  .loading-matches-text {
+    font-size: 1.25rem;
   }
 }

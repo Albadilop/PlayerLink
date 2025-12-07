@@ -1,3 +1,119 @@
+/* Profile Completion Banner */
+.profile-completion-banner {
+  margin: 1.5rem;
+  background: linear-gradient(145deg, rgba(255, 165, 0, 0.15), rgba(255, 140, 0, 0.15));
+  border: 3px solid #ffa500;
+  border-radius: 15px;
+  padding: 1.5rem;
+  box-shadow: 0 5px 20px rgba(255, 165, 0, 0.3);
+  animation: slideIn 0.5s ease;
+}
+
+.completion-banner-content {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+}
+
+.completion-banner-icon {
+  font-size: 2.5rem;
+  color: #ffa500;
+  flex-shrink: 0;
+}
+
+.completion-banner-text {
+  flex: 1;
+}
+
+.completion-banner-title {
+  color: #ffa500;
+  font-size: 1.3rem;
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+}
+
+.completion-banner-message {
+  color: #fff;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+}
+
+.completion-banner-fields {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1rem 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.completion-banner-fields li {
+  color: #ffa500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: rgba(255, 165, 0, 0.1);
+  border: 1px solid #ffa500;
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.completion-banner-fields li i {
+  color: #ff6b6b;
+}
+
+.completion-banner-button {
+  background: linear-gradient(145deg, #7f00ff, #5a00b3);
+  border: 2px solid #00f0ff;
+  color: #fff;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.completion-banner-button:hover {
+  background: linear-gradient(145deg, #5a00b3, #7f00ff);
+  transform: scale(1.05);
+  box-shadow: 0 0 15px rgba(127, 0, 255, 0.5);
+}
+
+.profile-completion-success {
+  margin: 1.5rem;
+  background: linear-gradient(145deg, rgba(0, 255, 0, 0.15), rgba(0, 200, 0, 0.15));
+  border: 3px solid #00ff00;
+  border-radius: 15px;
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  color: #00ff00;
+  font-weight: 600;
+  animation: slideIn 0.5s ease;
+}
+
+.profile-completion-success i {
+  font-size: 1.5rem;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .profile-container {
   display: flex;
   flex-wrap: wrap;
@@ -14,6 +130,11 @@
 .right-panel {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  height: 750px; /* Misma altura que profile-header */
+  box-sizing: border-box;
+  overflow: hidden;
 }
 .textareastyle {
   border: 2px solid #00ffff;
@@ -198,8 +319,10 @@
 }
 /*-------------------------------- 2 test ---------------------------------------*/
 
+/* Info section styles are now in ProfileInfoTab.css for better organization */
+/* These styles are kept for backward compatibility but ProfileInfoTab.css takes precedence */
 .info-section {
-  padding: 1.5rem;
+  padding: 1rem;
   background: linear-gradient(145deg, #0a0f1c, #12182b);
   border-radius: 16px;
   border: 2px solid transparent;
@@ -208,52 +331,18 @@
   background-origin: border-box;
   background-clip: padding-box, border-box;
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
-}
-
-.info-section label {
-  color: white;
-  font-weight: bold;
-  margin-top: 1rem;
-  display: block;
-  font-size: 0.95rem;
-}
-
-.info-section input,
-.info-section select,
-.info-section textarea {
-  background: rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(0, 240, 255, 0.3);
-  color: white;
-  width: 100%;
-  padding: 12px 14px;
-  border-radius: 10px;
   transition: all 0.3s ease;
-  font-size: 0.95rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+  box-sizing: border-box;
 }
 
-.info-section input:focus,
-.info-section select:focus,
-.info-section textarea:focus {
-  border-color: #00f0ff;
-  box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
-  outline: none;
-  background: rgba(0, 240, 255, 0.05);
-}
-
-.info-section input:hover,
-.info-section select:hover,
-.info-section textarea:hover {
-  border-color: rgba(0, 240, 255, 0.5);
-}
-
-.info-section p {
-  padding: 10px 12px;
-  background: #111;
-  border: 2px solid #da11b8;
-  border-radius: 8px;
-  color: white;
-  margin-bottom: 0.5rem;
-  white-space: pre-line;
+.info-section:hover {
+  box-shadow: 0 6px 40px rgba(143, 0, 255, 0.2);
 }
 
 /* === Resoluciones pequeñas pantalla general. === */
@@ -272,6 +361,7 @@
   .right-panel {
     margin-top: 20px;
     padding-left: 0;
+    height: 700px; /* Altura ligeramente menor en móvil */
   }
 
   .tabs {
@@ -460,16 +550,7 @@
   transform: translateY(0);
 }
 
-.review-container {
-  border: 2px solid rgb(238, 112, 247);
-  border-radius: 20px;
-  padding: 1rem;
-  margin: 5px;
-}
-
-.review-box {
-  text-decoration: none;
-}
+/* Review styles moved to ProfileReviewsTab.css for better organization */
 /*------------Coming soon Activity tab ---------------- 
 .coming-soon-box {
   margin-top: 20px;
@@ -771,8 +852,14 @@
   visibility: hidden;
   transition: opacity 0.2s ease-in-out;
   z-index: 999;
+  pointer-events: none;
 }
 
 .discord-info-tooltip-text strong {
   color: #00ffff;
+}
+
+.tooltip-wrapper:hover .discord-info-tooltip-text {
+  opacity: 1;
+  visibility: visible;
 }

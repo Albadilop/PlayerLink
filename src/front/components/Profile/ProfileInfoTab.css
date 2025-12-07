@@ -1,109 +1,713 @@
-/* ProfileInfoTab styles are inherited from Profile.css */
+/* ===== INFO SECTION BASE ===== */
 .info-section {
-  padding: 20px;
-  background: linear-gradient(145deg, #0e0e1a, #1a1a2f);
-  border: 3px solid #7f00ff;
-  border-radius: 15px;
-  margin-top: 20px;
+  position: relative;
+  padding: 1.5rem;
+  background: linear-gradient(145deg, #0a0f1c 0%, #12182b 50%, #1a1a2f 100%);
+  border-radius: 20px;
+  border: 2px solid transparent;
+  overflow: hidden;
+
+  /* Borde con gradiente */
+  background-image:
+    linear-gradient(145deg, #0a0f1c, #12182b, #1a1a2f),
+    linear-gradient(135deg, #00f0ff, #8f00ff, #00f0ff);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+
+  box-shadow:
+    0 10px 40px rgba(0, 240, 255, 0.15),
+    0 0 60px rgba(143, 0, 255, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+
+  transition: all 0.4s ease;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+  box-sizing: border-box;
+  gap: 1rem;
+  animation: card-fade-in 0.5s ease-out;
 }
 
-.info-section label {
-  display: block;
-  margin-bottom: 5px;
-  color: #00ffff;
-  font-weight: bold;
+@keyframes card-fade-in {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.info-section input,
-.info-section select {
+.info-section:hover {
+  box-shadow:
+    0 15px 50px rgba(0, 240, 255, 0.2),
+    0 0 80px rgba(143, 0, 255, 0.12);
+  transform: translateY(-2px);
+}
+
+/* Efecto de brillo superior */
+.info-section::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.6), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.info-section:hover::before {
+  opacity: 1;
+}
+
+/* ===== SECTION GROUPS ===== */
+.info-section-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.info-section-title {
+  font-family: "Orbitron", sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #00f0ff;
+  margin: 0 0 0.5rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(0, 240, 255, 0.2);
+}
+
+.info-section-title i {
+  font-size: 1rem;
+  color: #8f00ff;
+  filter: drop-shadow(0 0 5px rgba(143, 0, 255, 0.6));
+}
+
+/* ===== FIELD CARDS ===== */
+.info-field-card {
+  position: relative;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(0, 240, 255, 0.2);
+  border-radius: 12px;
+  padding: 0.9rem;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.info-field-card::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
   width: 100%;
-  padding: 8px;
-  background: #1a1a2f;
-  border: 2px solid #7f00ff;
-  border-radius: 5px;
-  color: #fff;
-  margin-bottom: 15px;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.1), transparent);
+  transition: left 0.5s ease;
 }
 
-.info-section input:focus,
-.info-section select:focus {
+.info-field-card:hover {
+  background: rgba(0, 0, 0, 0.5);
+  border-color: rgba(0, 240, 255, 0.4);
+  box-shadow: 0 4px 15px rgba(0, 240, 255, 0.15);
+  transform: translateY(-2px);
+}
+
+.info-field-card:hover::after {
+  left: 100%;
+}
+
+/* ===== FIELD LABELS ===== */
+.info-field-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  color: #00f0ff;
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-shadow: 0 0 8px rgba(0, 240, 255, 0.3);
+  transition: all 0.3s ease;
+}
+
+.info-field-label i {
+  font-size: 0.85rem;
+  color: #8f00ff;
+  filter: drop-shadow(0 0 3px rgba(143, 0, 255, 0.5));
+  transition: all 0.3s ease;
+}
+
+.info-field-card:hover .info-field-label {
+  color: #fff;
+  text-shadow: 0 0 12px rgba(0, 240, 255, 0.6);
+}
+
+.info-field-card:hover .info-field-label i {
+  color: #00f0ff;
+  filter: drop-shadow(0 0 5px rgba(0, 240, 255, 0.8));
+  transform: scale(1.1);
+}
+
+/* ===== FIELD INPUTS ===== */
+.info-field-input {
+  width: 100%;
+  padding: 0.65rem 0.9rem;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(0, 240, 255, 0.3);
+  border-radius: 10px;
+  color: #fff;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  font-family: inherit;
+}
+
+.info-field-input:hover {
+  border-color: rgba(0, 240, 255, 0.5);
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.info-field-input:focus {
   outline: none;
-  border-color: #00ffff;
+  border-color: #00f0ff;
+  box-shadow:
+    0 0 15px rgba(0, 240, 255, 0.3),
+    inset 0 0 10px rgba(0, 240, 255, 0.05);
+  background: rgba(0, 240, 255, 0.08);
 }
 
-.info-section p {
-  margin-bottom: 15px;
-  color: #ccc;
-  min-height: 20px;
+.info-field-input::placeholder {
+  color: #666;
+  font-style: italic;
 }
 
-.edit-btn {
-  background: linear-gradient(145deg, #7f00ff, #5a00b3);
-  border: 2px solid #00ffff;
-  color: #fff;
-  padding: 10px 30px;
-  border-radius: 5px;
+/* ===== REACT SELECT STYLES (Gender & Zodiac) ===== */
+.info-field-select {
+  width: 100%;
+}
+
+.info-field-select :global(.info-select__control) {
+  background: rgba(0, 0, 0, 0.4) !important;
+  border: 2px solid #7f00ff !important;
+  border-radius: 10px !important;
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.3),
+    0 0 10px rgba(127, 0, 255, 0.2) !important;
+  min-height: 48px !important;
+  transition: all 0.3s ease !important;
+  cursor: pointer !important;
+}
+
+.info-field-select :global(.info-select__control:hover) {
+  border-color: #8f00ff !important;
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.3),
+    0 0 15px rgba(143, 0, 255, 0.3) !important;
+}
+
+.info-field-select :global(.info-select__control--is-focused) {
+  border-color: #00f0ff !important;
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.3),
+    0 0 15px rgba(0, 240, 255, 0.4),
+    0 0 25px rgba(0, 240, 255, 0.2) !important;
+  background: rgba(0, 0, 0, 0.5) !important;
+}
+
+.info-field-select :global(.info-select__placeholder) {
+  color: rgba(255, 255, 255, 0.4) !important;
+}
+
+.info-field-select :global(.info-select__single-value) {
+  color: #ffffff !important;
+  font-weight: 500 !important;
+}
+
+.info-field-select :global(.info-select__value-container) {
+  padding: 0.5rem 0.75rem !important;
+}
+
+.info-field-select :global(.info-select__input-container) {
+  color: #ffffff !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.info-field-select :global(.info-select__input-container input) {
+  color: #ffffff !important;
+  caret-color: #00f0ff !important;
+}
+
+.info-field-select :global(.info-select__menu) {
+  background: linear-gradient(145deg, #0e0e1a, #1a1a2f) !important;
+  border: 2px solid #7f00ff !important;
+  border-radius: 10px !important;
+  box-shadow:
+    0 10px 30px rgba(127, 0, 255, 0.4),
+    0 0 20px rgba(0, 240, 255, 0.2),
+    inset 0 0 20px rgba(127, 0, 255, 0.1) !important;
+  margin-top: 0.5rem !important;
+  overflow: hidden;
+  z-index: 9999 !important;
+}
+
+.info-field-select :global(.info-select__menu-list) {
+  padding: 0.5rem !important;
+  max-height: 300px !important;
+}
+
+.info-field-select :global(.info-select__menu-list::-webkit-scrollbar) {
+  width: 8px !important;
+}
+
+.info-field-select :global(.info-select__menu-list::-webkit-scrollbar-track) {
+  background: rgba(0, 0, 0, 0.2) !important;
+  border-radius: 4px !important;
+}
+
+.info-field-select :global(.info-select__menu-list::-webkit-scrollbar-thumb) {
+  background: linear-gradient(180deg, #7f00ff, #00f0ff) !important;
+  border-radius: 4px !important;
+}
+
+.info-field-select :global(.info-select__menu-list::-webkit-scrollbar-thumb:hover) {
+  background: linear-gradient(180deg, #8f00ff, #00ffff) !important;
+}
+
+/* Estilos globales para el scrollbar cuando se renderiza en el portal */
+.info-select__menu-list::-webkit-scrollbar {
+  width: 8px !important;
+}
+
+.info-select__menu-list::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2) !important;
+  border-radius: 4px !important;
+}
+
+.info-select__menu-list::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #7f00ff, #00f0ff) !important;
+  border-radius: 4px !important;
+}
+
+.info-select__menu-list::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #8f00ff, #00ffff) !important;
+}
+
+.info-field-select :global(.info-select__option) {
+  background: transparent !important;
+  color: #ffffff !important;
+  padding: 0.75rem 1rem !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  border-radius: 6px !important;
+  margin: 0.25rem 0 !important;
+}
+
+.info-field-select :global(.info-select__option:hover) {
+  background: rgba(0, 240, 255, 0.1) !important;
+  color: #00f0ff !important;
+}
+
+.info-field-select :global(.info-select__option--is-focused) {
+  background: rgba(0, 240, 255, 0.15) !important;
+  color: #00f0ff !important;
+  text-shadow: 0 0 5px rgba(0, 240, 255, 0.5);
+}
+
+.info-field-select :global(.info-select__option--is-selected) {
+  background: linear-gradient(90deg, rgba(127, 0, 255, 0.3), rgba(0, 240, 255, 0.3)) !important;
+  color: #00f0ff !important;
+  font-weight: 600 !important;
+}
+
+.info-field-select :global(.info-select__indicator-separator) {
+  background-color: rgba(127, 0, 255, 0.3) !important;
+}
+
+.info-field-select :global(.info-select__dropdown-indicator) {
+  color: #7f00ff !important;
+  transition: all 0.3s ease !important;
+}
+
+.info-field-select :global(.info-select__dropdown-indicator:hover) {
+  color: #00f0ff !important;
+}
+
+/* Estilos para el input de edad con botones personalizados */
+.age-input-wrapper {
+  position: relative;
+}
+
+.age-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.age-input {
+  -moz-appearance: textfield;
+  padding-right: 2.5rem;
+  width: 100%;
+}
+
+/* Ocultar spinners nativos */
+.age-input::-webkit-inner-spin-button,
+.age-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.age-spinner-buttons {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  z-index: 1;
+}
+
+.age-spinner-btn {
+  width: 20px;
+  height: 18px;
+  background: linear-gradient(135deg, rgba(0, 240, 255, 0.2), rgba(143, 0, 255, 0.2));
+  border: 1px solid rgba(0, 240, 255, 0.4);
+  border-radius: 4px;
+  color: #00f0ff;
   cursor: pointer;
-  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  padding: 0;
+  font-size: 0.6rem;
+  box-shadow: 0 0 5px rgba(0, 240, 255, 0.2);
 }
 
-.edit-btn:hover {
-  background: linear-gradient(145deg, #5a00b3, #7f00ff);
+.age-spinner-btn:hover {
+  background: linear-gradient(135deg, rgba(0, 240, 255, 0.4), rgba(143, 0, 255, 0.4));
+  border-color: rgba(0, 240, 255, 0.6);
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.4);
   transform: scale(1.05);
 }
 
+.age-spinner-btn:active {
+  background: linear-gradient(135deg, rgba(0, 240, 255, 0.6), rgba(143, 0, 255, 0.6));
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.6);
+  transform: scale(0.95);
+}
+
+.age-spinner-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.age-spinner-btn i {
+  font-size: 0.5rem;
+  text-shadow: 0 0 3px rgba(0, 240, 255, 0.8);
+}
+
+/* ===== FIELD VALUES (Read-only) ===== */
+.info-field-value {
+  color: #e0e0e0;
+  min-height: 36px;
+  padding: 0.65rem 0.9rem;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(0, 240, 255, 0.25);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  font-size: 0.9rem;
+  white-space: pre-line;
+  word-wrap: break-word;
+  line-height: 1.5;
+  transition: all 0.3s ease;
+}
+
+.info-field-value:empty::before {
+  content: "—";
+  color: #666;
+  font-style: italic;
+}
+
+.info-field-card:hover .info-field-value {
+  color: #fff;
+  border-color: rgba(0, 240, 255, 0.4);
+  background: rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.1);
+}
+
+/* ===== EDIT BUTTON ===== */
+.edit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, #8f00ff, #6b00cc);
+  border: 2px solid rgba(0, 240, 255, 0.3);
+  color: #fff;
+  padding: 0.65rem 1.5rem;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 15px rgba(143, 0, 255, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.edit-btn::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.edit-btn i {
+  font-size: 0.85rem;
+  position: relative;
+  z-index: 1;
+}
+
+.edit-btn:hover {
+  background: linear-gradient(135deg, #a64dff, #8f00ff);
+  border-color: rgba(0, 240, 255, 0.6);
+  box-shadow:
+    0 0 25px rgba(143, 0, 255, 0.5),
+    0 0 40px rgba(0, 240, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+.edit-btn:hover::before {
+  left: 100%;
+}
+
+.info-section-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(0, 240, 255, 0.2);
+}
+
+.cancel-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: transparent;
+  border: 2px solid rgba(255, 77, 77, 0.5);
+  color: #ff4d4d;
+  padding: 0.65rem 1.5rem;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.cancel-btn::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 77, 77, 0.1);
+  transition: left 0.5s ease;
+}
+
+.cancel-btn i {
+  font-size: 0.85rem;
+  position: relative;
+  z-index: 1;
+}
+
+.cancel-btn:hover {
+  background: rgba(255, 77, 77, 0.15);
+  border-color: rgba(255, 77, 77, 0.8);
+  color: #ff6666;
+  box-shadow: 0 0 20px rgba(255, 77, 77, 0.3);
+  transform: translateY(-2px);
+}
+
+.cancel-btn:hover::before {
+  left: 100%;
+}
+
+/* ===== SECTION BUTTONS (Preferences/Languages) ===== */
 .section-container {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 0.4rem;
 }
 
 .section-button {
-  background: transparent;
-  border: 2px solid #7f00ff;
-  color: #fff;
-  padding: 8px 15px;
-  border-radius: 5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.75rem;
+  font-weight: 600;
+  border: 1px solid #00f0ff;
+  border-radius: 6px;
+  background: rgba(0, 240, 255, 0.1);
+  color: #00f0ff;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  font-size: 0.75rem;
+  width: fit-content;
+}
+
+.section-button i {
+  font-size: 0.7rem;
 }
 
 .section-button:hover {
-  background: #7f00ff;
+  background: rgba(0, 240, 255, 0.2);
   color: #fff;
 }
 
 .gaming-prefs-box {
-  margin-bottom: 15px;
+  margin-bottom: 0;
 }
 
+/* ===== PREFERENCES TAGS ===== */
+.preferences-tags-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.4rem;
+}
+
+.preference-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.6rem;
+  background: rgba(0, 240, 255, 0.15);
+  border: 1px solid rgba(0, 240, 255, 0.3);
+  border-radius: 6px;
+  color: #00f0ff;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: capitalize;
+  transition: all 0.2s ease;
+}
+
+.preference-tag:hover {
+  background: rgba(0, 240, 255, 0.25);
+  border-color: rgba(0, 240, 255, 0.5);
+  transform: translateY(-1px);
+}
+
+/* ===== TOOLTIP ===== */
 .tooltip-wrapper {
   position: relative;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  margin-left: 0.5rem;
 }
 
 .discord-info-icon {
-  color: #00ffff;
+  color: #8f00ff;
   cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.3s ease;
+  filter: drop-shadow(0 0 3px rgba(143, 0, 255, 0.5));
+}
+
+.discord-info-icon:hover {
+  color: #00f0ff;
+  filter: drop-shadow(0 0 5px rgba(0, 240, 255, 0.8));
+  transform: scale(1.2);
 }
 
 .tooltip-text {
   visibility: hidden;
+  opacity: 0;
   position: absolute;
-  background: #1a1a2f;
-  border: 2px solid #00ffff;
-  padding: 10px;
-  border-radius: 5px;
-  z-index: 1;
+  background: linear-gradient(145deg, #0a0f1c, #12182b);
+  border: 2px solid #00f0ff;
+  padding: 12px;
+  border-radius: 10px;
+  z-index: 1000;
   bottom: 125%;
   left: 50%;
-  transform: translateX(-50%);
-  width: 200px;
+  transform: translateX(-50%) translateY(-5px);
+  width: 220px;
   color: #fff;
-  font-size: 12px;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  box-shadow: 0 4px 20px rgba(0, 240, 255, 0.3);
+  transition: all 0.3s ease;
+  pointer-events: none;
+}
+
+.tooltip-text strong {
+  color: #00f0ff;
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.85rem;
 }
 
 .tooltip-wrapper:hover .tooltip-text {
   visibility: visible;
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
 }
 
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .info-section {
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .info-section-title {
+    font-size: 0.95rem;
+  }
+
+  .info-field-card {
+    padding: 0.75rem;
+  }
+
+  .info-field-label {
+    font-size: 0.8rem;
+  }
+
+  .info-field-input,
+  .info-field-value {
+    font-size: 0.85rem;
+    padding: 0.6rem 0.8rem;
+  }
+
+  .edit-btn {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.85rem;
+  }
+}

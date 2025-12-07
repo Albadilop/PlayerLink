@@ -6,24 +6,105 @@
 .terms-close-modal {
   background-color: #a41ef165;
 }
-.terms-accept-btn{
-    background-color: #00f0ff;
-    cursor: pointer;
+.terms-accept-btn {
+  background-color: #00f0ff;
+  cursor: pointer;
 }
 
-.terms-accept-btn:hover:not(:disabled){
-    background-color: #8f00ff;
+.terms-accept-btn:hover:not(:disabled) {
+  background-color: #8f00ff;
 }
 
-.terms-accept-btn:disabled{
-    background-color: #cccccc;
-    cursor: not-allowed;
-    opacity: 0.6;
+.terms-accept-btn:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
-.terms-decline-btn{
-    background-color: #64646465;
+.terms-decline-btn {
+  background-color: #64646465;
 }
-.terms-decline-btn:hover{
-    background-color: #ff000065;
+.terms-decline-btn:hover {
+  background-color: #ff000065;
+}
+
+/* Estilos para que el modal se vea completo */
+#TermsAndConditionsModal .modal-dialog {
+  max-width: 90vw;
+  max-height: 90vh;
+  margin: 1rem auto;
+  display: flex;
+  flex-direction: column;
+}
+
+#TermsAndConditionsModal .modal-content {
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background-color: #1a1a2e !important;
+  color: #ffffff !important;
+}
+
+#TermsAndConditionsModal .modal-header {
+  flex-shrink: 0;
+  border-bottom: 1px solid #8f00ff;
+  background-color: #1a1a2e !important;
+}
+
+#TermsAndConditionsModal .modal-title {
+  color: #00f0ff !important;
+  font-weight: 600;
+}
+
+#TermsAndConditionsModal .modal-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: calc(90vh - 150px);
+  padding-right: 1rem;
+  color: #e0e0e0 !important;
+  background-color: #1a1a2e !important;
+}
+
+#TermsAndConditionsModal .modal-body p {
+  color: #e0e0e0 !important;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
+#TermsAndConditionsModal .modal-body h5 {
+  color: #00f0ff !important;
+  font-weight: 600;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+#TermsAndConditionsModal .modal-body label {
+  color: #e0e0e0 !important;
+}
+
+#TermsAndConditionsModal .modal-footer {
+  flex-shrink: 0;
+  border-top: 1px solid #8f00ff;
+  background-color: #1a1a2e !important;
+}
+
+/* Scrollbar personalizado para el modal-body */
+#TermsAndConditionsModal .modal-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+#TermsAndConditionsModal .modal-body::-webkit-scrollbar-track {
+  background: #1a1a1a;
+  border-radius: 4px;
+}
+
+#TermsAndConditionsModal .modal-body::-webkit-scrollbar-thumb {
+  background: #8f00ff;
+  border-radius: 4px;
+}
+
+#TermsAndConditionsModal .modal-body::-webkit-scrollbar-thumb:hover {
+  background: #a41ef1;
 }

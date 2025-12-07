@@ -53,12 +53,26 @@ def get_reviews_authored(user_id: int, _user: User) -> Tuple[Response, int]:
 @require_user_exists('user_id')
 def get_user_reviews(user_id: int, _user: User) -> Tuple[Response, int]:
     """Get all reviews received by a user"""
-    reviews = _user.reviews_received
-    serialized = [rev.serialize() | {
-        "stars": rev.stars,
-        "comment": rev.comment
-    } for rev in reviews]
-    return jsonify({"reviews_received": serialized}), 200
+    try:
+        reviews = _user.reviews_received or []
+        serialized = []
+        for rev in reviews:
+            try:
+                serialized_rev = rev.serialize() | {
+                    "stars": rev.stars,
+                    "comment": rev.comment
+                }
+                serialized.append(serialized_rev)
+            except Exception as e:
+                # Si hay un error serializando un review específico, continuar con los demás
+                import logging
+                logging.error(f"Error serializing review {rev.id}: {str(e)}")
+                continue
+        return jsonify({"reviews_received": serialized}), 200
+    except Exception as e:
+        import logging
+        logging.error(f"Error in get_user_reviews for user {user_id}: {str(e)}")
+        return jsonify({"error": f"Error loading reviews: {str(e)}"}), 500
 
 
 @reviews_bp.route('/reviews/<int:review_id>', methods=['DELETE'])

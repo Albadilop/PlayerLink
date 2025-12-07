@@ -68,7 +68,9 @@ def get_matches_for_user(user_id: int, _user: User) -> Tuple[Response, int]:
                 "gender":    u.profile.gender if u.profile.gender else "undefined",
                 "age": u.profile.age if u.profile.age else "undefined",
                 "location": u.profile.location if u.profile.location else "undefined",
-                "photo": u.profile.photo if u.profile.photo else None
+                "photo": u.profile.photo if u.profile.photo else None,
+                "match_id": m.id,
+                "created_at": m.created_at.isoformat() if m.created_at else None
             })
         else:
             other_users.append(f" user with id {u.id} has no data")

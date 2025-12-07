@@ -1,4 +1,5 @@
 import React from "react";
+import { createPortal } from "react-dom";
 import "./ProfileModals.css";
 
 const options = [
@@ -52,7 +53,7 @@ export const GamingPreferencesModal: React.FC<GamingPreferencesModalProps> = ({
     onCancel();
   };
 
-  return (
+  const modalContent = (
     <div className="abmodal">
       <div className="abmodal-content">
         <h3>Select up to 5 Gaming Preferences</h3>
@@ -75,4 +76,6 @@ export const GamingPreferencesModal: React.FC<GamingPreferencesModalProps> = ({
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 };

@@ -1,4 +1,5 @@
 import React from "react";
+import { createPortal } from "react-dom";
 import "./ProfileModals.css";
 
 const languages = [
@@ -48,7 +49,7 @@ export const LanguageModal: React.FC<LanguageModalProps> = ({
     onCancel();
   };
 
-  return (
+  const modalContent = (
     <div className="abmodal">
       <div className="abmodal-content">
         <h3>Select up to 5 Languages</h3>
@@ -71,4 +72,6 @@ export const LanguageModal: React.FC<LanguageModalProps> = ({
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 };
