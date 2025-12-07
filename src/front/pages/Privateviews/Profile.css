@@ -14,6 +14,11 @@
 .right-panel {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  height: 750px; /* Misma altura que profile-header */
+  box-sizing: border-box;
+  overflow: hidden;
 }
 .textareastyle {
   border: 2px solid #00ffff;
@@ -199,7 +204,7 @@
 /*-------------------------------- 2 test ---------------------------------------*/
 
 .info-section {
-  padding: 1.5rem;
+  padding: 1rem;
   background: linear-gradient(145deg, #0a0f1c, #12182b);
   border-radius: 16px;
   border: 2px solid transparent;
@@ -209,6 +214,12 @@
   background-clip: padding-box, border-box;
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
   transition: all 0.3s ease;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+  box-sizing: border-box;
 }
 
 .info-section:hover {
@@ -218,12 +229,12 @@
 .info-section label {
   color: #00f0ff;
   font-weight: 600;
-  margin-top: 1rem;
-  margin-bottom: 0.5rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.25rem;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   text-shadow: 0 0 8px rgba(0, 240, 255, 0.3);
@@ -236,10 +247,10 @@
   border: 1px solid rgba(0, 240, 255, 0.3);
   color: white;
   width: 100%;
-  padding: 12px 14px;
+  padding: 8px 10px;
   border-radius: 10px;
   transition: all 0.3s ease;
-  font-size: 0.95rem;
+  font-size: 0.85rem;
 }
 
 .info-section input:focus,
@@ -258,17 +269,18 @@
 }
 
 .info-section p {
-  padding: 10px 12px;
+  padding: 8px 10px;
   background: rgba(0, 0, 0, 0.3);
   border: 1px solid rgba(0, 240, 255, 0.2);
   border-radius: 8px;
   color: #e0e0e0;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.35rem;
   white-space: pre-line;
   transition: all 0.3s ease;
-  min-height: 38px;
+  min-height: 32px;
   display: flex;
   align-items: center;
+  font-size: 0.85rem;
 }
 
 .info-section p:empty::before {
@@ -298,6 +310,7 @@
   .right-panel {
     margin-top: 20px;
     padding-left: 0;
+    height: 700px; /* Altura ligeramente menor en móvil */
   }
 
   .tabs {
