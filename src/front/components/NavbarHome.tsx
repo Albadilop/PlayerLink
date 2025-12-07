@@ -197,7 +197,7 @@ export const NavbarHome: React.FC = () => {
       >
         <div className="modal-dialog ">
           <div className="modal-content modal-home ">
-            <div className="modal-header border-0 mt-5">
+            <div className="modal-header border-0 mt-2">
               <div className="modal-body d-flex">
                 <div>
                   {showSignIn ? (
@@ -230,7 +230,7 @@ export const NavbarHome: React.FC = () => {
         >
           <div className="modal-dialog ">
             <div className="modal-content modal-home ">
-              <div className="modal-header border-0 mt-5">
+              <div className="modal-header border-0 mt-2">
                 <div className="modal-body d-flex">
                   <ResetPassword />
                 </div>

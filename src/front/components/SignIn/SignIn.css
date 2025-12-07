@@ -4,7 +4,9 @@
 .card.signin-card,
 .card.register-card {
   width: 26rem !important;
+  min-height: auto !important;
   height: auto !important;
+  max-height: none !important;
   padding: 4px !important;
   border-radius: 30px !important;
   background: linear-gradient(var(--angle), #6bf1fa, #f538ff) !important;
@@ -16,6 +18,7 @@
   margin: 0 !important;
   perspective: none !important;
   cursor: default !important;
+  overflow: visible !important;
 }
 
 .card.sign-in-card .card-body,
@@ -24,16 +27,22 @@
   background-color: #ffffff !important;
   padding: 1rem !important;
   border-radius: 26px !important;
-  height: 100% !important;
+  min-height: auto !important;
+  height: auto !important;
+  max-height: none !important;
   width: 100% !important;
   margin: 0 !important;
+  overflow: visible !important;
 }
 
 .sign-in-card-subtitle,
 .register-card-subtitle {
   font-size: 15px;
-  text-shadow: 0 2px 1px rgba(0, 0, 0, 0.1), 0 4px 2px rgba(0, 0, 0, 0.1),
-    0 6px 4px rgba(0, 0, 0, 0.05), 0 8px 8px rgba(0, 0, 0, 0.04),
+  text-shadow:
+    0 2px 1px rgba(0, 0, 0, 0.1),
+    0 4px 2px rgba(0, 0, 0, 0.1),
+    0 6px 4px rgba(0, 0, 0, 0.05),
+    0 8px 8px rgba(0, 0, 0, 0.04),
     0 12px 12px rgba(0, 0, 0, 0.03);
 }
 
