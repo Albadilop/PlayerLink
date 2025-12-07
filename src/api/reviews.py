@@ -5,10 +5,17 @@ from flask import Blueprint, request, jsonify, Response
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from sqlalchemy import select
 from api.models import db, Review, User
-from api.validators import verify_ownership
+from api.validators import (
+    verify_ownership,
+    require_user_exists,
+    validate_json,
+    handle_errors,
+)
+from api.base import BaseEndpoint
 from typing import Tuple
 
 reviews_bp = Blueprint('reviews', __name__)
+base = BaseEndpoint()
 
 
 @reviews_bp.route('/reviews', methods=['GET'])
@@ -19,96 +26,98 @@ def get_All_Reviews() -> Tuple[Response, int]:
 
 
 @reviews_bp.route('/reviews/<int:review_id>', methods=['GET'])
+@handle_errors
 def get_reviews(review_id: int) -> Tuple[Response, int] | Response:
-    stmt = select(Review).where(Review.id == review_id)
-    review = db.session.execute(stmt).scalar_one_or_none()
+    """Get a single review by ID"""
+    review = db.session.get(Review, review_id)
     if review is None:
-        return jsonify({'error': f'review with id: {review_id} does not exist'})
-    return jsonify(review.serialize()), 200
+        return base.error_response(f'review with id: {review_id} does not exist', 404)
+    return base.serialize_response(review, 200)
 
 
 @reviews_bp.route('/reviews_authored/<int:user_id>', methods=['GET'])
-def get_reviews_authored(user_id: int) -> Tuple[Response, int]:
-    # 1. Buscamos al usuario; si no existe devolvemos 404
-    user = User.query.get(user_id)
-    if not user:
-        return jsonify({'error': f'Usuario con id={user_id} no encontrado'}), 400
-
-    # 2. Sacamos las reseñas que ha escrito
-    reviews = user.reviews_authored
-
-    # Serializamos cada review usando el método de instancia
+@handle_errors
+@require_user_exists('user_id')
+def get_reviews_authored(user_id: int, _user: User) -> Tuple[Response, int]:
+    """Get all reviews authored by a user"""
+    reviews = _user.reviews_authored
     serialized = [rev.serialize() | {
         "stars": rev.stars,
         "comment": rev.comment
     } for rev in reviews]
-
     return jsonify({"reviews_authored": serialized}), 200
 
 
 @reviews_bp.route('/reviews_received/<int:user_id>', methods=['GET'])
-def get_user_reviews(user_id: int) -> Tuple[Response, int]:
-    # 1. Buscamos al usuario; si no existe devolvemos 404
-    user = User.query.get(user_id)
-    if not user:
-        return jsonify({'error': f'Usuario con id={user_id} no encontrado'}), 404
-
-    # 2. Sacamos las reseñas que ha escrito
-    reviews = user.reviews_received
-
-    # Serializamos cada review usando el método de instancia
+@handle_errors
+@require_user_exists('user_id')
+def get_user_reviews(user_id: int, _user: User) -> Tuple[Response, int]:
+    """Get all reviews received by a user"""
+    reviews = _user.reviews_received
     serialized = [rev.serialize() | {
         "stars": rev.stars,
         "comment": rev.comment
     } for rev in reviews]
-
     return jsonify({"reviews_received": serialized}), 200
 
 
 @reviews_bp.route('/reviews/<int:review_id>', methods=['DELETE'])
 @jwt_required()
+@handle_errors
 def delete_review(review_id: int) -> Tuple[Response, int]:
+    """Delete a review"""
     current_user_id = get_jwt_identity()
-    review = Review.query.get(review_id)
+    review = db.session.get(Review, review_id)
+    
     if review is None:
-        return jsonify({'error': 'that review does not exist'}), 400
+        return base.error_response('that review does not exist', 404)
+    
     # Only the author can delete their review
-    if not verify_ownership(current_user_id, review.author_id):
-        return jsonify({'error': 'Unauthorized: You can only delete your own reviews'}), 403
+    ownership_error = base.validate_ownership(current_user_id, review.author_id)
+    if ownership_error:
+        return ownership_error
 
     db.session.delete(review)
     db.session.commit()
-    return jsonify({'message': 'review deleted'}), 200
+    return base.success_response('review deleted', status_code=200)
 
 
 @reviews_bp.route('/reviews/<int:author_id>/<int:receiver_id>', methods=['POST'])
 @jwt_required()
-def post_review(author_id: int, receiver_id: int) -> Tuple[Response, int]:
+@handle_errors
+@require_user_exists('author_id')
+@validate_json(['stars', 'comment'])
+def post_review(
+    author_id: int,
+    receiver_id: int,
+    _user: User,
+    _data: dict
+) -> Tuple[Response, int]:
+    """Create a new review"""
     current_user_id = get_jwt_identity()
+    
     # Verify that the authenticated user is the author
-    if not verify_ownership(current_user_id, author_id):
-        return jsonify({'error': 'Unauthorized: You can only create reviews as yourself'}), 403
+    ownership_error = base.validate_ownership(current_user_id, author_id)
+    if ownership_error:
+        return ownership_error
+    
     if author_id == receiver_id:
-        return jsonify({'error': 'No puedes comentar sobre ti mismo'}), 400
+        return base.error_response('No puedes comentar sobre ti mismo', 400)
 
-    user_author = User.query.get(author_id)
-    user_receiver = User.query.get(receiver_id)
-    if user_author is None or user_receiver is None:
-        return jsonify({'error': 'Usuario no encontrado'}), 404
+    # Verify receiver exists
+    user_receiver, error_response = base.get_user_or_404(receiver_id)
+    if error_response:
+        return error_response
 
-    data = request.get_json() or {}
-    if 'stars' not in data or 'comment' not in data:
-        return jsonify({'error': 'Faltan campos obligatorios'}), 400
-
-    stars = int(data['stars'])
+    stars = int(_data['stars'])
     if not 1 <= stars <= 5:
-        return jsonify({'error': '"stars" debe estar entre 1 y 5'}), 400
+        return base.error_response('"stars" debe estar entre 1 y 5', 400)
 
-    comment = data['comment'].strip()
+    comment = _data['comment'].strip()
     if not comment:
-        return jsonify({'error': 'El comentario no puede estar vacío'}), 400
+        return base.error_response('El comentario no puede estar vacío', 400)
 
-    # 5) Crear y persistir la reseña
+    # Crear y persistir la reseña
     new_review = Review(
         user_id=receiver_id,
         author_id=author_id,
@@ -119,27 +128,37 @@ def post_review(author_id: int, receiver_id: int) -> Tuple[Response, int]:
     db.session.add(new_review)
     db.session.commit()
 
-    return jsonify(new_review.serialize()), 201
+    return base.serialize_response(new_review, 201)
 
 
 @reviews_bp.route('/reviews/<int:review_id>', methods=['PUT'])
 @jwt_required()
-def put_review(review_id: int) -> Tuple[Response, int]:
+@handle_errors
+@validate_json(['stars', 'comment'])
+def put_review(review_id: int, _data: dict) -> Tuple[Response, int]:
+    """Update a review"""
     current_user_id = get_jwt_identity()
-    review = Review.query.get(review_id)
+    review = db.session.get(Review, review_id)
+    
     if review is None:
-        return jsonify({'error': 'that review does not exist'}), 400
+        return base.error_response('that review does not exist', 404)
+    
     # Only the author can update their review
-    if not verify_ownership(current_user_id, review.author_id):
-        return jsonify({'error': 'Unauthorized: You can only update your own reviews'}), 403
-    data = request.get_json()
+    ownership_error = base.validate_ownership(current_user_id, review.author_id)
+    if ownership_error:
+        return ownership_error
 
-    if 'stars' not in data or 'comment' not in data:
-        return jsonify({'error': 'Faltan campos obligatorios'}), 400
+    stars = int(_data.get('stars', review.stars))
+    if not 1 <= stars <= 5:
+        return base.error_response('"stars" debe estar entre 1 y 5', 400)
 
-    review.stars = data.get('stars', review.stars)
-    review.comment = data.get('comment', review.comment)
+    comment = _data.get('comment', review.comment).strip()
+    if not comment:
+        return base.error_response('El comentario no puede estar vacío', 400)
+
+    review.stars = stars
+    review.comment = comment
     db.session.commit()
-    return jsonify({'message': 'review updated'}), 200
+    return base.success_response('review updated', status_code=200)
 
 

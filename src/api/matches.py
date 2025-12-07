@@ -5,10 +5,16 @@ from flask import Blueprint, request, jsonify, Response
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from sqlalchemy import select, or_
 from api.models import db, Match, Reject, Like, User
-from api.validators import verify_ownership
+from api.validators import (
+    verify_ownership,
+    require_user_exists,
+    handle_errors,
+)
+from api.base import BaseEndpoint
 from typing import Tuple
 
 matches_bp = Blueprint('matches', __name__)
+base = BaseEndpoint()
 
 
 # ========== MATCHES ==========
@@ -21,16 +27,19 @@ def get_all_matches() -> Tuple[Response, int]:
 
 
 @matches_bp.route('/matches/<int:match_id>', methods=['GET'])
+@handle_errors
 def get_single_match(match_id: int) -> Tuple[Response, int]:
-    stmt = select(Match).where(Match.id == match_id)
-    match = db.session.execute(stmt).scalar_one_or_none()
+    """Get a single match by ID"""
+    match = db.session.get(Match, match_id)
     if not match:
-        return jsonify({'error': f'Match with id {match_id} not found'}), 404
-    return jsonify(match.serialize()), 200
+        return base.error_response(f'Match with id {match_id} not found', 404)
+    return base.serialize_response(match, 200)
 
 
 @matches_bp.route('/matches/user/<int:user_id>', methods=['GET'])
-def get_matches_for_user(user_id: int) -> Tuple[Response, int]:
+@handle_errors
+@require_user_exists('user_id')
+def get_matches_for_user(user_id: int, _user: User) -> Tuple[Response, int]:
     # 1) Sacar todos los Match donde aparezca este usuario como user1 o como user2
     stmt = select(Match).where(
         or_(
@@ -54,11 +63,12 @@ def get_matches_for_user(user_id: int) -> Tuple[Response, int]:
         if u.profile:
             other_users.append({
                 "user_id":   u.id,
-                "nickname":  u.profile.name if u.profile.name else "undefined",
+                "nickname":  u.profile.nick_name if u.profile.nick_name else "undefined",
                 "games":     [g.serialize() for g in u.profile.games] if u.profile.games else [],
                 "gender":    u.profile.gender if u.profile.gender else "undefined",
-                "age": u.profile.age if u.profile.age else "undefinied",
-                "location": u.profile.location if u.profile.location else "undefinied"
+                "age": u.profile.age if u.profile.age else "undefined",
+                "location": u.profile.location if u.profile.location else "undefined",
+                "photo": u.profile.photo if u.profile.photo else None
             })
         else:
             other_users.append(f" user with id {u.id} has no data")
@@ -82,43 +92,50 @@ def get_matches_for_user(user_id: int) -> Tuple[Response, int]:
 
 @matches_bp.route('/matches/<int:user1_id>/<int:user2_id>', methods=['POST'])
 @jwt_required()
-def post_match(user1_id: int, user2_id: int) -> Tuple[Response, int]:
+@handle_errors
+@require_user_exists('user1_id')
+def post_match(user1_id: int, user2_id: int, _user: User) -> Tuple[Response, int]:
+    """Create a new match between two users"""
     current_user_id = get_jwt_identity()
     # Verify that the authenticated user is one of the users in the match
     if not verify_ownership(current_user_id, user1_id) and not verify_ownership(current_user_id, user2_id):
-        return jsonify({'error': 'Unauthorized: You can only create matches involving yourself'}), 403
+        return base.error_response('Unauthorized: You can only create matches involving yourself', 403)
     if user1_id == user2_id:
-        return jsonify({'error': 'Cannot match yourself'}), 400
-    user1 = User.query.get(user1_id)
-    user2 = User.query.get(user2_id)
-    if not user1 or not user2:
-        return jsonify({'error': 'User not found'}), 404
+        return base.error_response('Cannot match yourself', 400)
+    
+    # Verify user2 exists
+    user2, error_response = base.get_user_or_404(user2_id)
+    if error_response:
+        return error_response
+    
     # prevent duplicates regardless of order
     existing = (db.session.query(Match)
                 .filter(((Match.user1_id == user1_id) & (Match.user2_id == user2_id)) |
                 ((Match.user1_id == user2_id) & (Match.user2_id == user1_id))).first())
     if existing:
-        return jsonify({'error': 'Match already exists'}), 409
+        return base.error_response('Match already exists', 409)
+    
     new_match = Match(user1_id=user1_id, user2_id=user2_id)
     db.session.add(new_match)
     db.session.commit()
-    return jsonify(new_match.serialize()), 201
+    return base.serialize_response(new_match, 201)
 
 
 @matches_bp.route('/matches/<int:match_id>', methods=['DELETE'])
 @jwt_required()
+@handle_errors
 def delete_match(match_id: int) -> Tuple[Response, int]:
+    """Delete a match"""
     current_user_id = get_jwt_identity()
-    stmt = select(Match).where(Match.id == match_id)
-    match = db.session.execute(stmt).scalar_one_or_none()
+    match = db.session.get(Match, match_id)
     if not match:
-        return jsonify({'error': f'Match with id {match_id} not found'}), 404
+        return base.error_response(f'Match with id {match_id} not found', 404)
     # Only users in the match can delete it
     if not verify_ownership(current_user_id, match.user1_id) and not verify_ownership(current_user_id, match.user2_id):
-        return jsonify({'error': 'Unauthorized: You can only delete matches you are part of'}), 403
+        return base.error_response('Unauthorized: You can only delete matches you are part of', 403)
     db.session.delete(match)
     db.session.commit()
-    return jsonify({'message': f'Match {match_id} deleted'}), 200
+    return base.success_response(f'Match {match_id} deleted', status_code=200)
 
 
 # ========== LIKES ==========
@@ -131,64 +148,54 @@ def get_all_likes() -> Tuple[Response, int]:
 
 
 @matches_bp.route('/likes/<int:like_id>', methods=['GET'])
+@handle_errors
 def get_single_like(like_id: int) -> Tuple[Response, int] | Response:
-    stmt = select(Like).where(Like.id == like_id)
-    like = db.session.execute(stmt).scalar_one_or_none()
+    """Get a single like by ID"""
+    like = db.session.get(Like, like_id)
     if like is None:
-        return jsonify({'error': f'like with id: {like_id} not found'}), 400
-    return jsonify(like.serialize())
+        return base.error_response(f'like with id: {like_id} not found', 404)
+    return base.serialize_response(like, 200)
 
 
 @matches_bp.route('/likes_sent/<user_id>', methods=['GET'])
-def get_likes_sent(user_id: int) -> Tuple[Response, int]:
-    # 1. Buscamos al usuario; si no existe devolvemos 404
-    user = User.query.get(user_id)
-    if not user:
-        return jsonify({'error': f'Usuario con id={user_id} no encontrado'}), 400
-
-    # 2. Sacamos los likes que ha enviado
-    likes = user.likes_given
-
-    # Serializamos cada like usando el método de instancia
+@handle_errors
+@require_user_exists('user_id')
+def get_likes_sent(user_id: int, _user: User) -> Tuple[Response, int]:
+    """Get all likes sent by a user"""
+    likes = _user.likes_given
     serialized = [like.serialize() for like in likes]
-
     return jsonify({"likes_sent": serialized}), 200
 
 
 @matches_bp.route('/likes_received/<user_id>', methods=['GET'])
-def get_likes_received(user_id: int) -> Tuple[Response, int]:
-    # 1. Buscamos al usuario; si no existe devolvemos 404
-    user = User.query.get(user_id)
-    if not user:
-        return jsonify({'error': f'Usuario con id={user_id} no encontrado'}), 400
-
-    # 2. Sacamos los likes que ha recibido
-    likes = user.likes_received
-
-    # Serializamos cada like usando el método de instancia
+@handle_errors
+@require_user_exists('user_id')
+def get_likes_received(user_id: int, _user: User) -> Tuple[Response, int]:
+    """Get all likes received by a user"""
+    likes = _user.likes_received
     serialized = [like.serialize() for like in likes]
-
     return jsonify({"likes_received": serialized}), 200
 
 
 @matches_bp.route('/likes/<int:like_id>', methods=['DELETE'])
 @jwt_required()
+@handle_errors
 def delete_like(like_id: int) -> Tuple[Response, int] | Response:
+    """Delete a like"""
     current_user_id = get_jwt_identity()
-    # Buscar el like
-    like = db.session.query(Like).get(like_id)
+    like = db.session.get(Like, like_id)
     if not like:
-        return jsonify({'error': f'Like with id {like_id} not found'}), 404
+        return base.error_response(f'Like with id {like_id} not found', 404)
     # Only the liker can delete their like
-    if not verify_ownership(current_user_id, like.liker_id):
-        return jsonify({'error': 'Unauthorized: You can only delete your own likes'}), 403
+    ownership_error = base.validate_ownership(current_user_id, like.liker_id)
+    if ownership_error:
+        return ownership_error
 
     # Comprobar si este like formó parte de un match
     match = (db.session.query(Match)
              .filter(
                  ((Match.user1_id == like.liker_id) & (Match.user2_id == like.liked_id)) |
-                 ((Match.user1_id == like.liked_id) &
-                  (Match.user2_id == like.liker_id))
+                 ((Match.user1_id == like.liked_id) & (Match.user2_id == like.liker_id))
     )
         .first())
 
@@ -200,32 +207,35 @@ def delete_like(like_id: int) -> Tuple[Response, int] | Response:
     db.session.delete(like)
     db.session.commit()
 
-    return jsonify({'message': f'Like {like_id} deleted, match removed' if match else f'Like {like_id} deleted'}), 200
+    message = f'Like {like_id} deleted, match removed' if match else f'Like {like_id} deleted'
+    return base.success_response(message, status_code=200)
 
 
 @matches_bp.route('/likes/<int:liker_id>/<int:liked_id>', methods=['POST'])
 @jwt_required()
-def post_like(liker_id: int, liked_id: int) -> Tuple[Response, int]:
+@handle_errors
+@require_user_exists('liker_id')
+def post_like(liker_id: int, liked_id: int, _user: User) -> Tuple[Response, int]:
+    """Create a new like"""
     current_user_id = get_jwt_identity()
     # Verify that the authenticated user is the liker
-    if not verify_ownership(current_user_id, liker_id):
-        return jsonify({'error': 'Unauthorized: You can only like as yourself'}), 403
+    ownership_error = base.validate_ownership(current_user_id, liker_id)
+    if ownership_error:
+        return ownership_error
+    
     if liker_id == liked_id:
-        return jsonify({'error': 'Cannot like yourself'}), 400
+        return base.error_response('Cannot like yourself', 400)
 
-    liker = db.session.get(User, liker_id)
-    if liker is None:
-        return jsonify({'error': f'User (liker) with id={liker_id} not found'}), 404
-
-    liked = db.session.get(User, liked_id)
-    if liked is None:
-        return jsonify({'error': f'User (liked) with id={liked_id} not found'}), 404
+    # Verify liked user exists
+    liked, error_response = base.get_user_or_404(liked_id)
+    if error_response:
+        return error_response
 
     # Check if like already exists
     existing = (db.session.query(Like).filter_by(
         liker_id=liker_id, liked_id=liked_id).first())
     if existing:
-        return jsonify({'error': 'Like already exists'}), 409
+        return base.error_response('Like already exists', 409)
 
     # Create new like
     new_like = Like(liker_id=liker_id, liked_id=liked_id)
@@ -246,7 +256,7 @@ def post_like(liker_id: int, liked_id: int) -> Tuple[Response, int]:
             db.session.commit()
             return jsonify({'like': new_like.serialize(), 'match': new_match.serialize()}), 201
 
-    return jsonify(new_like.serialize()), 201
+    return base.serialize_response(new_like, 201)
 
 
 # ========== REJECTS ==========
@@ -269,82 +279,73 @@ def get_single_reject(reject_id: int) -> Tuple[Response, int] | Response:
 
 
 @matches_bp.route('/rejects_sent/<user_id>', methods=['GET'])
-def get_rejects_sent(user_id: int) -> Tuple[Response, int]:
-    # 1. Buscamos al usuario; si no existe devolvemos 404
-    user = User.query.get(user_id)
-    if not user:
-        return jsonify({'error': f'Usuario con id={user_id} no encontrado'}), 400
-
-    # 2. Sacamos los rejects que ha enviado
-    rejects = user.rejects_given
-
-    # Serializamos cada reject usando el método de instancia
+@handle_errors
+@require_user_exists('user_id')
+def get_rejects_sent(user_id: int, _user: User) -> Tuple[Response, int]:
+    """Get all rejects sent by a user"""
+    rejects = _user.rejects_given
     serialized = [reject.serialize() for reject in rejects]
-
     return jsonify({"rejects_authored": serialized}), 200
 
 
 @matches_bp.route('/rejects_received/<user_id>', methods=['GET'])
-def get_rejects_received(user_id: int) -> Tuple[Response, int]:
-    # 1. Buscamos al usuario; si no existe devolvemos 404
-    user = User.query.get(user_id)
-    if not user:
-        return jsonify({'error': f'Usuario con id={user_id} no encontrado'}), 400
-
-    # 2. Sacamos los rejects que ha recibido
-    rejects = user.rejects_received
-
-    # Serializamos cada reject usando el método de instancia
+@handle_errors
+@require_user_exists('user_id')
+def get_rejects_received(user_id: int, _user: User) -> Tuple[Response, int]:
+    """Get all rejects received by a user"""
+    rejects = _user.rejects_received
     serialized = [reject.serialize() for reject in rejects]
-
     return jsonify({"rejects_received": serialized}), 200
 
 
 @matches_bp.route('/rejects/<reject_id>', methods=['DELETE'])
 @jwt_required()
+@handle_errors
 def delete_reject(reject_id: int) -> Tuple[Response, int] | Response:
+    """Delete a reject"""
     current_user_id = get_jwt_identity()
-    stmt = select(Reject).where(Reject.id == reject_id)
-    reject = db.session.execute(stmt).scalar_one_or_none()
+    reject = db.session.get(Reject, reject_id)
     if reject is None:
-        return jsonify({'error': f'reject with id: {reject_id} not found'}), 400
+        return base.error_response(f'reject with id: {reject_id} not found', 404)
     # Only the user who sent the reject can delete it
-    if not verify_ownership(current_user_id, reject.rejector_id):
-        return jsonify({'error': 'Unauthorized: You can only delete your own rejects'}), 403
+    ownership_error = base.validate_ownership(current_user_id, reject.rejector_id)
+    if ownership_error:
+        return ownership_error
 
     db.session.delete(reject)
     db.session.commit()
-    return jsonify({'message': f'reject with id: {reject_id} deleted'})
+    return base.success_response(f'reject with id: {reject_id} deleted', status_code=200)
 
 
 @matches_bp.route('/rejects/<int:rejector_id>/<int:rejected_id>', methods=['POST'])
 @jwt_required()
-def post_reject(rejector_id: int, rejected_id: int) -> Tuple[Response, int]:
+@handle_errors
+@require_user_exists('rejector_id')
+def post_reject(rejector_id: int, rejected_id: int, _user: User) -> Tuple[Response, int]:
+    """Create a new reject"""
     current_user_id = get_jwt_identity()
     # Verify that the authenticated user is the rejector
-    if not verify_ownership(current_user_id, rejector_id):
-        return jsonify({'error': 'Unauthorized: You can only reject as yourself'}), 403
-    rejector = db.session.get(User, rejector_id)
-    if rejector is None:
-        return jsonify({'error': f'User (rejector) with id={rejector_id} not found'}), 404
-
-    rejected = db.session.get(User, rejected_id)
-    if rejected is None:
-        return jsonify({'error': f'User (rejected) with id={rejected_id} not found'}), 404
-
+    ownership_error = base.validate_ownership(current_user_id, rejector_id)
+    if ownership_error:
+        return ownership_error
+    
     if rejector_id == rejected_id:
-        return jsonify({'error': 'Cannot match with yourself'}), 400
+        return base.error_response('Cannot reject yourself', 400)
+
+    # Verify rejected user exists
+    rejected, error_response = base.get_user_or_404(rejected_id)
+    if error_response:
+        return error_response
 
     existing = (db.session.query(Reject).filter_by(
         rejector_id=rejector_id, rejected_id=rejected_id).first())
     if existing:
-        return jsonify({'error': 'Reject already exists'}), 409
+        return base.error_response('Reject already exists', 409)
 
-    # 4. Crear y persistir el nuevo reject
+    # Crear y persistir el nuevo reject
     new_reject = Reject(rejector_id=rejector_id, rejected_id=rejected_id)
     db.session.add(new_reject)
     db.session.commit()
 
-    # 5. Responder con 201 Created y los datos del match
-    return jsonify(new_reject.serialize()), 201
+    return base.serialize_response(new_reject, 201)
 

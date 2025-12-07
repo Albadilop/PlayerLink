@@ -1,50 +1,76 @@
-.sign-in-card {
-  width: 26rem;
-  height: auto;
-  border: 3px solid;
-  background-color: #ffffff;
-  padding: 1rem;
-  border: 4px solid #0000;
-  border-radius: 30px;
-  background: linear-gradient(#ffffff, hsl(0, 0%, 100%, 0.911)) padding-box,
-    linear-gradient(var(--angle), #6bf1fa, #f538ff) border-box;
-  animation: 15s rotate linear infinite;
-  background-color: transparent;
+/* Estilos para los modales de autenticación - Alta especificidad para evitar conflictos */
+/* Sobrescribe el estilo global .card de Home.css */
+.card.sign-in-card,
+.card.signin-card,
+.card.register-card {
+  width: 26rem !important;
+  height: auto !important;
+  padding: 4px !important;
+  border-radius: 30px !important;
+  background: linear-gradient(var(--angle), #6bf1fa, #f538ff) !important;
+  background-color: transparent !important;
+  animation: 15s rotate linear infinite !important;
+  box-shadow: none !important;
+  border: none !important;
+  /* Sobrescribir estilos de Home.css */
+  margin: 0 !important;
+  perspective: none !important;
+  cursor: default !important;
 }
 
-.sign-in-card-subtitle {
-   font-size: 15px;
+.card.sign-in-card .card-body,
+.card.signin-card .card-body,
+.card.register-card .card-body {
+  background-color: #ffffff !important;
+  padding: 1rem !important;
+  border-radius: 26px !important;
+  height: 100% !important;
+  width: 100% !important;
+  margin: 0 !important;
+}
+
+.sign-in-card-subtitle,
+.register-card-subtitle {
+  font-size: 15px;
   text-shadow: 0 2px 1px rgba(0, 0, 0, 0.1), 0 4px 2px rgba(0, 0, 0, 0.1),
     0 6px 4px rgba(0, 0, 0, 0.05), 0 8px 8px rgba(0, 0, 0, 0.04),
     0 12px 12px rgba(0, 0, 0, 0.03);
 }
-.sign-in-password-subtitle {
-  font-size: 0.8rem;
-  color: rgb(0, 0, 0);
+
+.sign-in-password-subtitle,
+.register-password-subtitle {
+  font-size: 0.7rem;
+  color: rgb(99, 99, 99);
 }
-.btn-sign-in-card-border {
+
+.btn-sign-in-card-border,
+.btn-register-card-border,
+.register-card-border {
   border: 2px solid !important;
   border-color: aqua !important;
 }
 
-.btn-sign-in-card-border:hover{
-     border-color:#7c0ebc !important;
+.btn-sign-in-card-border:hover,
+.btn-register-card-border:hover {
+  border-color: #7c0ebc !important;
 }
 
-.sign-in-message-errors{
+.sign-in-message-errors,
+.register-message-errors {
   font-size: 0.8rem;
 }
 
 .btn-close-modal {
   background-color: #a41ef165;
-
-} 
+}
 
 /* Pantalla móvil  */
 @media (max-width: 600px) {
- .sign-in-card{
-  width: 20rem;
-  padding-right: 0px;
-  padding-left: 0px;
- }
+  .card.sign-in-card,
+  .card.signin-card,
+  .card.register-card {
+    width: 20rem !important;
+    padding-right: 0px !important;
+    padding-left: 0px !important;
+  }
 }

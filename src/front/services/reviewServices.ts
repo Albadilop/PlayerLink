@@ -1,7 +1,5 @@
-import { normalizeUrl } from '../utils/urlHelper';
+import apiClient from './apiClient';
 import type { CreateReviewRequest, ReviewResponse, ReviewsResponse } from '../types/api';
-
-const url = import.meta.env.VITE_BACKEND_URL;
 
 interface ReviewServices {
   getAllReviewsReceived: (user_id: number) => Promise<ReviewsResponse | Error>;
@@ -14,17 +12,12 @@ interface ReviewServices {
 
 const reviewServices: ReviewServices = {
   getAllReviewsReceived: async (user_id: number): Promise<ReviewsResponse | Error> => {
-    try {
-      const resp = await fetch(normalizeUrl(url, `/api/reviews_received/${user_id}`));
-      if (!resp.ok)
-        throw Error("Something went wrong trying to get reviews info");
-      const data = await resp.json() as ReviewsResponse;
-      console.log(data);
-      return data;
-    } catch (error) {
-      console.log(error);
-      return error as Error;
+    const response = await apiClient.get<ReviewsResponse>(`/api/reviews_received/${user_id}`, false);
+    if (response.ok && response.data) {
+      console.log(response.data);
+      return response.data;
     }
+    return new Error(response.error || "Something went wrong trying to get reviews info");
   },
 
   postNewReview: async (
@@ -32,30 +25,15 @@ const reviewServices: ReviewServices = {
     userReviewedId: number,
     reviewData: CreateReviewRequest
   ): Promise<ReviewResponse> => {
-    try {
-      const resp = await fetch(
-        normalizeUrl(url, `/api/reviews/${userAuthoredId}/${userReviewedId}`),
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(reviewData),
-        }
-      );
-
-      if (!resp.ok) {
-        throw new Error(
-          `Error posting review: ${resp.status} ${resp.statusText}`
-        );
-      }
-
-      const result = await resp.json() as ReviewResponse;
-      return result;
-    } catch (error) {
-      console.error("postNewReview:", error);
-      throw error;
+    const response = await apiClient.post<ReviewResponse>(
+      `/api/reviews/${userAuthoredId}/${userReviewedId}`,
+      reviewData,
+      true
+    );
+    if (response.ok && response.data) {
+      return response.data;
     }
+    throw new Error(response.error || `Error posting review: ${response.status}`);
   },
 };
 

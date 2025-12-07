@@ -31,19 +31,20 @@ app = Flask(__name__)
 app.url_map.strict_slashes = False
 
 # Configure CORS globally for all routes
-allowed_origins = os.getenv('CORS_ORIGINS', 'http://localhost:5173,http://localhost:3000').split(',')
+# Allow both localhost and 127.0.0.1 for development (including port 5174 as fallback)
+default_origins = 'http://localhost:5173,http://localhost:5174,http://localhost:3000,http://127.0.0.1:5173,http://127.0.0.1:5174,http://127.0.0.1:3000'
+allowed_origins = os.getenv('CORS_ORIGINS', default_origins).split(',')
+allowed_origins = [origin.strip() for origin in allowed_origins]  # Remove whitespace
+
+# Configure CORS with more permissive settings for development
+# Use a simpler, more direct configuration that applies to all routes
 CORS(app, 
-     resources={r"/api/*": {
-         "origins": allowed_origins, 
-         "supports_credentials": True, 
-         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-         "allow_headers": ["Content-Type", "Authorization", "X-Requested-With"],
-         "expose_headers": ["Content-Type", "Authorization"],
-         "max_age": 3600
-     }},
-     allow_headers=["Content-Type", "Authorization", "X-Requested-With"],
+     origins=allowed_origins,
      methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-     supports_credentials=True)
+     allow_headers=["Content-Type", "Authorization", "X-Requested-With"],
+     expose_headers=["Content-Type", "Authorization"],
+     supports_credentials=True,
+     automatic_options=True)  # Automatically handle OPTIONS requests
 
 
 # Setup the Flask-JWT-Extended extension
@@ -55,11 +56,7 @@ app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=24)
 jwt = JWTManager(app)
 
 # Allow OPTIONS requests to pass through without JWT validation
-@app.before_request
-def handle_preflight():
-    if request.method == "OPTIONS":
-        # Let Flask-CORS handle the OPTIONS request
-        return None
+# Flask-CORS will handle OPTIONS automatically, so we don't need to intercept them
 
 # Setup rate limiting
 limiter = Limiter(
@@ -161,4 +158,5 @@ if __name__ == '__main__':
     PORT = int(os.environ.get('PORT', 3001))
     # Only enable debug mode if explicitly set in environment
     debug_mode = os.getenv('FLASK_DEBUG') == '1'
-    app.run(host='0.0.0.0', port=PORT, debug=debug_mode)
+    # Use 127.0.0.1 instead of 0.0.0.0 for better browser compatibility
+    app.run(host='127.0.0.1', port=PORT, debug=debug_mode)

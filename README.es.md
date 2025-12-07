@@ -70,6 +70,67 @@ Cada entorno de Github Codespace tendrá **su propia base de datos**, por lo que
 1. Instala los paquetes: `$ npm install`
 2. ¡Empieza a codificar! inicia el servidor de desarrollo de webpack `$ npm run start`
 
+## Iniciar la Aplicación
+
+### Iniciar el Backend
+
+Para iniciar el servidor backend de Flask, tienes varias opciones:
+
+**Opción 1: Usando Pipenv (Recomendado)**
+```bash
+$ pipenv run start
+```
+
+**Opción 2: Usando Python directamente**
+```bash
+$ cd src
+$ python app.py
+```
+
+**Opción 3: Usando Flask CLI**
+```bash
+$ cd src
+$ export FLASK_APP=app.py
+$ export FLASK_DEBUG=1
+$ export PORT=3001
+$ python app.py
+```
+
+El backend se iniciará en `http://localhost:3001`
+
+### Iniciar el Frontend
+
+Para iniciar el servidor de desarrollo del frontend React:
+
+```bash
+$ npm run dev
+```
+
+o
+
+```bash
+$ npm run start
+```
+
+El frontend se iniciará en `http://localhost:5173`
+
+### Ejecutar Ambos Servicios
+
+Necesitas ejecutar ambos servicios en terminales/ventanas separadas:
+
+**Terminal 1 - Backend:**
+```bash
+$ cd src
+$ python app.py
+```
+
+**Terminal 2 - Frontend:**
+```bash
+$ npm run dev
+```
+
+> **Nota:** Asegúrate de que el backend esté corriendo antes de iniciar el frontend, ya que el frontend necesita conectarse a la API del backend.
+
 ## ¡Publica tu sitio web!
 
 Esta plantilla está 100% lista para desplegarse con Render.com y Heroku en cuestión de minutos. Por favor, lee la [documentación oficial al respecto](https://4geeks.com/docs/start/deploy-to-render-com).

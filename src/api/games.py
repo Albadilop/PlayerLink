@@ -5,10 +5,18 @@ from flask import Blueprint, request, jsonify, Response
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from sqlalchemy import select
 from api.models import db, Game, Profile
-from api.validators import verify_ownership
+from api.validators import (
+    verify_ownership,
+    require_user_exists,
+    require_profile_exists,
+    validate_json,
+    handle_errors,
+)
+from api.base import BaseEndpoint
 from typing import Tuple
 
 games_bp = Blueprint('games', __name__)
+base = BaseEndpoint()
 
 
 @games_bp.route('/games', methods=['GET'])
@@ -19,106 +27,126 @@ def get_all_games() -> Tuple[Response, int]:
 
 
 @games_bp.route('/games/<int:game_id>', methods=['GET'])
+@handle_errors
 def get_single_game(game_id: int) -> Tuple[Response, int] | Response:
-    stmt = select(Game).where(Game.id == game_id)
-    games = db.session.execute(stmt).scalar_one_or_none()
-    if games is None:
-        return jsonify({'error': 'this game does not exist'})
-    return jsonify(games.serialize()), 200
+    """Get a single game by ID"""
+    game = db.session.get(Game, game_id)
+    if game is None:
+        return base.error_response('this game does not exist', 404)
+    return base.serialize_response(game, 200)
 
 
 @games_bp.route('/games_by_profile/<int:profile_id>', methods=['GET'])
+@handle_errors
 def get_games_by_profile_id(profile_id: int) -> Tuple[Response, int]:
-    # 1. Ejecutar la consulta
+    """Get all games for a specific profile"""
+    profile = db.session.get(Profile, profile_id)
+    if profile is None:
+        return base.error_response('Profile not found', 404)
+    
     stmt = select(Game).where(Game.profile_id == profile_id)
     games = db.session.execute(stmt).scalars().all()
 
-    # 2. Si no hay resultados, podemos devolver 404 o una lista vacía.
     if not games:
-        return jsonify({'error': 'No se han encontrado juegos para este perfil'}), 404
+        return base.error_response('No se han encontrado juegos para este perfil', 404)
 
-    # 3. Serializar y devolver la lista
     serialized = [game.serialize() for game in games]
     return jsonify(serialized), 200
 
 
 @games_bp.route('/games/hours/<int:game_id>', methods=['PUT'])
 @jwt_required()
-def put_game_hours(game_id: int) -> Tuple[Response, int]:
+@handle_errors
+@validate_json()
+def put_game_hours(game_id: int, _data: dict) -> Tuple[Response, int]:
+    """Update game hours"""
     current_user_id = get_jwt_identity()
-    data = request.get_json()
-
-    if not data:
-        return jsonify({'error': 'No se están enviando los datos correctamente'}), 400
-
-    # Buscar juego
-    stmt = select(Game).where(Game.id == game_id)
-    game = db.session.execute(stmt).scalar_one_or_none()
-
+    game = db.session.get(Game, game_id)
+    
     if game is None:
-        return jsonify({'error': 'Este juego no existe'}), 404
+        return base.error_response('Este juego no existe', 404)
     
     # Verify that the game belongs to the authenticated user's profile
     profile = db.session.get(Profile, game.profile_id)
-    if not profile or not verify_ownership(current_user_id, profile.user_id):
-        return jsonify({'error': 'Unauthorized: You can only modify games in your own profile'}), 403
+    if not profile:
+        return base.error_response('Profile not found', 404)
+    
+    ownership_error = base.validate_ownership(current_user_id, profile.user_id)
+    if ownership_error:
+        return ownership_error
+
+    # Validar que hours_played sea un número válido
+    hours_played = _data.get("hours_played")
+    if hours_played is None:
+        return base.error_response('hours_played is required', 400)
+    
+    try:
+        hours_value = int(hours_played)
+        if hours_value <= 0:
+            return base.error_response('Hours must be greater than 0', 400)
+        if hours_value > 999999:
+            return base.error_response('Hours value is too large (max 999999)', 400)
+    except (ValueError, TypeError):
+        return base.error_response('hours_played must be a valid number', 400)
 
     # Actualizar los valores
-    game.game_hoursPlayed = data.get("hours_played") or 'undefined'
-
-    # Guardar cambios
+    game.game_hoursPlayed = hours_value
     db.session.commit()
 
-    return jsonify(game.serialize()), 200
+    return jsonify({"game": game.serialize()}), 200
 
 
 @games_bp.route('/games/<profile_id>', methods=['POST'])
 @jwt_required()
-def post_game(profile_id: int) -> Tuple[Response, int]:
+@handle_errors
+@validate_json(['title', 'hours_played'])
+def post_game(profile_id: int, _data: dict) -> Tuple[Response, int]:
+    """Create a new game for a profile"""
     current_user_id = get_jwt_identity()
-    # Verify that the profile belongs to the authenticated user
     profile = db.session.get(Profile, profile_id)
-    if not profile or not verify_ownership(current_user_id, profile.user_id):
-        return jsonify({'error': 'Unauthorized: You can only add games to your own profile'}), 403
-    # 1) Asegurarnos de que el Content-Type sea application/json
-    if not request.is_json:
-        return jsonify({'error': 'Se requiere Content-Type: application/json'}), 400
+    
+    if not profile:
+        return base.error_response('Profile not found', 404)
+    
+    ownership_error = base.validate_ownership(current_user_id, profile.user_id)
+    if ownership_error:
+        return ownership_error
 
-    data = request.get_json()
-
-    # 2) Validar que venga la clave "game"
-    if not data:
-        return jsonify({'error': 'Falta el campo "game" en el JSON'}), 400
-
-    # 4) Crear y persistir la nueva partida
+    # Crear y persistir la nueva partida
     new_game = Game(
         profile_id=profile_id,
-        game_hoursPlayed=data['hours_played'] or 'undefined',
-        game_image=data['image'] or 'undefined',
-        game_title=data['title'] or 'undefined'
+        game_hoursPlayed=_data.get('hours_played') or 'undefined',
+        game_image=_data.get('image') or 'undefined',
+        game_title=_data.get('title') or 'undefined'
     )
     db.session.add(new_game)
     db.session.commit()
 
-    return jsonify(new_game.serialize()), 201
+    return jsonify({"game": new_game.serialize()}), 201
 
 
 @games_bp.route('/games/<game_id>', methods=['DELETE'])
 @jwt_required()
+@handle_errors
 def delete_game(game_id: int) -> Tuple[Response, int]:
+    """Delete a game"""
     current_user_id = get_jwt_identity()
-    stmt = select(Game).where(Game.id == game_id)
-    game = db.session.execute(stmt).scalar_one_or_none()
+    game = db.session.get(Game, game_id)
+    
     if game is None:
-        return jsonify({'error': f'game with id: {game_id} not found'}), 400
+        return base.error_response(f'game with id: {game_id} not found', 404)
     
     # Verify that the game belongs to the authenticated user's profile
     profile = db.session.get(Profile, game.profile_id)
-    if not profile or not verify_ownership(current_user_id, profile.user_id):
-        return jsonify({'error': 'Unauthorized: You can only delete games from your own profile'}), 403
+    if not profile:
+        return base.error_response('Profile not found', 404)
+    
+    ownership_error = base.validate_ownership(current_user_id, profile.user_id)
+    if ownership_error:
+        return ownership_error
 
     db.session.delete(game)
     db.session.commit()
-    return jsonify({'message': f'game with id: {game_id} deleted'}), 200
+    return base.success_response(f'game with id: {game_id} deleted', status_code=200)
 
 

@@ -1,7 +1,5 @@
-import { normalizeUrl } from '../utils/urlHelper';
+import apiClient from './apiClient';
 import type { MatchesResponse } from '../types/api';
-
-const url = import.meta.env.VITE_BACKEND_URL;
 
 interface MatchServices {
   getAllMatchesInfo: (user_id: number) => Promise<MatchesResponse | Error>;
@@ -9,15 +7,11 @@ interface MatchServices {
 
 const matchServices: MatchServices = {
   getAllMatchesInfo: async (user_id: number): Promise<MatchesResponse | Error> => {
-    try {
-      const resp = await fetch(normalizeUrl(url, `/api/matches/user/${user_id}`));
-      if (!resp.ok) throw Error('Something went wrong trying to get matches info');
-      const data = await resp.json() as MatchesResponse;
-      return data;
-    } catch (error) {
-      console.log(error);
-      return error as Error;
+    const response = await apiClient.get<MatchesResponse>(`/api/matches/user/${user_id}`, false);
+    if (response.ok && response.data) {
+      return response.data;
     }
+    return new Error(response.error || 'Something went wrong trying to get matches info');
   }
 };
 

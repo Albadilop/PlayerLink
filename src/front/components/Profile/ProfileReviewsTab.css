@@ -1,0 +1,26 @@
+/* ProfileReviewsTab styles are inherited from Profile.css */
+.review-card {
+  margin-bottom: 20px;
+  padding: 15px;
+  background: transparent;
+  border: none;
+  border-radius: 10px;
+}
+
+.review-container {
+  color: #fff;
+}
+
+.review-box {
+  margin-top: 10px;
+  padding: 10px;
+  background: transparent;
+  border-radius: 5px;
+  color: #ccc;
+}
+
+/* Sobrescribir el estilo de .info-section p que aplica fondo negro */
+.info-section p.review-box {
+  background: transparent !important;
+  border: none !important;
+}

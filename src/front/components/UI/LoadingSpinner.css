@@ -1,0 +1,77 @@
+.ui-spinner-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.ui-spinner-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.ui-spinner {
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #00f0ff;
+  border-radius: 50%;
+  animation: ui-spin 1s linear infinite;
+}
+
+.ui-spinner--small {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-width: 2px;
+}
+
+.ui-spinner--medium {
+  width: 3rem;
+  height: 3rem;
+  border-width: 3px;
+}
+
+.ui-spinner--large {
+  width: 4.5rem;
+  height: 4.5rem;
+  border-width: 4px;
+}
+
+.ui-spinner-message {
+  color: #fff;
+  font-size: 1rem;
+  margin: 0;
+}
+
+.ui-spinner-overlay .ui-spinner-message {
+  color: #fff;
+}
+
+@keyframes ui-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+

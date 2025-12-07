@@ -25,8 +25,8 @@ export const FindGames: React.FC = () => {
   const chatScrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!store.user || store.user === "undefined") {
-      navigate('/');
+    if (!store.user) {
+      navigate("/");
     }
   }, [navigate, store.user]);
 
@@ -42,12 +42,12 @@ export const FindGames: React.FC = () => {
 
     const userInfo = store.user?.profile
       ? (() => {
-        const { name, age, games } = store.user.profile;
-        const juegosStr = Array.isArray(games)
-          ? games.map((item: { gameTitle?: string }) => item.gameTitle || "").join(", ")
-          : "sin juegos";
-        return `Nombre: ${name}, Edad: ${age}, Juegos: ${juegosStr}`;
-      })()
+          const { name, age, games } = store.user.profile;
+          const gamesStr = Array.isArray(games)
+            ? games.map((item: { gameTitle?: string }) => item.gameTitle || "").join(", ")
+            : "no games";
+          return `Name: ${name}, Age: ${age}, Games: ${gamesStr}`;
+        })()
       : "the user has no data";
 
     // Nuevo mensaje del usuario (todavía no está en el estado)
@@ -65,13 +65,13 @@ export const FindGames: React.FC = () => {
         { headers: { "Content-Type": "application/json" } }
       );
 
-      const reply = respuesta.data.reply || "Lo siento, algo salió mal con la IA.";
+      const reply = respuesta.data.reply || "Sorry, something went wrong with the AI.";
       setMessages((prev) => [...prev, { sender: "bot" as const, text: reply }]);
     } catch (error) {
       console.error(error);
       setMessages((prev) => [
         ...prev,
-        { sender: "bot" as const, text: "Error de conexión con el servidor." },
+        { sender: "bot" as const, text: "Server connection error." },
       ]);
     } finally {
       setIsLoading(false);
@@ -79,73 +79,75 @@ export const FindGames: React.FC = () => {
   };
 
   return (
-    <div className="container py-3 position-relative">
+    <div className="container py-4 position-relative">
       <div className="row justify-content-center">
         <div className="chat-container">
-          <div className="border rounded-top text-center py-2 bg-gradient-header">
-            <h1 className="m-0 text-white fs-5">PlayerLink's IA Chat</h1>
+          {/* Header */}
+          <div className="bg-gradient-header text-center">
+            <h1>PlayerLink&apos;s AI Chat</h1>
           </div>
 
-          <div
-            ref={chatScrollRef}
-            className="flex-grow-1 overflow-auto bg-dark px-3 py-2 border rounded-bottom"
-            style={{ borderLeft: "2px solid transparent", borderRight: "2px solid transparent" }}
-          >
+          {/* Área de mensajes */}
+          <div ref={chatScrollRef} className="chat-messages-area">
             {messages.map((msg, idx) => (
               <div
                 key={idx}
-                className={`d-flex mb-3 ${msg.sender === "user" ? "justify-content-end" : "justify-content-start"
-                  }`}
+                className={`d-flex mb-3 ${
+                  msg.sender === "user" ? "justify-content-end" : "justify-content-start"
+                }`}
               >
                 {msg.sender === "bot" && (
-                  <img
-                    src={logo}
-                    alt="IA Logo"
-                    className="me-2"
-                    style={{ width: "35px", height: "35px", objectFit: "fill" }}
-                  />
+                  <img src={logo} alt="AI Logo" className="chat-bot-avatar me-2" />
                 )}
                 <div
-                  className={`px-3 py-2 rounded-3 text-wrap message-bubble ${msg.sender === "user"
-                    ? "bg-gradient-user text-white shadow-user"
-                    : "bg-gradient-bot text-white shadow-bot"
-                    }`}
+                  className={`px-3 py-2 rounded-3 text-wrap message-bubble ${
+                    msg.sender === "user"
+                      ? "bg-gradient-user text-white shadow-user"
+                      : "bg-gradient-bot text-white shadow-bot"
+                  }`}
                   style={{ maxWidth: "75%" }}
                 >
                   {msg.text}
                 </div>
+                {msg.sender === "user" && <div style={{ width: "40px" }}></div>}
               </div>
             ))}
 
             {isLoading && (
-              <div className="d-flex mb-3 justify-content-start">
-                <img
-                  src={logo}
-                  alt="IA Logo"
-                  className="me-2"
-                  style={{ width: "35px", height: "35px", objectFit: "fill" }}
-                />
-                <div className="spinner align-self-center"></div>
+              <div className="d-flex mb-3 justify-content-start align-items-center">
+                <img src={logo} alt="AI Logo" className="chat-bot-avatar me-2" />
+                <div className="spinner"></div>
               </div>
             )}
           </div>
 
-          <form className="mt-2" onSubmit={handleSubmit}>
+          {/* Área de input */}
+          <form className="chat-input-area" onSubmit={handleSubmit}>
             <div className="input-group">
               <input
                 type="text"
-                className="form-control bg-white text-light"
-                placeholder="Your query here..."
+                className="form-control chat-input-control"
+                placeholder="Type your question here..."
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 disabled={isLoading}
               />
               <button
-                className="btn btn-primary botonenviar"
+                className="btn botonenviar"
                 type="submit"
                 disabled={isLoading || !inputValue.trim()}
               >
-                {isLoading ? "⌛" : "Send"}
+                {isLoading ? (
+                  <>
+                    <span
+                      className="spinner me-2"
+                      style={{ width: "16px", height: "16px", borderWidth: "2px" }}
+                    ></span>
+                    Sending...
+                  </>
+                ) : (
+                  "Send"
+                )}
               </button>
             </div>
           </form>
@@ -154,5 +156,3 @@ export const FindGames: React.FC = () => {
     </div>
   );
 };
-
-

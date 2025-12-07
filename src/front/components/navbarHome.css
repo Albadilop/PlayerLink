@@ -43,7 +43,14 @@
 }
 
 .modal-home {
-  background: none;
+  background: transparent;
+  border: none;
+}
+
+.modal-home .modal-content {
+  background: transparent;
+  border: none;
+  box-shadow: none;
 }
 
 .btn-close-modal {

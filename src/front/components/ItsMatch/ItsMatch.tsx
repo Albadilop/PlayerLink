@@ -1,55 +1,92 @@
-import './ItsMatch.css';
-import { useNavigate } from 'react-router-dom';
+import React from "react";
+import "./ItsMatch.css";
+import { useNavigate } from "react-router-dom";
 import { getPhotoAsset, defaultPhoto } from "../../constants/photoAssets";
-import photo7 from "../../assets/img/profile-pics/profile-pic-7.png";
-import photo8 from "../../assets/img/profile-pics/profile-pic-8.png";
-import photo9 from "../../assets/img/profile-pics/profile-pic-9.png";
-import type { Profile } from '../../types';
+import type { Profile } from "../../types";
 
 interface ItsMatchProps {
   profile: Profile;
-  photo?: string;
 }
 
-export const ItsMatch: React.FC<ItsMatchProps> = ({ profile, photo }) => {
+export const ItsMatch: React.FC<ItsMatchProps> = ({ profile }) => {
   const navigate = useNavigate();
 
-  //Prevención de error si el perfil no existe
   if (!profile) return null;
 
   const handleClick = () => {
-    navigate('/private/your-matches/');
+    // Navegar directamente al perfil del match
+    const userId = profile?.user_id || profile?.id;
+    if (userId) {
+      navigate(`/private/your-matches/matchDetails/${userId}`);
+    } else {
+      navigate("/private/your-matches/");
+    }
   };
 
   const selectPhoto = (): string => {
-    return getPhotoAsset(profile?.photo) || defaultPhoto;
+    return getPhotoAsset(profile?.photo ?? "") || defaultPhoto;
   };
 
+  // Mostrar hasta 3 juegos en común
+  const displayGames = profile?.games?.slice(0, 3) || [];
+
   return (
-    <>
-      <div className='d-flex justify-content-center'>
-        <div className="col">
-          <div onClick={handleClick} className="card its-match-card pulsate-bck">
-            <div className="d-flex align-items-start">
-              <div className="card-body d-flex flex-column flex-md-row align-items-center">
-              </div>
-              <div className='rounded-circle mb-3 mb-md-0'>
-                <img src={selectPhoto()} alt="Profile avatar" className='its-match-profile-pic border border-4 my-2'></img>
-              </div>
-              <div className="d-flex align-items-start">
-                <div className="text-center text-md-start ms-md-4 mt-2 me-3">
-                  <h1>{profile?.nick_name || 'undefined'}</h1>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+    <div className="its-match-container">
+      {/* Partículas de fondo */}
+      <div className="its-match-particles">
+        {[...Array(12)].map((_, i) => (
+          <div key={i} className="particle" style={{ animationDelay: `${i * 0.2}s` }} />
+        ))}
       </div>
 
-      <h4 className='d-flex justify-content-center text-center mt-3 its-match-card-font'>
-        Click on the card to know more about your match
-      </h4>
-    </>
+      {/* Tarjeta principal */}
+      <div onClick={handleClick} className="its-match-card">
+        {/* Efecto de brillo superior */}
+        <div className="its-match-glow-top" />
+
+        {/* Foto de perfil con anillo animado */}
+        <div className="its-match-avatar-container">
+          <div className="its-match-avatar-ring" />
+          <img src={selectPhoto()} alt="Profile avatar" className="its-match-profile-pic" />
+        </div>
+
+        {/* Nombre del match */}
+        <h2 className="its-match-nickname">{profile?.nick_name || "Player"}</h2>
+
+        {/* Info del perfil */}
+        <div className="its-match-info">
+          {profile?.age && (
+            <span className="its-match-badge">
+              <i className="fa-solid fa-cake-candles" /> {profile.age}
+            </span>
+          )}
+          {profile?.location && (
+            <span className="its-match-badge">
+              <i className="fa-solid fa-location-dot" /> {profile.location}
+            </span>
+          )}
+        </div>
+
+        {/* Juegos en común */}
+        {displayGames.length > 0 && (
+          <div className="its-match-games">
+            <span className="its-match-games-label">Games in common</span>
+            <div className="its-match-games-list">
+              {displayGames.map((game, index) => (
+                <span key={index} className="its-match-game-tag">
+                  {game.gameTitle}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Botón CTA */}
+        <button className="its-match-cta">
+          <i className="fa-solid fa-user" /> View Profile
+          <span className="its-match-cta-glow" />
+        </button>
+      </div>
+    </div>
   );
 };
-

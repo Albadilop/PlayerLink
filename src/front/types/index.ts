@@ -61,6 +61,7 @@ export interface MatchUserData {
   age: number;
 }
 
+// Tipo para el endpoint /api/matches (estructura completa del match)
 export interface Match {
   match_id: number;
   user1: {
@@ -73,6 +74,19 @@ export interface Match {
   };
 }
 
+// Tipo para el endpoint /api/matches/user/:id (info del otro usuario en el match)
+export interface UserMatchInfo {
+  user_id: number;
+  nickname: string;
+  games: Game[];
+  gender: string;
+  age: number | string;
+  location: string;
+  match_id?: number;
+  id?: number;
+  photo?: string;
+}
+
 export interface ReviewsReceived {
   reviews_received: Review[];
 }
@@ -80,8 +94,8 @@ export interface ReviewsReceived {
 // Store types
 export interface Store {
   user: User | null;
-  userMatchesInfo: Match[] | null;
-  itsMatchInfo: Match | null;
+  userMatchesInfo: UserMatchInfo[] | null;
+  itsMatchInfo: User | null;
   likesSent: Like[];
   dislikesSent: Reject[];
   starsByUser: number | null;
@@ -107,5 +121,3 @@ export interface Action {
   type: ActionType;
   payload?: unknown;
 }
-
-
