@@ -85,6 +85,7 @@ export interface UserMatchInfo {
   match_id?: number;
   id?: number;
   photo?: string;
+  created_at?: string;
 }
 
 export interface ReviewsReceived {

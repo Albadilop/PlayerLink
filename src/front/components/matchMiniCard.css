@@ -40,12 +40,27 @@
   }
 }
 
+.match-mini-card::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.1), transparent);
+  transition: left 0.5s ease;
+  z-index: 0;
+}
+
 .match-mini-card:hover {
-  transform: translateY(-6px);
+  transform: translateY(-2px);
   box-shadow:
-    0 12px 40px rgba(0, 0, 0, 0.5),
-    0 0 30px rgba(0, 240, 255, 0.2),
-    0 0 40px rgba(143, 0, 255, 0.1);
+    0 15px 50px rgba(0, 240, 255, 0.2),
+    0 0 80px rgba(143, 0, 255, 0.12);
+}
+
+.match-mini-card:hover::after {
+  left: 100%;
 }
 
 /* Efecto de brillo */
@@ -58,6 +73,7 @@
   background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.6), transparent);
   opacity: 0;
   transition: opacity 0.3s ease;
+  z-index: 1;
 }
 
 .match-mini-card:hover .match-mini-glow {
