@@ -1,6 +1,7 @@
-import React from 'react';
-import Select from 'react-select';
-import './GameForm.css';
+import React from "react";
+import Select from "react-select";
+import "../Onboarding/Onboarding.css";
+import "./GameForm.css";
 
 export interface GameFormData {
   title: string;
@@ -34,82 +35,96 @@ export const GameForm: React.FC<GameFormProps> = ({
 }) => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    onChange(name as keyof GameFormData, name === 'hours_played' ? Number(value) : value);
+    onChange(name as keyof GameFormData, name === "hours_played" ? Number(value) : value);
   };
 
   const handleSelectChange = (selected: SelectOption | null) => {
-    onChange('title', selected?.value || '');
+    onChange("title", selected?.value || "");
   };
 
   return (
     <div className="modal fade" id="commentModal" tabIndex={-1} aria-hidden="true">
-      <div className="modal-dialog">
-        <div className="modal-content modal-sci-fi">
-          <div className="modal-header modal-sci-fi-header">
-            <h5 className="modal-title modal-sci-fi-title" id="commentModalLabel">
-              Add a new game
-            </h5>
+      <div className="modal-dialog modal-dialog-centered">
+        <div className="modal-content onboarding-game-modal">
+          <div className="modal-header onboarding-game-header">
+            <div className="onboarding-game-title-wrapper">
+              <i className="fa-solid fa-gamepad onboarding-game-icon"></i>
+              <h5 className="modal-title onboarding-game-title" id="commentModalLabel">
+                Add Game
+              </h5>
+            </div>
             <button
               type="button"
-              className="btn-close btn-sci-fi"
+              className="modal-close onboarding-game-close"
               data-bs-dismiss="modal"
-              aria-label="Cerrar"
-            />
+              aria-label="Close"
+            >
+              <i className="fa-solid fa-times" />
+            </button>
           </div>
-          <div className="modal-body modal-sci-fi-body">
-            <div className="mb-3">
-              <label htmlFor="gameName" className="label-sci-fi">
+          <div className="modal-body onboarding-game-body">
+            <div className="form-group onboarding-game-group">
+              <label htmlFor="gameName" className="onboarding-game-label">
+                <i className="fa-solid fa-list onboarding-game-label-icon"></i>
                 Select a game
               </label>
-              <Select
-                id="gameName"
-                className="selectorJuegos"
-                options={gameOptions}
-                value={gameOptions.find(opt => opt.value === game.title) || null}
-                onChange={handleSelectChange}
-                isClearable
-                isSearchable
-                placeholder="-- Select a game --"
-              />
+              <div className="onboarding-game-select-wrapper">
+                <Select
+                  id="gameName"
+                  className="onboarding-game-select"
+                  classNamePrefix="onboarding-select"
+                  options={gameOptions}
+                  value={gameOptions.find((opt) => opt.value === game.title) || null}
+                  onChange={handleSelectChange}
+                  isClearable
+                  isSearchable
+                  placeholder="Search for a game..."
+                />
+              </div>
+              {errorRepeatedGame && (
+                <div className="onboarding-game-error">
+                  <i className="fa-solid fa-exclamation-circle"></i>
+                  <span>{errorRepeatedGame}</span>
+                </div>
+              )}
             </div>
-            <div className="mb-3">
-              <label htmlFor="hoursPlayed" className="label-sci-fi">
+            <div className="form-group onboarding-game-group">
+              <label htmlFor="hoursPlayed" className="onboarding-game-label">
+                <i className="fa-solid fa-clock onboarding-game-label-icon"></i>
                 Hours played
               </label>
               <input
                 type="number"
-                className="input-sci-fi"
+                className="onboarding-game-input"
                 id="hoursPlayed"
                 name="hours_played"
                 value={game.hours_played}
                 onChange={handleChange}
-                placeholder="Eg.: 42"
+                placeholder="e.g., 42"
                 min="1"
                 max="10000"
               />
               {errorHoursPlayed && (
-                <h6 className="text-danger ms-2 mt-2">{errorHoursPlayed}</h6>
-              )}
-              {errorRepeatedGame && (
-                <h6 className="text-danger ms-2 mt-2">{errorRepeatedGame}</h6>
+                <div className="onboarding-game-error">
+                  <i className="fa-solid fa-exclamation-circle"></i>
+                  <span>{errorHoursPlayed}</span>
+                </div>
               )}
             </div>
           </div>
-          <div className="modal-footer modal-sci-fi-footer">
+          <div className="modal-footer onboarding-game-footer">
             <button
               type="button"
-              className="btn-sci-fi-primary"
+              className="btn onboarding-game-btn-cancel"
               data-bs-dismiss="modal"
               onClick={onCancel}
             >
+              <i className="fa-solid fa-times"></i>
               Cancel
             </button>
-            <button
-              type="button"
-              className="btn-sci-fi-primary"
-              onClick={onSubmit}
-            >
-              Add
+            <button type="button" className="btn onboarding-game-btn-add" onClick={onSubmit}>
+              <i className="fa-solid fa-plus"></i>
+              Add Game
             </button>
           </div>
         </div>
@@ -117,4 +132,3 @@ export const GameForm: React.FC<GameFormProps> = ({
     </div>
   );
 };
-

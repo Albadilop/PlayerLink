@@ -503,12 +503,15 @@ export const Onboarding: React.FC = () => {
       {/* Game Form Modal */}
       {showGameForm && (
         <div className="modal-overlay" onClick={() => setShowGameForm(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>Add Game</h3>
+          <div className="modal-content onboarding-game-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header onboarding-game-header">
+              <div className="onboarding-game-title-wrapper">
+                <i className="fa-solid fa-gamepad onboarding-game-icon"></i>
+                <h3 className="onboarding-game-title">Add Game</h3>
+              </div>
               <button
                 type="button"
-                className="modal-close"
+                className="modal-close onboarding-game-close"
                 onClick={() => {
                   setShowGameForm(false);
                   setGameFormErrors({});
@@ -517,31 +520,45 @@ export const Onboarding: React.FC = () => {
                 <i className="fa-solid fa-times" />
               </button>
             </div>
-            <div className="modal-body">
-              <div className="form-group">
-                <label>Select a game</label>
-                <Select
-                  options={gameOptions}
-                  value={gameOptions.find((opt) => opt.value === gameFormData.title) || null}
-                  onChange={(selected) =>
-                    setGameFormData((prev) => ({
-                      ...prev,
-                      title: selected?.value || "",
-                    }))
-                  }
-                  isSearchable
-                  isClearable
-                  placeholder="Search game..."
-                  isLoading={loadingGames}
-                />
+            <div className="modal-body onboarding-game-body">
+              <div className="form-group onboarding-game-group">
+                <label className="onboarding-game-label">
+                  <i className="fa-solid fa-list onboarding-game-label-icon"></i>
+                  Select a game
+                </label>
+                <div className="onboarding-game-select-wrapper">
+                  <Select
+                    options={gameOptions}
+                    value={gameOptions.find((opt) => opt.value === gameFormData.title) || null}
+                    onChange={(selected) =>
+                      setGameFormData((prev) => ({
+                        ...prev,
+                        title: selected?.value || "",
+                      }))
+                    }
+                    isSearchable
+                    isClearable
+                    placeholder="Search for a game..."
+                    isLoading={loadingGames}
+                    className="onboarding-game-select"
+                    classNamePrefix="onboarding-select"
+                  />
+                </div>
                 {gameFormErrors.repeatedGame && (
-                  <span className="field-error">{gameFormErrors.repeatedGame}</span>
+                  <div className="onboarding-game-error">
+                    <i className="fa-solid fa-exclamation-circle"></i>
+                    <span>{gameFormErrors.repeatedGame}</span>
+                  </div>
                 )}
               </div>
-              <div className="form-group">
-                <label>Hours played</label>
+              <div className="form-group onboarding-game-group">
+                <label className="onboarding-game-label">
+                  <i className="fa-solid fa-clock onboarding-game-label-icon"></i>
+                  Hours played
+                </label>
                 <input
                   type="number"
+                  className="onboarding-game-input"
                   value={gameFormData.hours_played || ""}
                   onChange={(e) =>
                     setGameFormData((prev) => ({
@@ -549,28 +566,33 @@ export const Onboarding: React.FC = () => {
                       hours_played: Number(e.target.value),
                     }))
                   }
-                  placeholder="e.g. 42"
+                  placeholder="e.g., 42"
                   min={1}
                   max={10000}
                 />
                 {gameFormErrors.hoursPlayed && (
-                  <span className="field-error">{gameFormErrors.hoursPlayed}</span>
+                  <div className="onboarding-game-error">
+                    <i className="fa-solid fa-exclamation-circle"></i>
+                    <span>{gameFormErrors.hoursPlayed}</span>
+                  </div>
                 )}
               </div>
             </div>
-            <div className="modal-footer">
+            <div className="modal-footer onboarding-game-footer">
               <button
                 type="button"
-                className="btn-cancel"
+                className="btn onboarding-game-btn-cancel"
                 onClick={() => {
                   setShowGameForm(false);
                   setGameFormErrors({});
                 }}
               >
+                <i className="fa-solid fa-times"></i>
                 Cancel
               </button>
-              <button type="button" className="btn-save" onClick={handleAddGame}>
-                Add
+              <button type="button" className="btn onboarding-game-btn-add" onClick={handleAddGame}>
+                <i className="fa-solid fa-plus"></i>
+                Add Game
               </button>
             </div>
           </div>
