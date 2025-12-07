@@ -6,6 +6,7 @@ import searchMatchServices from "../../services/searchMatchServices";
 import { ItsMatch } from "../../components/ItsMatch/ItsMatch";
 import { useNavigate } from "react-router-dom";
 import type { Profile } from "../../types";
+import logoApp from "../../assets/img/logos/logo-app.png";
 
 export const SearchMate: React.FC = () => {
   const { store, dispatch } = useGlobalReducer();
@@ -190,10 +191,27 @@ export const SearchMate: React.FC = () => {
   //Mensaje que muestra si no hay más users
   if (!loading && !showMatchModal && currentUser >= (store.searchMatchProfiles?.length || 0)) {
     return (
-      <h2 className="text-center mt-5 search-mate-font">
-        Sorry {store.user?.profile?.nick_name || "player"}, there are no more players around. Try
-        later!
-      </h2>
+      <div className="no-players-empty-state">
+        <div className="no-players-icon">
+          <img src={logoApp} alt="PlayerLink Logo" className="no-players-logo" />
+        </div>
+        <h2 className="no-players-title">
+          Sorry {store.user?.profile?.nick_name || "player"}, there are no more players around.
+        </h2>
+        <p className="no-players-message">
+          Don&apos;t worry! New players join every day. Check back later to discover your next
+          gaming partner.
+        </p>
+        <div className="no-players-actions">
+          <button
+            className="btn-refresh-profiles"
+            onClick={() => window.location.reload()}
+            type="button"
+          >
+            <i className="fa-solid fa-rotate"></i> Refresh
+          </button>
+        </div>
+      </div>
     );
   }
 
