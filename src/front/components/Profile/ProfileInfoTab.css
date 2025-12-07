@@ -193,6 +193,81 @@
   font-style: italic;
 }
 
+/* Estilos para el input de edad con botones personalizados */
+.age-input-wrapper {
+  position: relative;
+}
+
+.age-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.age-input {
+  -moz-appearance: textfield;
+  padding-right: 2.5rem;
+  width: 100%;
+}
+
+/* Ocultar spinners nativos */
+.age-input::-webkit-inner-spin-button,
+.age-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.age-spinner-buttons {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  z-index: 1;
+}
+
+.age-spinner-btn {
+  width: 20px;
+  height: 18px;
+  background: linear-gradient(135deg, rgba(0, 240, 255, 0.2), rgba(143, 0, 255, 0.2));
+  border: 1px solid rgba(0, 240, 255, 0.4);
+  border-radius: 4px;
+  color: #00f0ff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  padding: 0;
+  font-size: 0.6rem;
+  box-shadow: 0 0 5px rgba(0, 240, 255, 0.2);
+}
+
+.age-spinner-btn:hover {
+  background: linear-gradient(135deg, rgba(0, 240, 255, 0.4), rgba(143, 0, 255, 0.4));
+  border-color: rgba(0, 240, 255, 0.6);
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.4);
+  transform: scale(1.05);
+}
+
+.age-spinner-btn:active {
+  background: linear-gradient(135deg, rgba(0, 240, 255, 0.6), rgba(143, 0, 255, 0.6));
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.6);
+  transform: scale(0.95);
+}
+
+.age-spinner-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.age-spinner-btn i {
+  font-size: 0.5rem;
+  text-shadow: 0 0 3px rgba(0, 240, 255, 0.8);
+}
+
 /* ===== FIELD VALUES (Read-only) ===== */
 .info-field-value {
   color: #e0e0e0;

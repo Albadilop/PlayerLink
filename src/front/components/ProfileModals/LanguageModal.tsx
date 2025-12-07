@@ -1,10 +1,23 @@
 import React from "react";
+import { createPortal } from "react-dom";
 import "./ProfileModals.css";
 
 const languages = [
-  "English", "Spanish", "French", "German", "Portuguese",
-  "Italian", "Japanese", "Korean", "Chinese", "Mandalorian",
-  "Thalassian", "Klingon", "Sindarin", "Renegade", "Orcish"
+  "English",
+  "Spanish",
+  "French",
+  "German",
+  "Portuguese",
+  "Italian",
+  "Japanese",
+  "Korean",
+  "Chinese",
+  "Mandalorian",
+  "Thalassian",
+  "Klingon",
+  "Sindarin",
+  "Renegade",
+  "Orcish",
 ];
 
 interface LanguageModalProps {
@@ -14,7 +27,12 @@ interface LanguageModalProps {
   onCancel: () => void;
 }
 
-export const LanguageModal: React.FC<LanguageModalProps> = ({ selected, setSelected, onSave, onCancel }) => {
+export const LanguageModal: React.FC<LanguageModalProps> = ({
+  selected,
+  setSelected,
+  onSave,
+  onCancel,
+}) => {
   const toggleLanguage = (language: string) => {
     setSelected((prev) => {
       if (prev.includes(language)) {
@@ -31,7 +49,7 @@ export const LanguageModal: React.FC<LanguageModalProps> = ({ selected, setSelec
     onCancel();
   };
 
-  return (
+  const modalContent = (
     <div className="abmodal">
       <div className="abmodal-content">
         <h3>Select up to 5 Languages</h3>
@@ -54,6 +72,6 @@ export const LanguageModal: React.FC<LanguageModalProps> = ({ selected, setSelec
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 };
-
-

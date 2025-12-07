@@ -123,19 +123,47 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
       <div className="info-section-group">
         <div className="row g-3">
           <div className="col-md-2">
-            <div className="info-field-card">
+            <div className="info-field-card age-input-wrapper">
               <label className="info-field-label">
                 <i className="fa-solid fa-cake-candles"></i> Age
               </label>
               {isEditing ? (
-                <input
-                  type="number"
-                  value={profile.age}
-                  onChange={(e) => onInputChange("age", +e.target.value)}
-                  max={120}
-                  min={1}
-                  className="info-field-input"
-                />
+                <div className="age-input-container">
+                  <input
+                    type="number"
+                    value={profile.age}
+                    onChange={(e) => onInputChange("age", +e.target.value)}
+                    max={120}
+                    min={1}
+                    className="info-field-input age-input"
+                  />
+                  <div className="age-spinner-buttons">
+                    <button
+                      type="button"
+                      className="age-spinner-btn age-spinner-up"
+                      onClick={() => {
+                        if (profile.age < 120) {
+                          onInputChange("age", profile.age + 1);
+                        }
+                      }}
+                      aria-label="Increase age"
+                    >
+                      <i className="fa-solid fa-chevron-up"></i>
+                    </button>
+                    <button
+                      type="button"
+                      className="age-spinner-btn age-spinner-down"
+                      onClick={() => {
+                        if (profile.age > 1) {
+                          onInputChange("age", profile.age - 1);
+                        }
+                      }}
+                      aria-label="Decrease age"
+                    >
+                      <i className="fa-solid fa-chevron-down"></i>
+                    </button>
+                  </div>
+                </div>
               ) : (
                 <div className="info-field-value">{profile.age || "—"}</div>
               )}
