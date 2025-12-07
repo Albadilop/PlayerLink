@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { selectPhoto, selectMedal } from "../../utils/profileHelpers";
 import type { Game } from "../../types";
 import "./ProfileHeader.css";
@@ -24,6 +24,16 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   isEditing = false,
   onBioChange,
 }) => {
+  const bioTextRef = useRef<HTMLParagraphElement>(null);
+  const bioContainerRef = useRef<HTMLDivElement>(null);
+
+  // Resetear tamaño de fuente cuando cambia la bio
+  useEffect(() => {
+    if (!isEditing && bioTextRef.current) {
+      bioTextRef.current.style.fontSize = "0.9rem";
+    }
+  }, [bio, isEditing]);
+
   return (
     <div className="profile-header">
       {/* Avatar Section */}
@@ -45,7 +55,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
       </p>
 
       {/* Bio */}
-      <div className="profile-bio">
+      <div className="profile-bio" ref={bioContainerRef}>
         {isEditing ? (
           <textarea
             className="profile-bio-textarea"
@@ -55,7 +65,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
             placeholder="Write something about yourself..."
           />
         ) : (
-          <p>{bio || "No bio yet"}</p>
+          <p ref={bioTextRef}>{bio || "No bio yet"}</p>
         )}
       </div>
 
