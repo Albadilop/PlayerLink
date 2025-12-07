@@ -6,7 +6,7 @@ import "./matchUserDetails.css";
 import "../pages/Privateviews/Profile.css";
 import "./Profile/ProfileGamesTab.css";
 import reviewServices from "../services/reviewServices";
-import { selectMedal, selectPhoto } from "../utils/profileHelpers";
+import { selectMedal, selectPhoto, formatHours } from "../utils/profileHelpers";
 import { ProfileInfoTab } from "./Profile/ProfileInfoTab";
 import { ProfileReviewsTab } from "./Profile/ProfileReviewsTab";
 import { parsePreferences } from "../utils/formatters";
@@ -317,7 +317,7 @@ export const MatchUserDetails: React.FC = () => {
                     data-bs-trigger="hover focus"
                     data-bs-container="body"
                     data-bs-placement="right"
-                    data-bs-content={`${game.gameTitle} — ${game.gameHoursPlayed}h`}
+                    data-bs-content={`${game.gameTitle} — ${formatHours(game.gameHoursPlayed)}`}
                   />
                 </div>
               ))}
@@ -416,7 +416,7 @@ export const MatchUserDetails: React.FC = () => {
                                 alt="Medal"
                                 className="game-medal"
                               />
-                              <span className="hours-text">{el.gameHoursPlayed} hours</span>
+                              <span className="hours-text">{formatHours(el.gameHoursPlayed)}</span>
                             </div>
                           </div>
                         </div>

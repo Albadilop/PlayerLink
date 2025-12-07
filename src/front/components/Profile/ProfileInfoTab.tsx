@@ -80,36 +80,49 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
       {/* Personal Information Section */}
       <div className="info-section-group">
         <div className="row g-3">
-          {(["name", "nick_name"] as const).map((f, i) => (
-            <div key={i} className="col-md-6">
-              <div className="info-field-card">
-                <label className="info-field-label">
-                  <i
-                    className={f === "nick_name" ? "fa-solid fa-signature" : "fa-solid fa-id-card"}
-                  ></i>
-                  {f === "nick_name" ? "Nickname" : "Name"}
-                </label>
-                {isEditing ? (
-                  <input
-                    type="text"
-                    value={profile[f]}
-                    onChange={(e) => onInputChange(f, e.target.value)}
-                    maxLength={11}
-                    className="info-field-input"
-                  />
-                ) : (
-                  <div className="info-field-value">{profile[f] || "—"}</div>
-                )}
-              </div>
+          <div className="col-md-6">
+            <div className="info-field-card">
+              <label className="info-field-label">
+                <i className="fa-solid fa-id-card"></i> Name
+              </label>
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={profile.name}
+                  onChange={(e) => onInputChange("name", e.target.value)}
+                  maxLength={11}
+                  className="info-field-input"
+                />
+              ) : (
+                <div className="info-field-value">{profile.name || "—"}</div>
+              )}
             </div>
-          ))}
+          </div>
+          <div className="col-md-6">
+            <div className="info-field-card">
+              <label className="info-field-label">
+                <i className="fa-solid fa-signature"></i> Nickname
+              </label>
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={profile.nick_name}
+                  onChange={(e) => onInputChange("nick_name", e.target.value)}
+                  maxLength={11}
+                  className="info-field-input"
+                />
+              ) : (
+                <div className="info-field-value">{profile.nick_name || "—"}</div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Demographics Section */}
       <div className="info-section-group">
         <div className="row g-3">
-          <div className="col-md-3">
+          <div className="col-md-2">
             <div className="info-field-card">
               <label className="info-field-label">
                 <i className="fa-solid fa-cake-candles"></i> Age
@@ -148,7 +161,7 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
               )}
             </div>
           </div>
-          <div className="col-md-5">
+          <div className="col-md-6">
             <div className="info-field-card">
               <label className="info-field-label">
                 <i className="fa-solid fa-star-and-crescent"></i> Zodiac
@@ -171,28 +184,9 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
         </div>
       </div>
 
-      {/* Location & Contact Section */}
+      {/* Contact Section */}
       <div className="info-section-group">
         <div className="row g-3">
-          <div className="col-md-6">
-            <div className="info-field-card">
-              <label className="info-field-label">
-                <i className="fa-solid fa-map-marker-alt"></i> Location
-              </label>
-              {isEditing ? (
-                <input
-                  type="text"
-                  value={profile.location}
-                  onChange={(e) => onInputChange("location", e.target.value)}
-                  maxLength={20}
-                  minLength={4}
-                  className="info-field-input"
-                />
-              ) : (
-                <div className="info-field-value">{profile.location || "—"}</div>
-              )}
-            </div>
-          </div>
           {(["discord", "steam_id"] as const).map((f, i) => (
             <div key={i} className="col-md-6">
               <div className="info-field-card">

@@ -2,7 +2,7 @@ import React, { useState, useMemo, useRef, useEffect } from "react";
 import { GameForm, GameFormData } from "./GameForm";
 import type { Game } from "../../types";
 import type { SelectOption } from "./GameForm";
-import { selectMedal } from "../../utils/profileHelpers";
+import { selectMedal, formatHours } from "../../utils/profileHelpers";
 import { GameImage } from "../GameImage";
 import "./ProfileGamesTab.css";
 
@@ -358,7 +358,7 @@ export const ProfileGamesTab: React.FC<ProfileGamesTabProps> = ({
                             alt="Medal"
                             className="game-medal"
                           />
-                          <span className="hours-text">{el.gameHoursPlayed} hours</span>
+                          <span className="hours-text">{formatHours(el.gameHoursPlayed)}</span>
                         </div>
                         <div className="game-actions">
                           <button
