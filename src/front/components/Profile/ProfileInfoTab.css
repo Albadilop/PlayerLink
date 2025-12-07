@@ -193,6 +193,158 @@
   font-style: italic;
 }
 
+/* ===== REACT SELECT STYLES (Gender & Zodiac) ===== */
+.info-field-select {
+  width: 100%;
+}
+
+.info-field-select :global(.info-select__control) {
+  background: rgba(0, 0, 0, 0.4) !important;
+  border: 2px solid #7f00ff !important;
+  border-radius: 10px !important;
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.3),
+    0 0 10px rgba(127, 0, 255, 0.2) !important;
+  min-height: 48px !important;
+  transition: all 0.3s ease !important;
+  cursor: pointer !important;
+}
+
+.info-field-select :global(.info-select__control:hover) {
+  border-color: #8f00ff !important;
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.3),
+    0 0 15px rgba(143, 0, 255, 0.3) !important;
+}
+
+.info-field-select :global(.info-select__control--is-focused) {
+  border-color: #00f0ff !important;
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.3),
+    0 0 15px rgba(0, 240, 255, 0.4),
+    0 0 25px rgba(0, 240, 255, 0.2) !important;
+  background: rgba(0, 0, 0, 0.5) !important;
+}
+
+.info-field-select :global(.info-select__placeholder) {
+  color: rgba(255, 255, 255, 0.4) !important;
+}
+
+.info-field-select :global(.info-select__single-value) {
+  color: #ffffff !important;
+  font-weight: 500 !important;
+}
+
+.info-field-select :global(.info-select__value-container) {
+  padding: 0.5rem 0.75rem !important;
+}
+
+.info-field-select :global(.info-select__input-container) {
+  color: #ffffff !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.info-field-select :global(.info-select__input-container input) {
+  color: #ffffff !important;
+  caret-color: #00f0ff !important;
+}
+
+.info-field-select :global(.info-select__menu) {
+  background: linear-gradient(145deg, #0e0e1a, #1a1a2f) !important;
+  border: 2px solid #7f00ff !important;
+  border-radius: 10px !important;
+  box-shadow:
+    0 10px 30px rgba(127, 0, 255, 0.4),
+    0 0 20px rgba(0, 240, 255, 0.2),
+    inset 0 0 20px rgba(127, 0, 255, 0.1) !important;
+  margin-top: 0.5rem !important;
+  overflow: hidden;
+  z-index: 9999 !important;
+}
+
+.info-field-select :global(.info-select__menu-list) {
+  padding: 0.5rem !important;
+  max-height: 300px !important;
+}
+
+.info-field-select :global(.info-select__menu-list::-webkit-scrollbar) {
+  width: 8px !important;
+}
+
+.info-field-select :global(.info-select__menu-list::-webkit-scrollbar-track) {
+  background: rgba(0, 0, 0, 0.2) !important;
+  border-radius: 4px !important;
+}
+
+.info-field-select :global(.info-select__menu-list::-webkit-scrollbar-thumb) {
+  background: linear-gradient(180deg, #7f00ff, #00f0ff) !important;
+  border-radius: 4px !important;
+}
+
+.info-field-select :global(.info-select__menu-list::-webkit-scrollbar-thumb:hover) {
+  background: linear-gradient(180deg, #8f00ff, #00ffff) !important;
+}
+
+/* Estilos globales para el scrollbar cuando se renderiza en el portal */
+.info-select__menu-list::-webkit-scrollbar {
+  width: 8px !important;
+}
+
+.info-select__menu-list::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2) !important;
+  border-radius: 4px !important;
+}
+
+.info-select__menu-list::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #7f00ff, #00f0ff) !important;
+  border-radius: 4px !important;
+}
+
+.info-select__menu-list::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #8f00ff, #00ffff) !important;
+}
+
+.info-field-select :global(.info-select__option) {
+  background: transparent !important;
+  color: #ffffff !important;
+  padding: 0.75rem 1rem !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  border-radius: 6px !important;
+  margin: 0.25rem 0 !important;
+}
+
+.info-field-select :global(.info-select__option:hover) {
+  background: rgba(0, 240, 255, 0.1) !important;
+  color: #00f0ff !important;
+}
+
+.info-field-select :global(.info-select__option--is-focused) {
+  background: rgba(0, 240, 255, 0.15) !important;
+  color: #00f0ff !important;
+  text-shadow: 0 0 5px rgba(0, 240, 255, 0.5);
+}
+
+.info-field-select :global(.info-select__option--is-selected) {
+  background: linear-gradient(90deg, rgba(127, 0, 255, 0.3), rgba(0, 240, 255, 0.3)) !important;
+  color: #00f0ff !important;
+  font-weight: 600 !important;
+}
+
+.info-field-select :global(.info-select__indicator-separator) {
+  background-color: rgba(127, 0, 255, 0.3) !important;
+}
+
+.info-field-select :global(.info-select__dropdown-indicator) {
+  color: #7f00ff !important;
+  transition: all 0.3s ease !important;
+}
+
+.info-field-select :global(.info-select__dropdown-indicator:hover) {
+  color: #00f0ff !important;
+}
+
 /* Estilos para el input de edad con botones personalizados */
 .age-input-wrapper {
   position: relative;

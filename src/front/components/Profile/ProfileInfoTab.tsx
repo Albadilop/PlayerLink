@@ -1,4 +1,5 @@
 import React from "react";
+import Select from "react-select";
 import { GENDER_OPTIONS } from "../../constants";
 import { formatPreferences, parsePreferences } from "../../utils/formatters";
 import { GamingPreferencesModal } from "../ProfileModals/GamingPreferencesModal";
@@ -64,6 +65,10 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
   onCancel,
 }) => {
   const genders = [...GENDER_OPTIONS];
+
+  // Convertir opciones a formato React Select
+  const genderOptions = genders.map((g) => ({ value: g, label: g }));
+  const zodiacOptions = zodiacSigns.map((z) => ({ value: z, label: z }));
 
   const handleGamingPreferencesSave = () => {
     onInputChange("preferences", formatPreferences(selectedGamingPreferences));
@@ -175,15 +180,99 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
                 <i className="fa-solid fa-venus-mars"></i> Gender
               </label>
               {isEditing ? (
-                <select
-                  value={profile.gender}
-                  onChange={(e) => onInputChange("gender", e.target.value)}
-                  className="info-field-input"
-                >
-                  {genders.map((g, idx) => (
-                    <option key={idx}>{g}</option>
-                  ))}
-                </select>
+                <Select
+                  className="info-field-select"
+                  classNamePrefix="info-select"
+                  options={genderOptions}
+                  value={genderOptions.find((opt) => opt.value === profile.gender) || null}
+                  onChange={(selected) => onInputChange("gender", selected?.value || "")}
+                  menuPortalTarget={document.body}
+                  styles={{
+                    menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                    menu: (base) => ({
+                      ...base,
+                      background: "linear-gradient(145deg, #0e0e1a, #1a1a2f)",
+                      border: "2px solid #7f00ff",
+                      borderRadius: "10px",
+                      boxShadow:
+                        "0 10px 30px rgba(127, 0, 255, 0.4), 0 0 20px rgba(0, 240, 255, 0.2), inset 0 0 20px rgba(127, 0, 255, 0.1)",
+                      marginTop: "0.5rem",
+                      overflow: "hidden",
+                    }),
+                    menuList: (base) => ({
+                      ...base,
+                      padding: "0.5rem",
+                      maxHeight: "300px",
+                    }),
+                    option: (base, state) => ({
+                      ...base,
+                      backgroundColor: state.isSelected
+                        ? "rgba(127, 0, 255, 0.3)"
+                        : state.isFocused
+                          ? "rgba(0, 240, 255, 0.15)"
+                          : "transparent",
+                      background: state.isSelected
+                        ? "linear-gradient(90deg, rgba(127, 0, 255, 0.3), rgba(0, 240, 255, 0.3))"
+                        : undefined,
+                      color: state.isSelected || state.isFocused ? "#00f0ff" : "#ffffff",
+                      padding: "0.75rem 1rem",
+                      cursor: "pointer",
+                      borderRadius: "6px",
+                      margin: "0.25rem 0",
+                      fontWeight: state.isSelected ? 600 : 400,
+                      textShadow: state.isFocused ? "0 0 5px rgba(0, 240, 255, 0.5)" : "none",
+                      "&:hover": {
+                        backgroundColor: "rgba(0, 240, 255, 0.1)",
+                        color: "#00f0ff",
+                      },
+                    }),
+                    control: (base, state) => ({
+                      ...base,
+                      backgroundColor: state.isFocused
+                        ? "rgba(0, 0, 0, 0.5)"
+                        : "rgba(0, 0, 0, 0.4)",
+                      border: "2px solid",
+                      borderColor: state.isFocused
+                        ? "#00f0ff"
+                        : state.isHovered
+                          ? "#8f00ff"
+                          : "rgba(0, 240, 255, 0.3)",
+                      borderRadius: "10px",
+                      boxShadow: state.isFocused
+                        ? "inset 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 15px rgba(0, 240, 255, 0.3), 0 0 25px rgba(0, 240, 255, 0.2), inset 0 0 10px rgba(0, 240, 255, 0.05)"
+                        : state.isHovered
+                          ? "inset 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 15px rgba(143, 0, 255, 0.3)"
+                          : "inset 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 10px rgba(0, 240, 255, 0.2)",
+                      minHeight: "48px",
+                      cursor: "pointer",
+                    }),
+                    placeholder: (base) => ({
+                      ...base,
+                      color: "rgba(255, 255, 255, 0.4)",
+                    }),
+                    singleValue: (base) => ({
+                      ...base,
+                      color: "#ffffff",
+                      fontWeight: 500,
+                    }),
+                    input: (base) => ({
+                      ...base,
+                      color: "#ffffff",
+                      caretColor: "#00f0ff",
+                    }),
+                    indicatorSeparator: (base) => ({
+                      ...base,
+                      backgroundColor: "rgba(127, 0, 255, 0.3)",
+                    }),
+                    dropdownIndicator: (base) => ({
+                      ...base,
+                      color: "#7f00ff",
+                      "&:hover": {
+                        color: "#00f0ff",
+                      },
+                    }),
+                  }}
+                />
               ) : (
                 <div className="info-field-value">{profile.gender || "—"}</div>
               )}
@@ -195,15 +284,99 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
                 <i className="fa-solid fa-star-and-crescent"></i> Zodiac
               </label>
               {isEditing ? (
-                <select
-                  value={profile.zodiac}
-                  onChange={(e) => onInputChange("zodiac", e.target.value)}
-                  className="info-field-input"
-                >
-                  {zodiacSigns.map((z, idx) => (
-                    <option key={idx}>{z}</option>
-                  ))}
-                </select>
+                <Select
+                  className="info-field-select"
+                  classNamePrefix="info-select"
+                  options={zodiacOptions}
+                  value={zodiacOptions.find((opt) => opt.value === profile.zodiac) || null}
+                  onChange={(selected) => onInputChange("zodiac", selected?.value || "")}
+                  menuPortalTarget={document.body}
+                  styles={{
+                    menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                    menu: (base) => ({
+                      ...base,
+                      background: "linear-gradient(145deg, #0e0e1a, #1a1a2f)",
+                      border: "2px solid #7f00ff",
+                      borderRadius: "10px",
+                      boxShadow:
+                        "0 10px 30px rgba(127, 0, 255, 0.4), 0 0 20px rgba(0, 240, 255, 0.2), inset 0 0 20px rgba(127, 0, 255, 0.1)",
+                      marginTop: "0.5rem",
+                      overflow: "hidden",
+                    }),
+                    menuList: (base) => ({
+                      ...base,
+                      padding: "0.5rem",
+                      maxHeight: "300px",
+                    }),
+                    option: (base, state) => ({
+                      ...base,
+                      backgroundColor: state.isSelected
+                        ? "rgba(127, 0, 255, 0.3)"
+                        : state.isFocused
+                          ? "rgba(0, 240, 255, 0.15)"
+                          : "transparent",
+                      background: state.isSelected
+                        ? "linear-gradient(90deg, rgba(127, 0, 255, 0.3), rgba(0, 240, 255, 0.3))"
+                        : undefined,
+                      color: state.isSelected || state.isFocused ? "#00f0ff" : "#ffffff",
+                      padding: "0.75rem 1rem",
+                      cursor: "pointer",
+                      borderRadius: "6px",
+                      margin: "0.25rem 0",
+                      fontWeight: state.isSelected ? 600 : 400,
+                      textShadow: state.isFocused ? "0 0 5px rgba(0, 240, 255, 0.5)" : "none",
+                      "&:hover": {
+                        backgroundColor: "rgba(0, 240, 255, 0.1)",
+                        color: "#00f0ff",
+                      },
+                    }),
+                    control: (base, state) => ({
+                      ...base,
+                      backgroundColor: state.isFocused
+                        ? "rgba(0, 0, 0, 0.5)"
+                        : "rgba(0, 0, 0, 0.4)",
+                      border: "2px solid",
+                      borderColor: state.isFocused
+                        ? "#00f0ff"
+                        : state.isHovered
+                          ? "#8f00ff"
+                          : "rgba(0, 240, 255, 0.3)",
+                      borderRadius: "10px",
+                      boxShadow: state.isFocused
+                        ? "inset 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 15px rgba(0, 240, 255, 0.3), 0 0 25px rgba(0, 240, 255, 0.2), inset 0 0 10px rgba(0, 240, 255, 0.05)"
+                        : state.isHovered
+                          ? "inset 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 15px rgba(143, 0, 255, 0.3)"
+                          : "inset 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 10px rgba(0, 240, 255, 0.2)",
+                      minHeight: "48px",
+                      cursor: "pointer",
+                    }),
+                    placeholder: (base) => ({
+                      ...base,
+                      color: "rgba(255, 255, 255, 0.4)",
+                    }),
+                    singleValue: (base) => ({
+                      ...base,
+                      color: "#ffffff",
+                      fontWeight: 500,
+                    }),
+                    input: (base) => ({
+                      ...base,
+                      color: "#ffffff",
+                      caretColor: "#00f0ff",
+                    }),
+                    indicatorSeparator: (base) => ({
+                      ...base,
+                      backgroundColor: "rgba(127, 0, 255, 0.3)",
+                    }),
+                    dropdownIndicator: (base) => ({
+                      ...base,
+                      color: "#7f00ff",
+                      "&:hover": {
+                        color: "#00f0ff",
+                      },
+                    }),
+                  }}
+                />
               ) : (
                 <div className="info-field-value">{profile.zodiac || "—"}</div>
               )}
