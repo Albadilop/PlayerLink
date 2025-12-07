@@ -19,10 +19,7 @@ export const PrivateLayout: React.FC = () => {
         navigate("/private/onboarding", { replace: true });
       }
     }
-    // If profile is complete and user is on onboarding, redirect to profile
-    else if (isComplete && currentPath === "/private/onboarding") {
-      navigate("/private/profile", { replace: true });
-    }
+    // Removed automatic redirect when profile is complete - user must click "Continue" button
   }, [isComplete, location.pathname, navigate]);
 
   return (

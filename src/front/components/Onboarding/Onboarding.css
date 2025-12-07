@@ -262,16 +262,58 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+  min-height: 48px;
+}
+
+.game-item:hover {
+  background: rgba(127, 0, 255, 0.3);
+  border-color: #8f00ff;
+  box-shadow: 0 0 10px rgba(127, 0, 255, 0.3);
 }
 
 .game-name {
   color: #fff;
   font-weight: 500;
+  flex: 1;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .game-hours {
   color: #00f0ff;
   font-size: 0.9rem;
+  margin-right: 0.5rem;
+}
+
+.game-delete-btn {
+  background: rgba(255, 107, 107, 0.2);
+  border: 1px solid rgba(255, 107, 107, 0.5);
+  color: #ff6b6b;
+  padding: 0.25rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  font-size: 0.75rem;
+}
+
+.game-delete-btn:hover {
+  background: rgba(255, 107, 107, 0.3);
+  border-color: #ff6b6b;
+  color: #fff;
+  transform: scale(1.1);
+  box-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
+}
+
+.game-delete-btn:active {
+  transform: scale(0.95);
 }
 
 .btn-add-game {

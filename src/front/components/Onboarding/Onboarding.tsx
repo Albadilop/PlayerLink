@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import useGlobalReducer from "../../hooks/useGlobalReducer";
-import { useProfileCompletion } from "../../hooks/useProfileCompletion";
 import { getFieldLabel } from "../../utils/profileValidation";
 import userServices from "../../services/userServices";
 import gameServices from "../../services/gameServices";
@@ -22,7 +21,6 @@ interface OnboardingState {
 export const Onboarding: React.FC = () => {
   const navigate = useNavigate();
   const { store, dispatch } = useGlobalReducer();
-  const { isComplete, missingFields, completionPercentage } = useProfileCompletion();
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string>("");
   const [availableGames, setAvailableGames] = useState<string[]>([]);
@@ -143,34 +141,26 @@ export const Onboarding: React.FC = () => {
     async (field: string, value: string | number) => {
       if (!store.user?.id) return;
 
-      // Skip saving if value is empty string (but allow 0 for age)
-      if (field !== "age" && (value === "" || value === null || value === undefined)) {
-        return;
-      }
-
-      // For age, ensure it's a valid number >= 18
-      if (field === "age") {
-        const ageNum = typeof value === "number" ? value : Number(value);
-        if (isNaN(ageNum) || ageNum < 18) {
-          return;
-        }
-      }
-
       setIsSaving(true);
       setSaveError("");
 
       try {
-        const updateData: Record<string, string | number> = {};
-        // Ensure proper type conversion
+        const updateData: Record<string, string | number | null> = {};
+
+        // Handle age field
         if (field === "age") {
-          updateData[field] = Number(value);
-        } else {
-          // Trim string values
-          const stringValue = String(value).trim();
-          if (stringValue.length < 2 && field !== "age") {
-            return; // Don't save if too short
+          const ageNum = typeof value === "number" ? value : Number(value);
+          // Save 0 or null if age is invalid, so backend knows it's incomplete
+          if (isNaN(ageNum) || ageNum < 18) {
+            updateData[field] = 0; // Set to 0 to indicate incomplete
+          } else {
+            updateData[field] = ageNum;
           }
-          updateData[field] = stringValue;
+        } else {
+          // Handle string fields - save empty string if cleared
+          const stringValue = String(value).trim();
+          // Save empty string if field is cleared, so backend knows it's incomplete
+          updateData[field] = stringValue || "";
         }
 
         const response = await apiClient.put(`/api/profiles/${store.user.id}`, updateData, true);
@@ -226,6 +216,45 @@ export const Onboarding: React.FC = () => {
     };
   }, []);
 
+  // Delete game
+  const handleDeleteGame = useCallback(
+    async (gameId: number) => {
+      if (!store.user?.profile?.id) return;
+
+      try {
+        // Optimistic update - remove game from store immediately
+        if (store.user?.profile?.games) {
+          const updatedGames = store.user.profile.games.filter((game) => game.id !== gameId);
+          const updatedUser = {
+            ...store.user,
+            profile: {
+              ...store.user.profile,
+              games: updatedGames,
+            },
+          };
+          dispatch({ type: "getUserInfo", payload: updatedUser });
+        }
+
+        // Delete from backend
+        await gameServices.deleteGameById(gameId);
+
+        // Refresh user info to ensure consistency
+        const userInfo = await userServices.getUserInfo(0, true);
+        if (userInfo && !(userInfo instanceof Error) && userInfo.user) {
+          dispatch({ type: "getUserInfo", payload: userInfo.user });
+        }
+      } catch (err) {
+        console.error("Error deleting game:", err);
+        // Revert optimistic update on error
+        const userInfo = await userServices.getUserInfo(0, true);
+        if (userInfo && !(userInfo instanceof Error) && userInfo.user) {
+          dispatch({ type: "getUserInfo", payload: userInfo.user });
+        }
+      }
+    },
+    [store.user, dispatch]
+  );
+
   // Add game
   const handleAddGame = useCallback(async () => {
     if (!store.user?.profile?.id) return;
@@ -238,14 +267,20 @@ export const Onboarding: React.FC = () => {
       return;
     }
 
-    if (!gameFormData.hours_played || gameFormData.hours_played <= 0) {
+    const hoursPlayedNum =
+      typeof gameFormData.hours_played === "number"
+        ? gameFormData.hours_played
+        : Number(gameFormData.hours_played);
+
+    if (!hoursPlayedNum || hoursPlayedNum <= 0) {
       setGameFormErrors({ hoursPlayed: "Please enter valid hours played" });
       return;
     }
 
-    // Check for duplicate games
+    // Check for duplicate games - case insensitive comparison
     const existingGames = store.user.profile.games || [];
-    if (existingGames.some((g) => g.gameTitle === gameFormData.title)) {
+    const gameTitleLower = gameFormData.title.toLowerCase().trim();
+    if (existingGames.some((g) => g.gameTitle?.toLowerCase().trim() === gameTitleLower)) {
       setGameFormErrors({ repeatedGame: "This game is already in your list" });
       return;
     }
@@ -276,8 +311,17 @@ export const Onboarding: React.FC = () => {
         image: gameImage,
       });
 
-      // Refresh user info and update store
-      const userInfo = await userServices.getUserInfo(0, true);
+      // Small delay to ensure backend has processed the request
+      await new Promise((resolve) => setTimeout(resolve, 300));
+
+      // Refresh user info and update store - try multiple times if needed
+      let userInfo = await userServices.getUserInfo(0, true);
+      if (userInfo instanceof Error || !userInfo?.user) {
+        // Retry once if first attempt fails
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        userInfo = await userServices.getUserInfo(0, true);
+      }
+
       if (userInfo && !(userInfo instanceof Error) && userInfo.user) {
         dispatch({ type: "getUserInfo", payload: userInfo.user });
       }
@@ -292,28 +336,90 @@ export const Onboarding: React.FC = () => {
     }
   }, [store.user?.profile?.id, store.user?.profile?.games, gameFormData, rawgApi, dispatch]);
 
-  // Get user's games
-  const userGames = store.user?.profile?.games || [];
+  // Get user's games - memoized to prevent unnecessary re-renders
+  const userGames = useMemo(() => {
+    return store.user?.profile?.games || [];
+  }, [store.user?.profile?.games]);
+
+  // Local validation based on formState and games - updates in real-time
+  const localValidation = useMemo(() => {
+    const localMissingFields: string[] = [];
+
+    // Validate name from formState
+    if (!formState.name || formState.name.trim().length < 2) {
+      localMissingFields.push("name");
+    }
+
+    // Validate nick_name from formState
+    if (!formState.nick_name || formState.nick_name.trim().length < 2) {
+      localMissingFields.push("nick_name");
+    }
+
+    // Validate age from formState
+    if (!formState.age || formState.age < 18) {
+      localMissingFields.push("age");
+    }
+
+    // Validate gender from formState
+    if (
+      !formState.gender ||
+      formState.gender.trim().length < 2 ||
+      formState.gender === DEFAULT_VALUES.GENDER_UNDEFINED
+    ) {
+      localMissingFields.push("gender");
+    }
+
+    // Validate location from formState
+    if (!formState.location || formState.location.trim().length < 2) {
+      localMissingFields.push("location");
+    }
+
+    // Validate games from store
+    if (!userGames || userGames.length === 0) {
+      localMissingFields.push("games");
+    }
+
+    const localCompletedFields = 6 - localMissingFields.length;
+    const localCompletionPercentage = Math.round((localCompletedFields / 6) * 100);
+
+    return {
+      isComplete: localMissingFields.length === 0,
+      missingFields: localMissingFields,
+      completionPercentage: localCompletionPercentage,
+    };
+  }, [formState, userGames]);
+
+  // Use local validation for UI, but keep store validation as fallback
+  const displayValidation = localValidation;
+  const displayIsComplete = displayValidation.isComplete;
+  const displayMissingFields = displayValidation.missingFields;
+  const displayCompletionPercentage = displayValidation.completionPercentage;
 
   return (
     <div className="onboarding-container">
       <div className="onboarding-content">
         <div className="onboarding-header">
           <h1 className="onboarding-title">
-            <i className="fa-solid fa-rocket" /> Complete Your Profile
+            <i className={displayIsComplete ? "fa-solid fa-check-circle" : "fa-solid fa-rocket"} />{" "}
+            {displayIsComplete ? "Profile Completed" : "Complete Your Profile"}
           </h1>
           <p className="onboarding-subtitle">
-            Complete these fields to unlock all PlayerLink features
+            {displayIsComplete
+              ? "Your profile is complete! Click Next to go to your profile."
+              : "Complete these fields to unlock all PlayerLink features"}
           </p>
         </div>
 
         {/* Progress Bar */}
         <div className="onboarding-progress">
           <div className="progress-bar-container">
-            <div className="progress-bar-fill" style={{ width: `${completionPercentage}%` }} />
+            <div
+              className="progress-bar-fill"
+              style={{ width: `${displayCompletionPercentage}%` }}
+            />
           </div>
           <p className="progress-text">
-            {completionPercentage}% complete ({6 - missingFields.length}/6 fields)
+            {displayCompletionPercentage}% complete ({6 - displayMissingFields.length}/6 fields)
           </p>
         </div>
 
@@ -326,11 +432,11 @@ export const Onboarding: React.FC = () => {
         )}
 
         {/* Missing Fields Indicator */}
-        {missingFields.length > 0 && !isComplete && (
+        {displayMissingFields.length > 0 && !displayIsComplete && (
           <div className="onboarding-missing">
             <p className="missing-title">Pending fields:</p>
             <ul className="missing-list">
-              {missingFields.map((field) => (
+              {displayMissingFields.map((field) => (
                 <li key={field}>
                   <i className="fa-solid fa-circle-xmark" />
                   {getFieldLabel(field)}
@@ -347,8 +453,8 @@ export const Onboarding: React.FC = () => {
 
             {/* Name */}
             <div className="form-group">
-              <label className={missingFields.includes("name") ? "required" : ""}>
-                Name <span className="required-mark">*</span>
+              <label className={displayMissingFields.includes("name") ? "required" : ""}>
+                Name
               </label>
               <input
                 type="text"
@@ -356,17 +462,17 @@ export const Onboarding: React.FC = () => {
                 onChange={(e) => handleInputChange("name", e.target.value)}
                 placeholder="Your name"
                 maxLength={40}
-                className={missingFields.includes("name") ? "error" : ""}
+                className={displayMissingFields.includes("name") ? "error" : ""}
               />
-              {missingFields.includes("name") && (
+              {displayMissingFields.includes("name") && (
                 <span className="field-error">Minimum 2 characters</span>
               )}
             </div>
 
             {/* Nickname */}
             <div className="form-group">
-              <label className={missingFields.includes("nick_name") ? "required" : ""}>
-                Nickname <span className="required-mark">*</span>
+              <label className={displayMissingFields.includes("nick_name") ? "required" : ""}>
+                Nickname
               </label>
               <input
                 type="text"
@@ -374,9 +480,9 @@ export const Onboarding: React.FC = () => {
                 onChange={(e) => handleInputChange("nick_name", e.target.value)}
                 placeholder="Your nickname"
                 maxLength={21}
-                className={missingFields.includes("nick_name") ? "error" : ""}
+                className={displayMissingFields.includes("nick_name") ? "error" : ""}
               />
-              {missingFields.includes("nick_name") && (
+              {displayMissingFields.includes("nick_name") && (
                 <span className="field-error">Minimum 2 characters</span>
               )}
             </div>
@@ -384,8 +490,8 @@ export const Onboarding: React.FC = () => {
             {/* Age and Gender */}
             <div className="form-row">
               <div className="form-group">
-                <label className={missingFields.includes("age") ? "required" : ""}>
-                  Age <span className="required-mark">*</span>
+                <label className={displayMissingFields.includes("age") ? "required" : ""}>
+                  Age
                 </label>
                 <input
                   type="number"
@@ -394,21 +500,21 @@ export const Onboarding: React.FC = () => {
                   placeholder="18+"
                   min={18}
                   max={120}
-                  className={missingFields.includes("age") ? "error" : ""}
+                  className={displayMissingFields.includes("age") ? "error" : ""}
                 />
-                {missingFields.includes("age") && (
+                {displayMissingFields.includes("age") && (
                   <span className="field-error">You must be 18 or older</span>
                 )}
               </div>
 
               <div className="form-group">
-                <label className={missingFields.includes("gender") ? "required" : ""}>
-                  Gender <span className="required-mark">*</span>
+                <label className={displayMissingFields.includes("gender") ? "required" : ""}>
+                  Gender
                 </label>
                 <select
                   value={formState.gender}
                   onChange={(e) => handleInputChange("gender", e.target.value)}
-                  className={missingFields.includes("gender") ? "error" : ""}
+                  className={displayMissingFields.includes("gender") ? "error" : ""}
                 >
                   {GENDER_OPTIONS.map((gender) => (
                     <option key={gender} value={gender}>
@@ -416,7 +522,7 @@ export const Onboarding: React.FC = () => {
                     </option>
                   ))}
                 </select>
-                {missingFields.includes("gender") && (
+                {displayMissingFields.includes("gender") && (
                   <span className="field-error">Please select a gender</span>
                 )}
               </div>
@@ -424,8 +530,8 @@ export const Onboarding: React.FC = () => {
 
             {/* Location */}
             <div className="form-group">
-              <label className={missingFields.includes("location") ? "required" : ""}>
-                Location <span className="required-mark">*</span>
+              <label className={displayMissingFields.includes("location") ? "required" : ""}>
+                Location
               </label>
               <input
                 type="text"
@@ -433,9 +539,9 @@ export const Onboarding: React.FC = () => {
                 onChange={(e) => handleInputChange("location", e.target.value)}
                 placeholder="Your city or country"
                 maxLength={50}
-                className={missingFields.includes("location") ? "error" : ""}
+                className={displayMissingFields.includes("location") ? "error" : ""}
               />
-              {missingFields.includes("location") && (
+              {displayMissingFields.includes("location") && (
                 <span className="field-error">Minimum 2 characters</span>
               )}
             </div>
@@ -443,18 +549,23 @@ export const Onboarding: React.FC = () => {
 
           {/* Games Section */}
           <div className="form-section">
-            <h3 className="section-title">
-              Games <span className="required-mark">*</span>
-            </h3>
-            <p className="section-description">Add at least one game to your profile</p>
+            <h3 className="section-title">Games</h3>
 
             {/* Games List */}
             {userGames.length > 0 && (
               <div className="games-list">
                 {userGames.map((game) => (
-                  <div key={game.id} className="game-item">
+                  <div key={`game-${game.id}`} className="game-item">
                     <span className="game-name">{game.gameTitle}</span>
                     <span className="game-hours">{game.gameHoursPlayed}h</span>
+                    <button
+                      type="button"
+                      className="game-delete-btn"
+                      onClick={() => handleDeleteGame(game.id)}
+                      title="Delete game"
+                    >
+                      <i className="fa-solid fa-trash" />
+                    </button>
                   </div>
                 ))}
               </div>
@@ -465,7 +576,7 @@ export const Onboarding: React.FC = () => {
               <i className="fa-solid fa-plus" /> Add Game
             </button>
 
-            {missingFields.includes("games") && (
+            {displayMissingFields.includes("games") && (
               <span className="field-error">Add at least one game</span>
             )}
           </div>
@@ -473,7 +584,7 @@ export const Onboarding: React.FC = () => {
 
         {/* Continue Button */}
         <div className="onboarding-actions">
-          {isComplete ? (
+          {displayIsComplete ? (
             <>
               <button type="button" className="btn-continue" onClick={handleContinueToProfile}>
                 Next
@@ -487,13 +598,13 @@ export const Onboarding: React.FC = () => {
               <button
                 type="button"
                 className="btn-continue"
-                disabled={!isComplete || isSaving}
+                disabled={!displayIsComplete || isSaving}
                 onClick={() => navigate("/private/profile")}
               >
-                {isSaving ? "Saving..." : "Continue"}
+                {isSaving ? "Saving..." : "Next"}
               </button>
               <p className="help-text">
-                Fields are saved automatically. Complete all fields marked with * to continue.
+                Fields are saved automatically. Complete all fields to continue.
               </p>
             </>
           )}
@@ -588,21 +699,17 @@ export const Onboarding: React.FC = () => {
                           ? "rgba(0, 0, 0, 0.5)"
                           : "rgba(0, 0, 0, 0.4)",
                         border: "2px solid",
-                        borderColor: state.isFocused
-                          ? "#00f0ff"
-                          : state.isHovered
-                            ? "#8f00ff"
-                            : "#7f00ff",
+                        borderColor: state.isFocused ? "#00f0ff" : "#7f00ff",
                         borderRadius: "10px",
                         boxShadow: state.isFocused
                           ? "inset 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 15px rgba(0, 240, 255, 0.4), 0 0 25px rgba(0, 240, 255, 0.2)"
-                          : state.isHovered
-                            ? "inset 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 15px rgba(143, 0, 255, 0.3)"
-                            : "inset 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 10px rgba(127, 0, 255, 0.2)",
+                          : "inset 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 10px rgba(127, 0, 255, 0.2)",
                         minHeight: "48px",
                         cursor: "pointer",
                         "&:hover": {
                           borderColor: "#8f00ff",
+                          boxShadow:
+                            "inset 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 15px rgba(143, 0, 255, 0.3)",
                         },
                       }),
                       placeholder: (base) => ({
