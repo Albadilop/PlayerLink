@@ -52,6 +52,33 @@
   box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
 }
 
+.upload-btn {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 10px;
+  background: linear-gradient(135deg, #00f0ff, #8f00ff);
+  border: 2px solid transparent;
+  color: #fff;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.upload-btn:hover {
+  background: linear-gradient(135deg, #00d9e6, #a64dff);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(143, 0, 255, 0.4);
+}
+
+.upload-btn i {
+  font-size: 1rem;
+}
+
 .cancel-btn {
   width: 100%;
   padding: 10px;
@@ -67,4 +94,3 @@
   background: #7f00ff;
   color: #fff;
 }
-

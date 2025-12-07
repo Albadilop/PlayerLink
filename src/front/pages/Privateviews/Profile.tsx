@@ -461,6 +461,46 @@ const Profile: React.FC = () => {
     }
   };
 
+  const handlePhotoUpload = async (file: File) => {
+    if (!store.user?.id) {
+      console.error("User not available");
+      return;
+    }
+    try {
+      const result = await userServices.uploadUserPhoto(store.user.id, file);
+      const newKey = result.photo;
+
+      // Actualizar estado local
+      setProfile((prev) => ({ ...prev, photo: newKey }));
+
+      // Actualizar store global para que persista al navegar
+      if (store.user?.profile) {
+        const updatedUser = {
+          ...store.user,
+          profile: {
+            ...store.user.profile,
+            photo: newKey,
+          },
+        };
+        dispatch({ type: "getUserInfo", payload: updatedUser });
+      }
+    } catch (err) {
+      console.error("Error uploading photo:", err);
+      setNotice(
+        <h4 className="text-center text-danger">
+          <i className="fa-solid fa-triangle-exclamation text-warning fa-xl"></i>
+          Error uploading photo. Please try again.
+        </h4>
+      );
+      if (clearNoticeTimerRef.current) {
+        clearTimeout(clearNoticeTimerRef.current);
+      }
+      clearNoticeTimerRef.current = setTimeout(() => setNotice(""), 5000);
+    } finally {
+      setShowModal(false);
+    }
+  };
+
   const updateProfile = async () => {
     if (!store.user || !store.user.id) {
       console.error("User not available");
@@ -766,6 +806,7 @@ const Profile: React.FC = () => {
           isOpen={showModal}
           currentPhoto={profile.photo}
           onSelect={handlePicChange}
+          onUpload={handlePhotoUpload}
           onClose={() => setShowModal(false)}
         />
       </div>

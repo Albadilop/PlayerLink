@@ -1,6 +1,8 @@
 """
 Profile management endpoints
 """
+import os
+from werkzeug.utils import secure_filename
 from flask import Blueprint, request, jsonify, Response
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from sqlalchemy import select, not_
@@ -11,7 +13,8 @@ from api.validators import (
     require_profile_exists,
     validate_json,
     handle_errors,
-    require_ownership
+    require_ownership,
+    validate_image_file
 )
 from api.base import BaseEndpoint
 from typing import Tuple
@@ -168,5 +171,87 @@ def put_profilephoto(user_id: int, _user: User, _profile: Profile, _data: dict) 
     _profile.photo = _data.get('photo', _profile.photo)
     db.session.commit()
     return base.serialize_response(_profile, 200)
+
+
+@profiles_bp.route('/profiles/photo/upload/<int:user_id>', methods=['POST'])
+@jwt_required()
+@handle_errors
+@require_profile_exists('user_id')
+@require_ownership
+def upload_profile_photo(user_id: int, _user: User, _profile: Profile) -> Tuple[Response, int]:
+    """Upload a profile photo file with strict validation"""
+    if 'photo' not in request.files:
+        return base.error_response('No file provided', 400)
+    
+    file = request.files['photo']
+    if file.filename == '':
+        return base.error_response('No file selected', 400)
+    
+    # Validación robusta de la imagen
+    is_valid, error_message = validate_image_file(
+        file, 
+        max_size_mb=5, 
+        max_width=2000, 
+        max_height=2000
+    )
+    
+    if not is_valid:
+        return base.error_response(error_message or 'Invalid image file', 400)
+    
+    # Obtener extensión del archivo después de validación
+    filename = secure_filename(file.filename)
+    file_ext = filename.rsplit('.', 1)[1].lower() if '.' in filename else ''
+    
+    # Crear directorio de uploads si no existe
+    upload_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'uploads', 'profiles')
+    os.makedirs(upload_dir, exist_ok=True)
+    
+    # Eliminar foto anterior si existe y es una foto subida
+    if _profile.photo and _profile.photo.startswith('uploaded_'):
+        old_filename = _profile.photo.replace('uploaded_', '')
+        old_filepath = os.path.join(upload_dir, old_filename)
+        if os.path.exists(old_filepath):
+            try:
+                os.remove(old_filepath)
+            except Exception:
+                pass  # Ignorar errores al eliminar archivo antiguo
+    
+    # Generar nombre único para el archivo
+    import time
+    timestamp = int(time.time())
+    unique_filename = f"user_{user_id}_photo_{timestamp}.{file_ext}"
+    filepath = os.path.join(upload_dir, unique_filename)
+    
+    # Guardar el archivo
+    try:
+        file.save(filepath)
+        
+        # Actualizar el perfil con el nombre del archivo
+        # Usamos un prefijo especial para identificar fotos subidas
+        photo_key = f"uploaded_{unique_filename}"
+        _profile.photo = photo_key
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'photo': photo_key,
+            'message': 'Photo uploaded successfully'
+        }), 200
+    except Exception as e:
+        return base.error_response(f'Error saving file: {str(e)}', 500)
+
+
+@profiles_bp.route('/profiles/photo/<path:filename>', methods=['GET'])
+def get_uploaded_photo(filename: str) -> Tuple[Response, int]:
+    """Serve uploaded profile photos"""
+    upload_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'uploads', 'profiles')
+    filepath = os.path.join(upload_dir, secure_filename(filename))
+    
+    # Verificar que el archivo existe y está dentro del directorio de uploads
+    if not os.path.exists(filepath) or not filepath.startswith(upload_dir):
+        return base.error_response('Photo not found', 404)
+    
+    from flask import send_from_directory
+    return send_from_directory(upload_dir, secure_filename(filename)), 200
 
 
