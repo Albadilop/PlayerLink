@@ -2,9 +2,21 @@ import React from "react";
 import "./ProfileModals.css";
 
 const languages = [
-  "English", "Spanish", "French", "German", "Portuguese",
-  "Italian", "Japanese", "Korean", "Chinese", "Mandalorian",
-  "Thalassian", "Klingon", "Sindarin", "Renegade", "Orcish"
+  "English",
+  "Spanish",
+  "French",
+  "German",
+  "Portuguese",
+  "Italian",
+  "Japanese",
+  "Korean",
+  "Chinese",
+  "Mandalorian",
+  "Thalassian",
+  "Klingon",
+  "Sindarin",
+  "Renegade",
+  "Orcish",
 ];
 
 interface LanguageModalProps {
@@ -14,7 +26,12 @@ interface LanguageModalProps {
   onCancel: () => void;
 }
 
-export const LanguageModal: React.FC<LanguageModalProps> = ({ selected, setSelected, onSave, onCancel }) => {
+export const LanguageModal: React.FC<LanguageModalProps> = ({
+  selected,
+  setSelected,
+  onSave,
+  onCancel,
+}) => {
   const toggleLanguage = (language: string) => {
     setSelected((prev) => {
       if (prev.includes(language)) {
@@ -55,5 +72,3 @@ export const LanguageModal: React.FC<LanguageModalProps> = ({ selected, setSelec
     </div>
   );
 };
-
-

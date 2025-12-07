@@ -9,7 +9,7 @@ export const BackendURL: React.FC = () => (
   <div className="mt-5 pt-5 w-50 mx-auto">
     <h2>Missing BACKEND_URL env variable</h2>
     <p>
-      Here's a video tutorial on{" "}
+      Here&apos;s a video tutorial on{" "}
       <a
         target="_blank"
         rel="noopener noreferrer"
@@ -19,12 +19,12 @@ export const BackendURL: React.FC = () => (
       </a>
     </p>
     <p>
-      There's a file called <Dark>.env</Dark> that contains the environmental
-      variables for your project.
+      There&apos;s a file called <Dark>.env</Dark> that contains the environmental variables for
+      your project.
     </p>
     <p>
-      There's one variable called <Dark>BACKEND_URL</Dark> that needs to be
-      manually set by yourself.
+      There&apos;s one variable called <Dark>BACKEND_URL</Dark> that needs to be manually set by
+      yourself.
     </p>
     <ol>
       <li>Make sure you backend is running on port 3001.</li>
@@ -34,18 +34,16 @@ export const BackendURL: React.FC = () => (
         Add a new variable VITE_BACKEND_URL=<Dark>your api host</Dark>
       </li>
       <li>
-        Replace <Dark>your api host</Dark> with the public API URL of your flask
-        backend sever running at port 3001
+        Replace <Dark>your api host</Dark> with the public API URL of your flask backend sever
+        running at port 3001
       </li>
     </ol>
     <div className="w-100">
       <img src={envFile} className="w-100" alt="Environment file example" />
     </div>
     <p>
-      Note: If you are publishing your website to Heroku, Render.com or any
-      other hosting you probably need to follow other steps.
+      Note: If you are publishing your website to Heroku, Render.com or any other hosting you
+      probably need to follow other steps.
     </p>
   </div>
 );
-
-

@@ -1,3 +1,4 @@
+import React from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { Sidebar } from "./Private-sidebar";
 import { PrivateNavbar } from "./Private-navbar";
@@ -18,5 +19,3 @@ export const PrivateLayout: React.FC = () => {
     </div>
   );
 };
-
-

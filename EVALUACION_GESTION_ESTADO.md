@@ -13,6 +13,7 @@ Este documento evalúa las opciones de gestión de estado para el frontend de Pl
 **Ubicación:** `src/front/store.ts` y `src/front/hooks/useGlobalReducer.tsx`
 
 **Estructura:**
+
 ```typescript
 // Store con useReducer
 const StoreContext = createContext<...>();
@@ -23,6 +24,7 @@ export function StoreProvider({ children }) {
 ```
 
 **Estado Gestionado:**
+
 - `user` - Usuario actual
 - `userMatchesInfo` - Información de matches
 - `itsMatchInfo` - Información de match actual
@@ -33,6 +35,7 @@ export function StoreProvider({ children }) {
 - `matchReviewsReceived` - Reviews recibidas
 
 **Características:**
+
 - ✅ Sin dependencias adicionales
 - ✅ Integrado con React
 - ✅ Persistencia en localStorage
@@ -47,6 +50,7 @@ export function StoreProvider({ children }) {
 ### Opción 1: Mantener Context API + useReducer (RECOMENDADO)
 
 **Pros:**
+
 - ✅ Ya implementado y funcionando
 - ✅ Sin dependencias adicionales
 - ✅ TypeScript support nativo
@@ -55,11 +59,13 @@ export function StoreProvider({ children }) {
 - ✅ Persistencia en localStorage ya implementada
 
 **Contras:**
+
 - ⚠️ Puede volverse complejo con mucho estado
 - ⚠️ Posibles re-renders innecesarios
 - ⚠️ Más boilerplate que alternativas modernas
 
 **Cuándo cambiar:**
+
 - Si el estado se vuelve muy complejo (>10-15 propiedades)
 - Si hay problemas de rendimiento por re-renders
 - Si se necesita mejor DevTools
@@ -73,14 +79,16 @@ export function StoreProvider({ children }) {
 **Descripción:** Librería ligera y moderna para gestión de estado.
 
 **Instalación:**
+
 ```bash
 npm install zustand
 ```
 
 **Ejemplo de implementación:**
+
 ```typescript
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 interface Store {
   user: User | null;
@@ -96,13 +104,14 @@ export const useStore = create<Store>()(
       // ...
     }),
     {
-      name: 'playerlink-storage',
+      name: "playerlink-storage",
     }
   )
 );
 ```
 
 **Pros:**
+
 - ✅ Muy simple y ligero (~1KB)
 - ✅ Menos boilerplate que Context API
 - ✅ Mejor rendimiento (solo re-renderiza componentes que usan estado cambiado)
@@ -111,11 +120,13 @@ export const useStore = create<Store>()(
 - ✅ Middleware para persistencia fácil
 
 **Contras:**
+
 - ⚠️ Requiere migración del código actual
 - ⚠️ Dependencia adicional (aunque pequeña)
 - ⚠️ Curva de aprendizaje para el equipo
 
 **Cuándo considerar:**
+
 - Si el estado crece significativamente
 - Si hay problemas de rendimiento
 - Si se quiere simplificar el código
@@ -129,16 +140,18 @@ export const useStore = create<Store>()(
 **Descripción:** Solución completa y madura para gestión de estado.
 
 **Instalación:**
+
 ```bash
 npm install @reduxjs/toolkit react-redux
 ```
 
 **Ejemplo de implementación:**
+
 ```typescript
-import { configureStore, createSlice } from '@reduxjs/toolkit';
+import { configureStore, createSlice } from "@reduxjs/toolkit";
 
 const userSlice = createSlice({
-  name: 'user',
+  name: "user",
   initialState: { user: null },
   reducers: {
     setUser: (state, action) => {
@@ -155,6 +168,7 @@ export const store = configureStore({
 ```
 
 **Pros:**
+
 - ✅ Muy popular y maduro
 - ✅ DevTools excelentes (Redux DevTools)
 - ✅ Gran ecosistema
@@ -163,12 +177,14 @@ export const store = configureStore({
 - ✅ TypeScript support completo
 
 **Contras:**
+
 - ⚠️ Más complejo para proyectos pequeños
 - ⚠️ Más boilerplate que otras opciones
 - ⚠️ Curva de aprendizaje más pronunciada
 - ⚠️ Overkill para el tamaño actual del proyecto
 
 **Cuándo considerar:**
+
 - Si el proyecto crece significativamente
 - Si se necesita time-travel debugging
 - Si el equipo ya conoce Redux
@@ -182,11 +198,13 @@ export const store = configureStore({
 **Descripción:** Gestión de estado atómica (cada pieza de estado es independiente).
 
 **Pros:**
+
 - ✅ Muy granular (solo actualiza lo necesario)
 - ✅ Buen rendimiento
 - ✅ TypeScript support
 
 **Contras:**
+
 - ⚠️ Paradigma diferente (puede confundir)
 - ⚠️ Menos maduro que otras opciones
 - ⚠️ Requiere migración completa
@@ -197,15 +215,15 @@ export const store = configureStore({
 
 ## 📊 Comparación Rápida
 
-| Característica | Context API | Zustand | Redux Toolkit |
-|---------------|------------|---------|---------------|
-| Tamaño | 0KB | ~1KB | ~15KB |
-| Boilerplate | Medio | Bajo | Alto |
-| Curva de aprendizaje | Baja | Media | Alta |
-| DevTools | Básico | Opcional | Excelente |
-| Rendimiento | Bueno | Muy bueno | Excelente |
-| TypeScript | Nativo | Excelente | Excelente |
-| Comunidad | Grande | Creciente | Muy grande |
+| Característica       | Context API | Zustand   | Redux Toolkit |
+| -------------------- | ----------- | --------- | ------------- |
+| Tamaño               | 0KB         | ~1KB      | ~15KB         |
+| Boilerplate          | Medio       | Bajo      | Alto          |
+| Curva de aprendizaje | Baja        | Media     | Alta          |
+| DevTools             | Básico      | Opcional  | Excelente     |
+| Rendimiento          | Bueno       | Muy bueno | Excelente     |
+| TypeScript           | Nativo      | Excelente | Excelente     |
+| Comunidad            | Grande      | Creciente | Muy grande    |
 
 ---
 
@@ -216,6 +234,7 @@ export const store = configureStore({
 **✅ MANTENER Context API + useReducer**
 
 **Razones:**
+
 1. Ya está implementado y funcionando bien
 2. El proyecto no es lo suficientemente grande para justificar el cambio
 3. No hay problemas de rendimiento actuales
@@ -227,6 +246,7 @@ export const store = configureStore({
 **✅ CONSIDERAR Zustand**
 
 **Razones:**
+
 1. Más simple que Redux Toolkit
 2. Mejor rendimiento que Context API
 3. Menos boilerplate
@@ -234,6 +254,7 @@ export const store = configureStore({
 5. Tamaño pequeño
 
 **Cuándo migrar:**
+
 - Si el estado crece a >15 propiedades
 - Si hay problemas de rendimiento medibles
 - Si se necesita mejor DevTools
@@ -244,15 +265,17 @@ export const store = configureStore({
 ## 📝 Plan de Migración (Si se Decide Migrar a Zustand)
 
 ### Paso 1: Instalar Zustand
+
 ```bash
 npm install zustand
 ```
 
 ### Paso 2: Crear store con Zustand
+
 ```typescript
 // src/front/store/zustandStore.ts
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 interface PlayerLinkStore {
   user: User | null;
@@ -271,18 +294,20 @@ export const usePlayerLinkStore = create<PlayerLinkStore>()(
       setUser: (user) => set({ user }),
     }),
     {
-      name: 'playerlink-storage',
+      name: "playerlink-storage",
     }
   )
 );
 ```
 
 ### Paso 3: Migrar componentes gradualmente
+
 - Empezar con componentes nuevos
 - Migrar componentes existentes uno por uno
 - Mantener ambos sistemas durante la transición
 
 ### Paso 4: Remover Context API
+
 - Una vez todos los componentes migrados
 - Eliminar `store.ts` y `useGlobalReducer.tsx`
 
@@ -293,11 +318,13 @@ export const usePlayerLinkStore = create<PlayerLinkStore>()(
 **Decisión:** Mantener Context API + useReducer por ahora.
 
 **Monitorear:**
+
 - Complejidad del estado
 - Rendimiento de la aplicación
 - Facilidad de mantenimiento
 
 **Re-evaluar cuando:**
+
 - El estado crece significativamente
 - Aparecen problemas de rendimiento
 - El código se vuelve difícil de mantener
@@ -306,5 +333,3 @@ export const usePlayerLinkStore = create<PlayerLinkStore>()(
 
 **Fecha de evaluación:** Diciembre 2024
 **Próxima revisión:** Cuando el estado crezca o haya problemas de rendimiento
-
-

@@ -1,0 +1,140 @@
+.toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  min-width: 300px;
+  max-width: 500px;
+  padding: 16px 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 10000;
+  animation: slideIn 0.3s ease-out;
+  border: 2px solid;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.toast-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.toast-message {
+  flex: 1;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.toast-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.toast-close:hover {
+  opacity: 1;
+}
+
+.toast-success {
+  background-color: #d4edda;
+  border-color: #28a745;
+  color: #155724;
+}
+
+.toast-error {
+  background-color: #f8d7da;
+  border-color: #dc3545;
+  color: #721c24;
+}
+
+.toast-warning {
+  background-color: #fff3cd;
+  border-color: #ffc107;
+  color: #856404;
+}
+
+.toast-info {
+  background-color: #d1ecf1;
+  border-color: #17a2b8;
+  color: #0c5460;
+}
+
+/* Light theme adjustments */
+body.light-theme .toast-success {
+  background-color: #d4edda;
+  border-color: #28a745;
+  color: #155724;
+}
+
+body.light-theme .toast-error {
+  background-color: #f8d7da;
+  border-color: #dc3545;
+  color: #721c24;
+}
+
+body.light-theme .toast-warning {
+  background-color: #fff3cd;
+  border-color: #ffc107;
+  color: #856404;
+}
+
+body.light-theme .toast-info {
+  background-color: #d1ecf1;
+  border-color: #17a2b8;
+  color: #0c5460;
+}
+
+/* Dark theme adjustments */
+body.dark-theme .toast-success {
+  background-color: rgba(40, 167, 69, 0.2);
+  border-color: #28a745;
+  color: #90ee90;
+}
+
+body.dark-theme .toast-error {
+  background-color: rgba(220, 53, 69, 0.2);
+  border-color: #dc3545;
+  color: #ff6b6b;
+}
+
+body.dark-theme .toast-warning {
+  background-color: rgba(255, 193, 7, 0.2);
+  border-color: #ffc107;
+  color: #ffd700;
+}
+
+body.dark-theme .toast-info {
+  background-color: rgba(23, 162, 184, 0.2);
+  border-color: #17a2b8;
+  color: #4dd0e1;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .toast {
+    right: 10px;
+    left: 10px;
+    min-width: auto;
+    max-width: none;
+  }
+}

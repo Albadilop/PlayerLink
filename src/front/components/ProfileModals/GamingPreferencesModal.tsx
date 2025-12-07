@@ -2,10 +2,25 @@ import React from "react";
 import "./ProfileModals.css";
 
 const options = [
-  "Tryhard", "Chill", "Adventurer", "Pro", "Competitive", "Creative",
-  "MOBA", "PMA", "Designer", "Conversational", "Strategic", "Emotional",
-  "Excited", "Horror", "Online Cooperative", "Co-op Campaign", "Survival",
-  "Construction", "God mode"
+  "Tryhard",
+  "Chill",
+  "Adventurer",
+  "Pro",
+  "Competitive",
+  "Creative",
+  "MOBA",
+  "PMA",
+  "Designer",
+  "Conversational",
+  "Strategic",
+  "Emotional",
+  "Excited",
+  "Horror",
+  "Online Cooperative",
+  "Co-op Campaign",
+  "Survival",
+  "Construction",
+  "God mode",
 ];
 
 interface GamingPreferencesModalProps {
@@ -15,7 +30,12 @@ interface GamingPreferencesModalProps {
   onCancel: () => void;
 }
 
-export const GamingPreferencesModal: React.FC<GamingPreferencesModalProps> = ({ selected, setSelected, onSave, onCancel }) => {
+export const GamingPreferencesModal: React.FC<GamingPreferencesModalProps> = ({
+  selected,
+  setSelected,
+  onSave,
+  onCancel,
+}) => {
   const toggleOption = (option: string) => {
     setSelected((prev) => {
       if (prev.includes(option)) {
@@ -56,5 +76,3 @@ export const GamingPreferencesModal: React.FC<GamingPreferencesModalProps> = ({ 
     </div>
   );
 };
-
-

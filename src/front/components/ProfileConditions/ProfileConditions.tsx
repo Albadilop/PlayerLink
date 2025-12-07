@@ -1,4 +1,4 @@
-import './ProfileConditions.css';
+import "./ProfileConditions.css";
 import React, { useState } from "react";
 
 interface ProfileConditionsProps {
@@ -7,16 +7,16 @@ interface ProfileConditionsProps {
 
 declare global {
   interface Window {
-    bootstrap: typeof import('bootstrap');
+    bootstrap: typeof import("bootstrap");
   }
 }
 
 export const ProfileConditions: React.FC<ProfileConditionsProps> = ({ onAccept }) => {
   const [accepted, setAccepted] = useState<boolean>(false);
-  const [name, setName] = useState<string>('');
-  const [age, setAge] = useState<string>('');
-  const [errorName, setErrorName] = useState<string>('');
-  const [errorAge, setErrorAge] = useState<string>('');
+  const [name, setName] = useState<string>("");
+  const [age, setAge] = useState<string>("");
+  const [errorName, setErrorName] = useState<string>("");
+  const [errorAge, setErrorAge] = useState<string>("");
 
   const handleCheckbox = (e: React.ChangeEvent<HTMLInputElement>) => {
     setAccepted(e.target.checked);
@@ -24,12 +24,12 @@ export const ProfileConditions: React.FC<ProfileConditionsProps> = ({ onAccept }
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setName(e.target.value);
-    if (e.target.value.trim()) setErrorName('');  // limpio error si ya hay texto
+    if (e.target.value.trim()) setErrorName(""); // limpio error si ya hay texto
   };
 
   const handleAgeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setAge(e.target.value);
-    if (Number(e.target.value) >= 18) setErrorAge('');  // limpio error si edad válida
+    if (Number(e.target.value) >= 18) setErrorAge(""); // limpio error si edad válida
   };
 
   const handleSave = () => {
@@ -41,8 +41,8 @@ export const ProfileConditions: React.FC<ProfileConditionsProps> = ({ onAccept }
       setErrorAge("You must be +18");
       return;
     }
-    setErrorName(''); // limpio error si pasa validación
-    setErrorAge(''); // limpio error si pasa validación
+    setErrorName(""); // limpio error si pasa validación
+    setErrorAge(""); // limpio error si pasa validación
 
     if (accepted && onAccept) {
       onAccept({ name, age });
@@ -53,35 +53,68 @@ export const ProfileConditions: React.FC<ProfileConditionsProps> = ({ onAccept }
       }
 
       //Limpiar campos después de cerrar modal
-      setName('');
-      setAge('');
+      setName("");
+      setAge("");
       setAccepted(false);
     }
   };
 
   return (
     <>
-      <button type="button" className="btn btn-primary" data-bs-toggle="modal" data-bs-target="#ProfileConditionsModal">
+      <button
+        type="button"
+        className="btn btn-primary"
+        data-bs-toggle="modal"
+        data-bs-target="#ProfileConditionsModal"
+      >
         T&C
       </button>
 
-      <div className="modal fade" id="ProfileConditionsModal" tabIndex={-1} aria-labelledby="ProfileConditionsModalLabel" aria-hidden="true">
+      <div
+        className="modal fade"
+        id="ProfileConditionsModal"
+        tabIndex={-1}
+        aria-labelledby="ProfileConditionsModalLabel"
+        aria-hidden="true"
+      >
         <div className="modal-dialog">
           <div className="modal-content profile-conditions-border">
             <div className="modal-header">
-              <h1 className="modal-title fs-5" id="ProfileConditionsModalLabel">Profile requirements</h1>
-              <button type="button" className="btn-close profile-conditions-close-modal me-1" data-bs-dismiss="modal" aria-label="Close"></button>
+              <h1 className="modal-title fs-5" id="ProfileConditionsModalLabel">
+                Profile requirements
+              </h1>
+              <button
+                type="button"
+                className="btn-close profile-conditions-close-modal me-1"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              ></button>
             </div>
             <div className="modal-body ms-2">
-              <p>To access PlayerLink, please enter your name and age. Then, confirm that the information is complete to continue.</p>
+              <p>
+                To access PlayerLink, please enter your name and age. Then, confirm that the
+                information is complete to continue.
+              </p>
               <form>
                 <h6>Name:</h6>
-                <input className='border-2 rounded profile-conditions-input' type="text" value={name} placeholder="Name" onChange={handleNameChange} />
-                {errorName && <h6 className='ms-1 mt-1 text-danger'>{errorName}</h6>}
+                <input
+                  className="border-2 rounded profile-conditions-input"
+                  type="text"
+                  value={name}
+                  placeholder="Name"
+                  onChange={handleNameChange}
+                />
+                {errorName && <h6 className="ms-1 mt-1 text-danger">{errorName}</h6>}
 
-                <h6 className='mt-3'>Age:</h6>
-                <input className='border-2 rounded profile-conditions-input' type="number" value={age} placeholder="Age" onChange={handleAgeChange} />
-                {errorAge && <h6 className='ms-1 mt-1 text-danger'>{errorAge}</h6>}
+                <h6 className="mt-3">Age:</h6>
+                <input
+                  className="border-2 rounded profile-conditions-input"
+                  type="number"
+                  value={age}
+                  placeholder="Age"
+                  onChange={handleAgeChange}
+                />
+                {errorAge && <h6 className="ms-1 mt-1 text-danger">{errorAge}</h6>}
               </form>
             </div>
             <div className="modal-footer">
@@ -99,7 +132,13 @@ export const ProfileConditions: React.FC<ProfileConditionsProps> = ({ onAccept }
               </div>
             </div>
             <div className="modal-footer">
-              <button type="button" className="btn profile-conditions-decline-btn" data-bs-dismiss="modal">Decline</button>
+              <button
+                type="button"
+                className="btn profile-conditions-decline-btn"
+                data-bs-dismiss="modal"
+              >
+                Decline
+              </button>
               <button
                 type="button"
                 className="btn profile-conditions-accept-btn"
@@ -115,5 +154,3 @@ export const ProfileConditions: React.FC<ProfileConditionsProps> = ({ onAccept }
     </>
   );
 };
-
-

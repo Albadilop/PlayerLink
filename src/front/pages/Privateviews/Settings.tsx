@@ -12,6 +12,13 @@ import settingsServices, {
 } from "../../services/settingsServices";
 import useGlobalReducer from "../../hooks/useGlobalReducer";
 import { useNavigate } from "react-router-dom";
+import { LanguageModal } from "../../components/ProfileModals/LanguageModal";
+import { GamingPreferencesModal } from "../../components/ProfileModals/GamingPreferencesModal";
+import { parsePreferences, formatPreferences } from "../../utils/formatters";
+import { useTheme } from "../../hooks/useTheme";
+import { useAppSounds } from "../../hooks/useAppSounds";
+import { useAppAnimations } from "../../hooks/useAppAnimations";
+import { useToast } from "../../hooks/useToast";
 
 interface EmailForm {
   actualEmail: string;
@@ -59,19 +66,25 @@ const SettingsView: React.FC = () => {
   const [loadingSettings, setLoadingSettings] = useState<boolean>(false);
   const [settingsError, setSettingsError] = useState<string>("");
   const [settingsSuccess, setSettingsSuccess] = useState<string>("");
+  const [ageValidationError, setAgeValidationError] = useState<string>("");
 
   // Blocked users
   const [blockedUsers, setBlockedUsers] = useState<BlockedUser[]>([]);
   const [loadingBlocked, setLoadingBlocked] = useState<boolean>(false);
+  const [showUnblockModal, setShowUnblockModal] = useState<boolean>(false);
+  const [userToUnblock, setUserToUnblock] = useState<number | null>(null);
 
   // App preferences (stored in localStorage)
-  const [appTheme, setAppTheme] = useState<string>(localStorage.getItem("appTheme") || "dark");
-  const [appSounds, setAppSounds] = useState<boolean>(
-    localStorage.getItem("appSounds") !== "false"
-  );
-  const [appAnimations, setAppAnimations] = useState<boolean>(
-    localStorage.getItem("appAnimations") !== "false"
-  );
+  const { theme, setTheme } = useTheme();
+  const { soundsEnabled, setSoundsEnabled, playSound } = useAppSounds();
+  const { animationsEnabled, setAnimationsEnabled } = useAppAnimations();
+  const { showToast, ToastContainer } = useToast();
+
+  // Language and Gaming Preferences Modals
+  const [showLanguageModal, setShowLanguageModal] = useState<boolean>(false);
+  const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
+  const [showGamingPreferencesModal, setShowGamingPreferencesModal] = useState<boolean>(false);
+  const [selectedGamingPreferences, setSelectedGamingPreferences] = useState<string[]>([]);
 
   const loadSettings = useCallback(async () => {
     if (!store.user?.id) return;
@@ -80,12 +93,58 @@ const SettingsView: React.FC = () => {
     try {
       const data = await settingsServices.getUserSettings(store.user.id);
       if (data instanceof Error) {
-        setSettingsError(data.message);
+        // Only show error if it's not a connection error (to avoid blocking UI)
+        if (data.message.includes("Could not connect")) {
+          console.warn("Backend not available, using default settings");
+          // Create default settings object for UI
+          setSettings({
+            id: 0,
+            user_id: store.user.id,
+            matching: {
+              discovery_enabled: true,
+              only_common_games: false,
+            },
+            privacy: {
+              profile_visible: true,
+              searchable: true,
+              show_age: true,
+              show_location: true,
+              show_hours_played: true,
+              show_steam_id: true,
+              show_discord: true,
+            },
+            notifications: {
+              email_match_notifications: true,
+              email_like_notifications: true,
+              email_review_notifications: true,
+              email_weekly_summary: false,
+              app_sound_notifications: true,
+              app_push_notifications: true,
+            },
+            gaming: {
+              steam_sync_enabled: false,
+              steam_sync_frequency: "manual",
+              show_steam_library: true,
+            },
+            social: {
+              chat_from_matches_only: true,
+              read_receipts_enabled: true,
+            },
+          });
+        } else {
+          setSettingsError(data.message);
+        }
       } else {
         setSettings(data);
       }
-    } catch {
-      setSettingsError("Failed to load settings");
+    } catch (error) {
+      console.error("Error loading settings:", error);
+      // Don't block UI on connection errors
+      if (error instanceof Error && error.message.includes("Could not connect")) {
+        console.warn("Backend not available, using default settings");
+      } else {
+        setSettingsError("Failed to load settings");
+      }
     } finally {
       setLoadingSettings(false);
     }
@@ -97,12 +156,17 @@ const SettingsView: React.FC = () => {
     try {
       const data = await settingsServices.getBlockedUsers(store.user.id);
       if (data instanceof Error) {
-        console.error("Failed to load blocked users:", data);
+        // Don't show error for connection issues, just log it
+        if (!data.message.includes("Could not connect")) {
+          console.error("Failed to load blocked users:", data);
+        }
+        setBlockedUsers([]); // Empty array if can't load
       } else {
         setBlockedUsers(data.blocked_users || []);
       }
     } catch (error) {
       console.error("Error loading blocked users:", error);
+      setBlockedUsers([]); // Empty array on error
     } finally {
       setLoadingBlocked(false);
     }
@@ -116,6 +180,14 @@ const SettingsView: React.FC = () => {
     loadSettings();
     loadBlockedUsers();
   }, [navigate, store.user, loadSettings, loadBlockedUsers]);
+
+  // Sync language and gaming preferences with settings
+  useEffect(() => {
+    if (settings) {
+      setSelectedLanguages(parsePreferences(settings.matching.language_preference || null));
+      setSelectedGamingPreferences(parsePreferences(settings.matching.gaming_preference || null));
+    }
+  }, [settings]);
 
   const updateSettings = async (
     updates: Partial<{
@@ -136,9 +208,14 @@ const SettingsView: React.FC = () => {
       if (resp.ok && resp.data) {
         setSettings(resp.data);
         setSettingsSuccess("Settings updated successfully");
+        showToast("Settings updated successfully", "success");
+        playSound("success");
         setTimeout(() => setSettingsSuccess(""), 3000);
       } else {
-        setSettingsError(resp.error || "Failed to update settings");
+        const errorMsg = resp.error || "Failed to update settings";
+        setSettingsError(errorMsg);
+        showToast(errorMsg, "error");
+        playSound("error");
       }
     } catch {
       setSettingsError("Failed to update settings");
@@ -150,9 +227,55 @@ const SettingsView: React.FC = () => {
     updateSettings({ [category]: { [key]: value } });
   };
 
+  const validateAgeRange = (minAge: number | null, maxAge: number | null): boolean => {
+    if (minAge === null || maxAge === null) {
+      setAgeValidationError("");
+      return true;
+    }
+    if (minAge >= maxAge) {
+      setAgeValidationError("Min age must be less than max age");
+      return false;
+    }
+    if (minAge < 18) {
+      setAgeValidationError("Min age must be at least 18");
+      return false;
+    }
+    if (maxAge > 100) {
+      setAgeValidationError("Max age cannot exceed 100");
+      return false;
+    }
+    setAgeValidationError("");
+    return true;
+  };
+
   const handleInputChange = (category: string, key: string, value: string | number | null) => {
     if (!settings) return;
+
+    // Validate age range when changing age preferences
+    if (category === "matching" && (key === "min_age_preference" || key === "max_age_preference")) {
+      const newMinAge =
+        key === "min_age_preference" ? (value as number) : settings.matching.min_age_preference;
+      const newMaxAge =
+        key === "max_age_preference" ? (value as number) : settings.matching.max_age_preference;
+
+      if (!validateAgeRange(newMinAge ?? null, newMaxAge ?? null)) {
+        return; // Don't update if validation fails
+      }
+    }
+
     updateSettings({ [category]: { [key]: value } });
+  };
+
+  const handleLanguageSave = () => {
+    if (!settings) return;
+    const formatted = formatPreferences(selectedLanguages);
+    updateSettings({ matching: { language_preference: formatted || null } });
+  };
+
+  const handleGamingPreferencesSave = () => {
+    if (!settings) return;
+    const formatted = formatPreferences(selectedGamingPreferences);
+    updateSettings({ matching: { gaming_preference: formatted || null } });
   };
 
   // Function available for future use (e.g., blocking from user profile)
@@ -163,27 +286,40 @@ const SettingsView: React.FC = () => {
       const resp = await settingsServices.blockUser(store.user.id, blockedId, reason);
       if (resp.ok) {
         loadBlockedUsers();
-        alert("User blocked successfully");
+        showToast("User blocked successfully", "success");
+        playSound("success");
       } else {
-        alert(resp.error || "Failed to block user");
+        showToast(resp.error || "Failed to block user", "error");
+        playSound("error");
       }
     } catch {
       alert("Failed to block user");
     }
   };
 
-  const handleUnblockUser = async (blockedId: number) => {
-    if (!store.user?.id) return;
+  const handleUnblockClick = (blockedId: number) => {
+    setUserToUnblock(blockedId);
+    setShowUnblockModal(true);
+  };
+
+  const handleUnblockUser = async () => {
+    if (!store.user?.id || !userToUnblock) return;
     try {
-      const resp = await settingsServices.unblockUser(store.user.id, blockedId);
+      const resp = await settingsServices.unblockUser(store.user.id, userToUnblock);
       if (resp.ok) {
         loadBlockedUsers();
-        alert("User unblocked successfully");
+        showToast("User unblocked successfully", "success");
+        playSound("success");
       } else {
-        alert(resp.error || "Failed to unblock user");
+        showToast(resp.error || "Failed to unblock user", "error");
+        playSound("error");
       }
     } catch {
-      alert("Failed to unblock user");
+      showToast("Failed to unblock user", "error");
+      playSound("error");
+    } finally {
+      setShowUnblockModal(false);
+      setUserToUnblock(null);
     }
   };
 
@@ -191,9 +327,11 @@ const SettingsView: React.FC = () => {
     if (!store.user?.id) return;
     try {
       await settingsServices.exportUserData(store.user.id);
-      alert("Data exported successfully");
+      showToast("Data exported successfully", "success");
+      playSound("success");
     } catch {
-      alert("Failed to export data");
+      showToast("Failed to export data", "error");
+      playSound("error");
     }
   };
 
@@ -366,7 +504,9 @@ const SettingsView: React.FC = () => {
     <div className="settings-container">
       <h2 className="settings-title">Settings</h2>
 
-      {settingsError && <div className="text-danger mb-2">{settingsError}</div>}
+      {settingsError && !settingsError.includes("Could not connect") && (
+        <div className="text-danger mb-2">{settingsError}</div>
+      )}
       {settingsSuccess && <div className="text-success mb-2">{settingsSuccess}</div>}
 
       {/* Account Section */}
@@ -425,6 +565,11 @@ const SettingsView: React.FC = () => {
               max="100"
             />
           </div>
+          {ageValidationError && (
+            <div className="text-danger" style={{ fontSize: "0.9rem", marginTop: "5px" }}>
+              {ageValidationError}
+            </div>
+          )}
           <div className="settings-input-group">
             <label>Gender Preference:</label>
             <select
@@ -438,6 +583,30 @@ const SettingsView: React.FC = () => {
               <option value="Female">Female</option>
               <option value="Other">Other</option>
             </select>
+          </div>
+          <div className="settings-input-group">
+            <label>Language Preference:</label>
+            <button
+              className="settings-btn"
+              onClick={() => setShowLanguageModal(true)}
+              type="button"
+            >
+              {selectedLanguages.length > 0
+                ? `${selectedLanguages.length} language${selectedLanguages.length > 1 ? "s" : ""} selected`
+                : "Select Languages"}
+            </button>
+          </div>
+          <div className="settings-input-group">
+            <label>Gaming Preference:</label>
+            <button
+              className="settings-btn"
+              onClick={() => setShowGamingPreferencesModal(true)}
+              type="button"
+            >
+              {selectedGamingPreferences.length > 0
+                ? `${selectedGamingPreferences.length} preference${selectedGamingPreferences.length > 1 ? "s" : ""} selected`
+                : "Select Gaming Preferences"}
+            </button>
           </div>
           <div className="settings-item">
             <label>Only Common Games</label>
@@ -643,7 +812,7 @@ const SettingsView: React.FC = () => {
               </div>
               <button
                 className="settings-btn"
-                onClick={() => handleUnblockUser(blocked.blocked_id)}
+                onClick={() => handleUnblockClick(blocked.blocked_id)}
               >
                 Unblock
               </button>
@@ -658,10 +827,9 @@ const SettingsView: React.FC = () => {
         <div className="settings-item">
           <label>Theme</label>
           <select
-            value={appTheme}
+            value={theme}
             onChange={(e) => {
-              setAppTheme(e.target.value);
-              localStorage.setItem("appTheme", e.target.value);
+              setTheme(e.target.value as "dark" | "light");
             }}
           >
             <option value="dark">Dark</option>
@@ -671,20 +839,20 @@ const SettingsView: React.FC = () => {
         <div className="settings-item">
           <label>Sounds</label>
           <ToggleSwitch
-            checked={appSounds}
+            checked={soundsEnabled}
             onChange={(val) => {
-              setAppSounds(val);
-              localStorage.setItem("appSounds", val.toString());
+              setSoundsEnabled(val);
+              if (val) playSound("click");
             }}
           />
         </div>
         <div className="settings-item">
           <label>Animations</label>
           <ToggleSwitch
-            checked={appAnimations}
+            checked={animationsEnabled}
             onChange={(val) => {
-              setAppAnimations(val);
-              localStorage.setItem("appAnimations", val.toString());
+              setAnimationsEnabled(val);
+              if (soundsEnabled) playSound("click");
             }}
           />
         </div>
@@ -828,15 +996,66 @@ const SettingsView: React.FC = () => {
         <div className="modal-overlay">
           <div className="modal-box small">
             <h3>Are you sure?</h3>
+            <p>
+              This action cannot be undone. All your data will be permanently deleted after 30 days.
+            </p>
             <div className="modal-actions">
-              <button onClick={() => setShowDeleteModal(false)}>No</button>
+              <button onClick={() => setShowDeleteModal(false)}>Cancel</button>
               <button className="confirm-btn" onClick={() => deleteAccount(store.user?.id)}>
-                Yes
+                Delete Account
               </button>
             </div>
           </div>
         </div>
       )}
+
+      {showUnblockModal && (
+        <div className="modal-overlay">
+          <div className="modal-box small">
+            <h3>Unblock User?</h3>
+            <p>
+              Are you sure you want to unblock this user? They will be able to see your profile
+              again.
+            </p>
+            <div className="modal-actions">
+              <button
+                onClick={() => {
+                  setShowUnblockModal(false);
+                  setUserToUnblock(null);
+                }}
+              >
+                Cancel
+              </button>
+              <button className="confirm-btn" onClick={handleUnblockUser}>
+                Unblock
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Language Preference Modal */}
+      {showLanguageModal && (
+        <LanguageModal
+          selected={selectedLanguages}
+          setSelected={setSelectedLanguages}
+          onSave={handleLanguageSave}
+          onCancel={() => setShowLanguageModal(false)}
+        />
+      )}
+
+      {/* Gaming Preferences Modal */}
+      {showGamingPreferencesModal && (
+        <GamingPreferencesModal
+          selected={selectedGamingPreferences}
+          setSelected={setSelectedGamingPreferences}
+          onSave={handleGamingPreferencesSave}
+          onCancel={() => setShowGamingPreferencesModal(false)}
+        />
+      )}
+
+      {/* Toast Container */}
+      <ToastContainer />
     </div>
   );
 };

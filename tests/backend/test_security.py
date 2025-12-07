@@ -215,3 +215,5 @@ class TestErrorHandling:
         assert 'Email o contraseña incorrectos' in response2.get_json().get('error', '')
 
 
+
+

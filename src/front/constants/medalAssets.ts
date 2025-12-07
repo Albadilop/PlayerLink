@@ -11,10 +11,8 @@ export const medalAssets = {
   bronze: bronzeMedal,
 };
 
-export type MedalType = 'gold' | 'silver' | 'bronze';
+export type MedalType = "gold" | "silver" | "bronze";
 
 export const getMedalAsset = (type: MedalType): string => {
   return medalAssets[type];
 };
-
-
