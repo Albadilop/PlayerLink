@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import Select from "react-select";
 import type { Game } from "../../types";
 import { selectMedal, formatHours } from "../../utils/profileHelpers";
@@ -44,11 +44,8 @@ export const ProfileGamesTab: React.FC<ProfileGamesTabProps> = ({
   const [errorHoursPlayed, setErrorHoursPlayed] = useState<string>("");
   const [errorCeroHours, setErrorCeroHours] = useState<string>("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
-  const [showTooltip, setShowTooltip] = useState(false);
   const [showGameForm, setShowGameForm] = useState(false);
-  const tooltipIconRef = useRef<HTMLElement>(null);
-  const tooltipRef = useRef<HTMLSpanElement>(null);
+  const [showMedalInfo, setShowMedalInfo] = useState<string | null>(null);
 
   const handleChange = React.useCallback((field: keyof GameFormData, value: string | number) => {
     setGame((prev) => ({ ...prev, [field]: value }));
@@ -147,52 +144,6 @@ export const ProfileGamesTab: React.FC<ProfileGamesTabProps> = ({
     setCurrentPage(1);
   }, [sortedGames.length]);
 
-  // Calcular posición del tooltip cuando se muestra
-  useEffect(() => {
-    const updateTooltipPosition = () => {
-      if (tooltipIconRef.current && showTooltip) {
-        const rect = tooltipIconRef.current.getBoundingClientRect();
-        const tooltipWidth = 260;
-        const tooltipHeight = 180; // Aproximado
-        const spacing = 12;
-
-        let top = rect.top - tooltipHeight - spacing;
-        let left = rect.left + rect.width / 2 - tooltipWidth / 2;
-
-        // Asegurar que no se salga de la pantalla por la izquierda
-        if (left < 10) {
-          left = 10;
-        }
-
-        // Asegurar que no se salga de la pantalla por la derecha
-        if (left + tooltipWidth > window.innerWidth - 10) {
-          left = window.innerWidth - tooltipWidth - 10;
-        }
-
-        // Si no cabe arriba, mostrarlo abajo
-        if (top < 10) {
-          top = rect.bottom + spacing;
-        }
-
-        setTooltipPosition({
-          top: top + window.scrollY,
-          left: left + window.scrollX,
-        });
-      }
-    };
-
-    if (showTooltip) {
-      updateTooltipPosition();
-      window.addEventListener("scroll", updateTooltipPosition, true);
-      window.addEventListener("resize", updateTooltipPosition);
-    }
-
-    return () => {
-      window.removeEventListener("scroll", updateTooltipPosition, true);
-      window.removeEventListener("resize", updateTooltipPosition);
-    };
-  }, [showTooltip]);
-
   const handlePrevious = () => {
     if (currentPage > 1) {
       setCurrentPage(currentPage - 1);
@@ -254,38 +205,36 @@ export const ProfileGamesTab: React.FC<ProfileGamesTabProps> = ({
     <div className="container info-section">
       <div className="row justify-content-between align-items-center mb-3">
         <div className="col-auto">
-          <h3 className="m-0">
-            <i className="fa-solid fa-gamepad section-title-icon"></i>
-            Games
-            <span className="tooltip-wrapper">
-              <i
-                ref={tooltipIconRef}
-                className="fa-solid fa-circle-info medals-info-icon"
-                onMouseEnter={() => setShowTooltip(true)}
-                onMouseLeave={() => setShowTooltip(false)}
-              ></i>
-              {showTooltip && (
-                <span
-                  ref={tooltipRef}
-                  className="tooltip-text medal-info-tooltip-text"
-                  style={{
-                    top: `${tooltipPosition.top}px`,
-                    left: `${tooltipPosition.left}px`,
-                  }}
-                >
-                  <strong>Medal System:</strong>
-                  <div>
-                    <i className="fa-solid fa-medal medal-info-gold"></i> Gold: +2500 hours
-                  </div>
-                  <div>
-                    <i className="fa-solid fa-medal medal-info-silver"></i> Silver: 500-2499 hours
-                  </div>
-                  <div>
-                    <i className="fa-solid fa-medal medal-info-bronze"></i> Bronze: 0-499 hours
-                  </div>
-                  <span className="medal-info-tooltip-arrow"></span>
-                </span>
-              )}
+          <h3 className="m-0 d-flex align-items-center gap-2 flex-wrap">
+            <span className="d-flex align-items-center gap-2">
+              <i className="fa-solid fa-gamepad section-title-icon"></i>
+              Games
+            </span>
+            <span className="medal-badges-container">
+              <span
+                className="medal-badge medal-badge-gold"
+                onClick={() => setShowMedalInfo(showMedalInfo === "gold" ? null : "gold")}
+                style={{ cursor: "pointer" }}
+              >
+                <i className="fa-solid fa-medal"></i>
+                <span className="medal-badge-text">Gold</span>
+              </span>
+              <span
+                className="medal-badge medal-badge-silver"
+                onClick={() => setShowMedalInfo(showMedalInfo === "silver" ? null : "silver")}
+                style={{ cursor: "pointer" }}
+              >
+                <i className="fa-solid fa-medal"></i>
+                <span className="medal-badge-text">Silver</span>
+              </span>
+              <span
+                className="medal-badge medal-badge-bronze"
+                onClick={() => setShowMedalInfo(showMedalInfo === "bronze" ? null : "bronze")}
+                style={{ cursor: "pointer" }}
+              >
+                <i className="fa-solid fa-medal"></i>
+                <span className="medal-badge-text">Bronze</span>
+              </span>
             </span>
           </h3>
         </div>
@@ -296,30 +245,75 @@ export const ProfileGamesTab: React.FC<ProfileGamesTabProps> = ({
         </div>
       </div>
 
-      {/* Medal System Info Card */}
-      <div className="medal-system-info-card">
-        <div className="medal-system-header">
-          <i className="fa-solid fa-trophy medal-system-icon"></i>
-          <h3 className="medal-system-title">Medal System</h3>
+      {/* Medal Info Modal */}
+      {showMedalInfo && (
+        <div className="modal-overlay" onClick={() => setShowMedalInfo(null)}>
+          <div className="modal-content medal-info-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header medal-info-header">
+              <div className="medal-info-title-wrapper">
+                <i
+                  className={`fa-solid fa-medal medal-info-icon ${
+                    showMedalInfo === "gold"
+                      ? "medal-info-gold"
+                      : showMedalInfo === "silver"
+                        ? "medal-info-silver"
+                        : "medal-info-bronze"
+                  }`}
+                ></i>
+                <h3 className="medal-info-title">
+                  {showMedalInfo === "gold"
+                    ? "Gold Medal"
+                    : showMedalInfo === "silver"
+                      ? "Silver Medal"
+                      : "Bronze Medal"}
+                </h3>
+              </div>
+              <button
+                type="button"
+                className="modal-close medal-info-close"
+                onClick={() => setShowMedalInfo(null)}
+              >
+                <i className="fa-solid fa-times" />
+              </button>
+            </div>
+            <div className="modal-body medal-info-body">
+              <div className="medal-info-content">
+                <p className="medal-info-description">
+                  {showMedalInfo === "gold" ? (
+                    <>
+                      <strong>Gold Medal</strong> is awarded to players who have played{" "}
+                      <strong className="medal-info-hours">2500 hours or more</strong> in a single
+                      game.
+                    </>
+                  ) : showMedalInfo === "silver" ? (
+                    <>
+                      <strong>Silver Medal</strong> is awarded to players who have played between{" "}
+                      <strong className="medal-info-hours">500 and 2499 hours</strong> in a single
+                      game.
+                    </>
+                  ) : (
+                    <>
+                      <strong>Bronze Medal</strong> is awarded to players who have played between{" "}
+                      <strong className="medal-info-hours">0 and 499 hours</strong> in a single
+                      game.
+                    </>
+                  )}
+                </p>
+                <div className="medal-info-range">
+                  <span className="medal-info-label">Hours Range:</span>
+                  <span className="medal-info-value">
+                    {showMedalInfo === "gold"
+                      ? "2500+ hours"
+                      : showMedalInfo === "silver"
+                        ? "500 - 2499 hours"
+                        : "0 - 499 hours"}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="medal-system-content">
-          <div className="medal-system-item">
-            <i className="fa-solid fa-medal medal-system-gold"></i>
-            <span className="medal-system-label">Gold:</span>
-            <span className="medal-system-value">+2500 hours</span>
-          </div>
-          <div className="medal-system-item">
-            <i className="fa-solid fa-medal medal-system-silver"></i>
-            <span className="medal-system-label">Silver:</span>
-            <span className="medal-system-value">500-2499 hours</span>
-          </div>
-          <div className="medal-system-item">
-            <i className="fa-solid fa-medal medal-system-bronze"></i>
-            <span className="medal-system-label">Bronze:</span>
-            <span className="medal-system-value">0-499 hours</span>
-          </div>
-        </div>
-      </div>
+      )}
 
       {/* Game Form Modal */}
       {showGameForm && (

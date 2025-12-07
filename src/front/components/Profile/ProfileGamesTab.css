@@ -517,154 +517,244 @@
 }
 
 /* ===== MEDAL SYSTEM INFO CARD ===== */
-.medal-system-info-card {
+/* Medal Badges in Header */
+.medal-badges-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.medal-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.5rem;
   background: rgba(0, 0, 0, 0.4);
   border: 1px solid rgba(0, 240, 255, 0.2);
-  border-radius: 10px;
-  padding: 0.75rem 1rem;
-  margin: 1rem 0 1rem 0;
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-  width: fit-content;
-  max-width: 100%;
-  margin-left: 0;
-  margin-right: auto;
-}
-
-.medal-system-info-card::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.1), transparent);
-  transition: left 0.5s ease;
-}
-
-.medal-system-info-card:hover {
-  background: rgba(0, 0, 0, 0.5);
-  border-color: rgba(0, 240, 255, 0.4);
-  box-shadow: 0 4px 15px rgba(0, 240, 255, 0.15);
-  transform: translateY(-2px);
-}
-
-.medal-system-info-card:hover::after {
-  left: 100%;
-}
-
-.medal-system-header {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid rgba(0, 240, 255, 0.2);
-}
-
-.medal-system-icon {
-  color: #00f0ff;
-  font-size: 0.9rem;
-  filter: drop-shadow(0 0 5px rgba(0, 240, 255, 0.5));
-}
-
-.medal-system-title {
-  color: #fff;
-  font-size: 0.85rem;
-  font-weight: 600;
-  margin: 0;
-  font-family: "Orbitron", "Segoe UI", sans-serif;
-  text-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.medal-system-content {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.medal-system-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.25rem 0;
+  border-radius: 6px;
+  font-size: 0.7rem;
   transition: all 0.2s ease;
+  cursor: pointer;
 }
 
-.medal-system-item:hover {
-  padding-left: 0.25rem;
-  color: #fff;
+.medal-badge:hover {
+  background: rgba(0, 0, 0, 0.6);
+  border-color: rgba(0, 240, 255, 0.4);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 240, 255, 0.15);
 }
 
-.medal-system-item i {
-  font-size: 0.85rem;
-  width: 16px;
-  text-align: center;
+.medal-badge i {
+  font-size: 0.75rem;
 }
 
-.medal-system-gold {
+.medal-badge-text {
+  font-weight: 600;
+  font-size: 0.65rem;
+  white-space: nowrap;
+}
+
+.medal-badge-gold {
+  border-color: rgba(255, 215, 0, 0.3);
+}
+
+.medal-badge-gold i {
   color: #ffd700;
   filter: drop-shadow(0 0 3px rgba(255, 215, 0, 0.5));
 }
 
-.medal-system-silver {
+.medal-badge-gold .medal-badge-text {
+  color: #ffd700;
+}
+
+.medal-badge-silver {
+  border-color: rgba(192, 192, 192, 0.3);
+}
+
+.medal-badge-silver i {
   color: #c0c0c0;
   filter: drop-shadow(0 0 3px rgba(192, 192, 192, 0.5));
 }
 
-.medal-system-bronze {
+.medal-badge-silver .medal-badge-text {
+  color: #c0c0c0;
+}
+
+.medal-badge-bronze {
+  border-color: rgba(205, 127, 50, 0.3);
+}
+
+.medal-badge-bronze i {
   color: #cd7f32;
   filter: drop-shadow(0 0 3px rgba(205, 127, 50, 0.5));
 }
 
-.medal-system-label {
-  color: #00f0ff;
-  font-weight: 600;
-  font-size: 0.75rem;
-  min-width: 50px;
-  font-family: "Orbitron", "Segoe UI", sans-serif;
-}
-
-.medal-system-value {
-  color: #c0c0c0;
-  font-size: 0.7rem;
-  flex: 1;
+.medal-badge-bronze .medal-badge-text {
+  color: #cd7f32;
 }
 
 /* Responsive */
 @media (max-width: 768px) {
-  .medal-system-info-card {
-    padding: 0.6rem 0.875rem;
-    margin: 0.75rem 0;
+  .medal-badges-container {
+    gap: 0.4rem;
   }
 
-  .medal-system-header {
-    margin-bottom: 0.4rem;
-    padding-bottom: 0.4rem;
-  }
-
-  .medal-system-title {
-    font-size: 0.8rem;
-  }
-
-  .medal-system-content {
-    gap: 0.3rem;
-  }
-
-  .medal-system-item {
-    padding: 0.2rem 0;
-  }
-
-  .medal-system-label {
-    font-size: 0.7rem;
-    min-width: 45px;
-  }
-
-  .medal-system-value {
+  .medal-badge {
+    padding: 0.2rem 0.4rem;
     font-size: 0.65rem;
+  }
+
+  .medal-badge i {
+    font-size: 0.7rem;
+  }
+
+  .medal-badge-text {
+    font-size: 0.6rem;
+  }
+}
+
+/* Medal Info Modal */
+.medal-info-modal {
+  max-width: 500px;
+  width: 90%;
+}
+
+.medal-info-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid rgba(0, 240, 255, 0.2);
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.medal-info-title-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.medal-info-icon {
+  font-size: 1.5rem;
+  filter: drop-shadow(0 0 5px currentColor);
+}
+
+.medal-info-icon.medal-info-gold {
+  color: #ffd700;
+}
+
+.medal-info-icon.medal-info-silver {
+  color: #c0c0c0;
+}
+
+.medal-info-icon.medal-info-bronze {
+  color: #cd7f32;
+}
+
+.medal-info-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #fff;
+  font-family: "Orbitron", "Segoe UI", sans-serif;
+}
+
+.medal-info-close {
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  transition: all 0.2s ease;
+  border-radius: 4px;
+}
+
+.medal-info-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #00f0ff;
+}
+
+.medal-info-body {
+  padding: 1.5rem;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.medal-info-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.medal-info-description {
+  margin: 0;
+  color: #c0c0c0;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.medal-info-description strong {
+  color: #fff;
+  font-weight: 600;
+}
+
+.medal-info-hours {
+  color: #00f0ff;
+  font-weight: 700;
+  text-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+}
+
+.medal-info-range {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(0, 240, 255, 0.2);
+  border-radius: 8px;
+}
+
+.medal-info-label {
+  color: #999;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.medal-info-value {
+  color: #00f0ff;
+  font-size: 1rem;
+  font-weight: 700;
+  font-family: "Orbitron", "Segoe UI", sans-serif;
+  text-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+}
+
+@media (max-width: 768px) {
+  .medal-info-modal {
+    width: 95%;
+    max-width: none;
+  }
+
+  .medal-info-header {
+    padding: 0.75rem 1rem;
+  }
+
+  .medal-info-title {
+    font-size: 1.1rem;
+  }
+
+  .medal-info-body {
+    padding: 1rem;
+  }
+
+  .medal-info-description {
+    font-size: 0.9rem;
+  }
+
+  .medal-info-range {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
   }
 }
 

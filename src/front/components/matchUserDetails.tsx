@@ -51,6 +51,7 @@ export const MatchUserDetails: React.FC = () => {
   const [hoverRating, setHoverRating] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [currentPage, setCurrentPage] = useState(1);
+  const [showMedalInfo, setShowMedalInfo] = useState<string | null>(null);
 
   // Obtener y ordenar juegos por horas (de mayor a menor)
   const sortedGames = useMemo(() => {
@@ -366,29 +367,114 @@ export const MatchUserDetails: React.FC = () => {
           <div className="container info-section">
             <div className="row justify-content-between align-items-center mb-3">
               <div className="col-auto">
-                <h3 className="m-0">
-                  <i className="fa-solid fa-gamepad section-title-icon"></i>
-                  Games
-                  <span className="tooltip-wrapper">
-                    <i className="fa-solid fa-circle-info medals-info-icon"></i>
-                    <span className="tooltip-text medal-info-tooltip-text">
-                      <strong>Medal System:</strong>
-                      <div>
-                        <i className="fa-solid fa-medal medal-info-gold"></i> Gold: +2500 hours
-                      </div>
-                      <div>
-                        <i className="fa-solid fa-medal medal-info-silver"></i> Silver: 500-2499
-                        hours
-                      </div>
-                      <div>
-                        <i className="fa-solid fa-medal medal-info-bronze"></i> Bronze: 0-499 hours
-                      </div>
-                      <span className="medal-info-tooltip-arrow"></span>
+                <h3 className="m-0 d-flex align-items-center gap-2 flex-wrap">
+                  <span className="d-flex align-items-center gap-2">
+                    <i className="fa-solid fa-gamepad section-title-icon"></i>
+                    Games
+                  </span>
+                  <span className="medal-badges-container">
+                    <span
+                      className="medal-badge medal-badge-gold"
+                      onClick={() => setShowMedalInfo(showMedalInfo === "gold" ? null : "gold")}
+                      style={{ cursor: "pointer" }}
+                    >
+                      <i className="fa-solid fa-medal"></i>
+                      <span className="medal-badge-text">Gold</span>
+                    </span>
+                    <span
+                      className="medal-badge medal-badge-silver"
+                      onClick={() => setShowMedalInfo(showMedalInfo === "silver" ? null : "silver")}
+                      style={{ cursor: "pointer" }}
+                    >
+                      <i className="fa-solid fa-medal"></i>
+                      <span className="medal-badge-text">Silver</span>
+                    </span>
+                    <span
+                      className="medal-badge medal-badge-bronze"
+                      onClick={() => setShowMedalInfo(showMedalInfo === "bronze" ? null : "bronze")}
+                      style={{ cursor: "pointer" }}
+                    >
+                      <i className="fa-solid fa-medal"></i>
+                      <span className="medal-badge-text">Bronze</span>
                     </span>
                   </span>
                 </h3>
               </div>
             </div>
+
+            {/* Medal Info Modal */}
+            {showMedalInfo && (
+              <div className="modal-overlay" onClick={() => setShowMedalInfo(null)}>
+                <div
+                  className="modal-content medal-info-modal"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="modal-header medal-info-header">
+                    <div className="medal-info-title-wrapper">
+                      <i
+                        className={`fa-solid fa-medal medal-info-icon ${
+                          showMedalInfo === "gold"
+                            ? "medal-info-gold"
+                            : showMedalInfo === "silver"
+                              ? "medal-info-silver"
+                              : "medal-info-bronze"
+                        }`}
+                      ></i>
+                      <h3 className="medal-info-title">
+                        {showMedalInfo === "gold"
+                          ? "Gold Medal"
+                          : showMedalInfo === "silver"
+                            ? "Silver Medal"
+                            : "Bronze Medal"}
+                      </h3>
+                    </div>
+                    <button
+                      type="button"
+                      className="modal-close medal-info-close"
+                      onClick={() => setShowMedalInfo(null)}
+                    >
+                      <i className="fa-solid fa-times" />
+                    </button>
+                  </div>
+                  <div className="modal-body medal-info-body">
+                    <div className="medal-info-content">
+                      <p className="medal-info-description">
+                        {showMedalInfo === "gold" ? (
+                          <>
+                            <strong>Gold Medal</strong> is awarded to players who have played{" "}
+                            <strong className="medal-info-hours">2500 hours or more</strong> in a
+                            single game.
+                          </>
+                        ) : showMedalInfo === "silver" ? (
+                          <>
+                            <strong>Silver Medal</strong> is awarded to players who have played
+                            between <strong className="medal-info-hours">500 and 2499 hours</strong>{" "}
+                            in a single game.
+                          </>
+                        ) : (
+                          <>
+                            <strong>Bronze Medal</strong> is awarded to players who have played
+                            between <strong className="medal-info-hours">0 and 499 hours</strong> in
+                            a single game.
+                          </>
+                        )}
+                      </p>
+                      <div className="medal-info-range">
+                        <span className="medal-info-label">Hours Range:</span>
+                        <span className="medal-info-value">
+                          {showMedalInfo === "gold"
+                            ? "2500+ hours"
+                            : showMedalInfo === "silver"
+                              ? "500 - 2499 hours"
+                              : "0 - 499 hours"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="games-content-area">
               <div className="row mt-3 gap-2 d-flez justify-content-center gamesbigbox p-2">
                 {sortedGames.length > 0 ? (

@@ -25,7 +25,7 @@ import {
   ProfileInfoTab,
   ProfileGamesTab,
   ProfileReviewsTab,
-  GameFormData,
+  type GameFormData,
 } from "../../components/Profile";
 
 import { useNavigate } from "react-router-dom";
