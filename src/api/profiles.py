@@ -159,18 +159,33 @@ def post_profile(user_id: int, _user: User, _data: dict) -> Tuple[Response, int]
 @validate_json()
 def put_profile(user_id: int, _user: User, _profile: Profile, _data: dict) -> Tuple[Response, int]:
     """Update an existing profile"""
-    _profile.gender = _data.get('gender', _profile.gender)
-    _profile.preferences = _data.get('preferences', _profile.preferences)
-    _profile.zodiac = _data.get('zodiac', _profile.zodiac)
-    _profile.discord = _data.get('discord', _profile.discord)
-    _profile.age = _data.get('age', _profile.age)
-    _profile.name = _data.get('name', _profile.name)
-    _profile.location = _data.get('location', _profile.location)
-    _profile.nick_name = _data.get('nick_name', _profile.nick_name)
-    _profile.bio = _data.get('bio', _profile.bio)
-    _profile.language = _data.get('languages', _profile.language)
-    _profile.steam_id = _data.get('steam_id', _profile.steam_id)
-    _profile.photo = _data.get('photo', _profile.photo)
+    # Update fields only if they are present in the request
+    if 'gender' in _data:
+        _profile.gender = _data['gender']
+    if 'preferences' in _data:
+        _profile.preferences = _data['preferences']
+    if 'zodiac' in _data:
+        _profile.zodiac = _data['zodiac']
+    if 'discord' in _data:
+        _profile.discord = _data['discord']
+    if 'age' in _data:
+        _profile.age = _data['age']
+    if 'name' in _data:
+        _profile.name = _data['name']
+    if 'location' in _data:
+        _profile.location = _data['location']
+    if 'nick_name' in _data:
+        _profile.nick_name = _data['nick_name']
+    if 'bio' in _data:
+        _profile.bio = _data['bio']
+    if 'languages' in _data:
+        _profile.language = _data['languages']
+    if 'language' in _data:
+        _profile.language = _data['language']
+    if 'steam_id' in _data:
+        _profile.steam_id = _data['steam_id']
+    if 'photo' in _data:
+        _profile.photo = _data['photo']
 
     db.session.commit()
     return base.serialize_response(_profile, 200)

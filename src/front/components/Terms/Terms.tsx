@@ -1,5 +1,5 @@
-import './Terms.css';
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import "./Terms.css";
+import React, { useState, useEffect, useRef } from "react";
 
 interface TermsProps {
   onAccept: () => void;
@@ -9,36 +9,46 @@ const TermsComponent: React.FC<TermsProps> = ({ onAccept }) => {
   const [accepted, setAccepted] = useState<boolean>(false);
   const declineButtonRef = useRef<HTMLButtonElement>(null);
 
-
-
   // Función para el botón Guardar que solo funciona si está aceptado
   const handleSave = () => {
+    console.log("🔘 Accept button clicked, accepted:", accepted);
     if (accepted && onAccept) {
-      // Disparar evento personalizado para que Register lo escuche
-      const event = new CustomEvent('termsAccepted', { detail: { accepted: true } });
-      window.dispatchEvent(event);
-      
-      onAccept();  // Avisa de que se aceptaron los T&C
+      console.log("✅ Terms accepted, dispatching event");
+
+      // Cerrar el modal primero
       const modalElement = document.getElementById("TermsAndConditionsModal");
       if (modalElement) {
         // @ts-ignore - Bootstrap modal type not available
         const modal = window.bootstrap.Modal.getInstance(modalElement);
         if (modal) {
+          console.log("🔒 Closing terms modal");
           modal.hide(); // cierra el modal porque si se aceptó
         }
       }
+
+      // Esperar un poco antes de disparar el evento para que el modal se cierre
+      setTimeout(() => {
+        // Disparar evento personalizado para que Register lo escuche
+        const event = new CustomEvent("termsAccepted", { detail: { accepted: true } });
+        console.log("📢 Dispatching termsAccepted event");
+        window.dispatchEvent(event);
+
+        onAccept(); // Avisa de que se aceptaron los T&C
+      }, 100);
+    } else {
+      console.warn("⚠️ Terms not accepted or onAccept not available");
     }
   };
 
   // Resetear el estado cuando el modal se muestra
   useEffect(() => {
     const modalElement = document.getElementById("TermsAndConditionsModal");
-    
+
     if (!modalElement) {
-      console.warn('TermsAndConditionsModal not found in DOM');
+      console.warn("TermsAndConditionsModal not found in DOM");
       return;
     }
-    
+
     const handleShow = () => {
       // Resetear el estado cuando el modal se muestra
       setAccepted(false);
@@ -63,90 +73,117 @@ const TermsComponent: React.FC<TermsProps> = ({ onAccept }) => {
           activeElement.blur();
         }
         // Mover el foco al body si es necesario
-        if (document.activeElement === modalElement || modalElement.contains(document.activeElement)) {
+        if (
+          document.activeElement === modalElement ||
+          modalElement.contains(document.activeElement)
+        ) {
           document.body.focus();
         }
       }
     };
 
     // Agregar listeners
-    modalElement.addEventListener('show.bs.modal', handleShow);
-    modalElement.addEventListener('hide.bs.modal', handleHide);
-    modalElement.addEventListener('hidden.bs.modal', handleHidden);
-    
+    modalElement.addEventListener("show.bs.modal", handleShow);
+    modalElement.addEventListener("hide.bs.modal", handleHide);
+    modalElement.addEventListener("hidden.bs.modal", handleHidden);
+
     return () => {
-      modalElement.removeEventListener('show.bs.modal', handleShow);
-      modalElement.removeEventListener('hide.bs.modal', handleHide);
-      modalElement.removeEventListener('hidden.bs.modal', handleHidden);
+      modalElement.removeEventListener("show.bs.modal", handleShow);
+      modalElement.removeEventListener("hide.bs.modal", handleHide);
+      modalElement.removeEventListener("hidden.bs.modal", handleHidden);
     };
   }, []); // Solo ejecutar una vez al montar
 
   return (
     <>
       {/* <!-- Modal --> */}
-      <div 
-        className="modal fade" 
-        id="TermsAndConditionsModal" 
-        tabIndex={-1} 
-        aria-labelledby="TermsAndConditionsModalLabel" 
+      <div
+        className="modal fade"
+        id="TermsAndConditionsModal"
+        tabIndex={-1}
+        aria-labelledby="TermsAndConditionsModalLabel"
         aria-hidden="true"
       >
         <div className="modal-dialog modal-dialog-centered">
-          <div className="modal-content terms-border " style={{ position: 'relative', zIndex: 1056 }}>
+          <div
+            className="modal-content terms-border "
+            style={{ position: "relative", zIndex: 1056 }}
+          >
             <div className="modal-header">
-              <h1 className="modal-title fs-5" id="TermsAndConditionsModalLabel">Terms and Conditions</h1>
-              <button type="button" className="btn-close terms-close-modal me-1" data-bs-dismiss="modal" aria-label="Close"></button>
+              <h1 className="modal-title fs-5" id="TermsAndConditionsModalLabel">
+                Terms and Conditions
+              </h1>
+              <button
+                type="button"
+                className="btn-close terms-close-modal me-1"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              ></button>
             </div>
             <div className="modal-body ms-2 ">
               <p>
-                Welcome to PlayerLInk, our platform for connecting gamers. By registering, you agree to the following terms and conditions. Please read them carefully before using our services.
+                Welcome to PlayerLInk, our platform for connecting gamers. By registering, you agree
+                to the following terms and conditions. Please read them carefully before using our
+                services.
               </p>
 
               <h5>1. Service Description</h5>
               <p>
-                Our platform helps users discover and connect with other gamers based on shared interests, using details such as Steam ID, Discord username, language, zodiac sign, play style, and approximate location.
+                Our platform helps users discover and connect with other gamers based on shared
+                interests, using details such as Steam ID, Discord username, language, zodiac sign,
+                play style, and approximate location.
               </p>
 
               <h5>2. Privacy and Data Protection</h5>
               <p>
-                All information provided will be handled according to our Privacy Policy. We will never share your Steam or Discord credentials with third parties without your consent.
+                All information provided will be handled according to our Privacy Policy. We will
+                never share your Steam or Discord credentials with third parties without your
+                consent.
               </p>
 
               <h5>3. User Conduct</h5>
               <p>
-                Using the platform to harass, deceive, or harm other users is strictly prohibited. Any toxic, racist, offensive, or fraudulent behavior may result in your account being suspended or permanently banned.
+                Using the platform to harass, deceive, or harm other users is strictly prohibited.
+                Any toxic, racist, offensive, or fraudulent behavior may result in your account
+                being suspended or permanently banned.
               </p>
 
               <h5>4. Third-Party Integration</h5>
               <p>
-                By connecting your Steam and Discord accounts, you authorize the app to access basic profile data to enhance the matchmaking experience.
+                By connecting your Steam and Discord accounts, you authorize the app to access basic
+                profile data to enhance the matchmaking experience.
               </p>
 
               <h5>5. Changes to the Service</h5>
               <p>
-                We reserve the right to modify or discontinue the service at any time, with or without notice.
+                We reserve the right to modify or discontinue the service at any time, with or
+                without notice.
               </p>
 
               <h5>6. Account Deletion</h5>
               <p>
-                You may delete your account at any time from your settings. We also reserve the right to suspend your access if you violate these terms.
+                You may delete your account at any time from your settings. We also reserve the
+                right to suspend your access if you violate these terms.
               </p>
 
               <h5>7. Limitation of Liability</h5>
               <p>
-                We are not responsible for any interactions that occur outside of the app, nor for disputes between users. Use the service at your own risk.
+                We are not responsible for any interactions that occur outside of the app, nor for
+                disputes between users. Use the service at your own risk.
               </p>
 
-              <p className="mt-4">If you have any questions, feel free to contact us at support@playerlink.com.</p>
-              
+              <p className="mt-4">
+                If you have any questions, feel free to contact us at support@playerlink.com.
+              </p>
+
               {/* Checkbox movido al modal-body para evitar problemas con modal-footer */}
               <div className="mt-4 pt-3 border-top">
-                <div 
+                <div
                   className="form-check d-flex align-items-center"
                   onClick={() => {
                     setAccepted(!accepted);
                   }}
-                  style={{ cursor: 'pointer' }}
+                  style={{ cursor: "pointer" }}
                 >
                   <input
                     className="form-check-input me-2"
@@ -159,20 +196,20 @@ const TermsComponent: React.FC<TermsProps> = ({ onAccept }) => {
                     onClick={(e) => {
                       e.stopPropagation();
                     }}
-                    style={{ 
-                      cursor: 'pointer',
-                      width: '20px',
-                      height: '20px',
-                      flexShrink: 0
+                    style={{
+                      cursor: "pointer",
+                      width: "20px",
+                      height: "20px",
+                      flexShrink: 0,
                     }}
                   />
-                  <label 
-                    className="form-check-label" 
+                  <label
+                    className="form-check-label"
                     htmlFor="acceptTermsCheckbox"
-                    style={{ 
-                      cursor: 'pointer',
-                      userSelect: 'none',
-                      flex: 1
+                    style={{
+                      cursor: "pointer",
+                      userSelect: "none",
+                      flex: 1,
                     }}
                   >
                     I have read and accept the Terms and Conditions
@@ -180,13 +217,15 @@ const TermsComponent: React.FC<TermsProps> = ({ onAccept }) => {
                 </div>
               </div>
             </div>
-            <div className="modal-footer" style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
-              
+            <div
+              className="modal-footer"
+              style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}
+            >
               {/* Botones */}
-              <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
-                <button 
-                  type="button" 
-                  className="btn terms-decline-btn" 
+              <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
+                <button
+                  type="button"
+                  className="btn terms-decline-btn"
                   data-bs-dismiss="modal"
                   ref={declineButtonRef}
                   aria-label="Decline terms and conditions"
@@ -195,14 +234,14 @@ const TermsComponent: React.FC<TermsProps> = ({ onAccept }) => {
                 </button>
                 <button
                   type="button"
-                  className={`btn terms-accept-btn ${!accepted ? 'disabled' : ''}`}
+                  className={`btn terms-accept-btn ${!accepted ? "disabled" : ""}`}
                   disabled={!accepted}
                   onClick={handleSave}
                   aria-label="Accept terms and conditions"
                   aria-disabled={!accepted}
-                  style={{ 
+                  style={{
                     opacity: accepted ? 1 : 0.6,
-                    cursor: accepted ? 'pointer' : 'not-allowed'
+                    cursor: accepted ? "pointer" : "not-allowed",
                   }}
                 >
                   Accept
@@ -212,7 +251,7 @@ const TermsComponent: React.FC<TermsProps> = ({ onAccept }) => {
           </div>
         </div>
       </div>
-    </> 
+    </>
   );
 };
 
@@ -221,5 +260,3 @@ export const Terms = React.memo(TermsComponent, (prevProps, nextProps) => {
   // Solo re-renderizar si onAccept cambia (aunque en la práctica no debería)
   return prevProps.onAccept === nextProps.onAccept;
 });
-
-

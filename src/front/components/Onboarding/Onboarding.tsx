@@ -21,7 +21,7 @@ interface OnboardingState {
 
 export const Onboarding: React.FC = () => {
   const navigate = useNavigate();
-  const { store } = useGlobalReducer();
+  const { store, dispatch } = useGlobalReducer();
   const { isComplete, missingFields, completionPercentage } = useProfileCompletion();
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string>("");
@@ -62,15 +62,10 @@ export const Onboarding: React.FC = () => {
     }
   }, [store.user?.profile]);
 
-  // Redirect if profile is complete
-  useEffect(() => {
-    if (isComplete) {
-      // Small delay to show completion message
-      setTimeout(() => {
-        navigate("/private/profile");
-      }, 1500);
-    }
-  }, [isComplete, navigate]);
+  // Handle navigation to profile when user clicks continue
+  const handleContinueToProfile = () => {
+    navigate("/private/profile");
+  };
 
   // Check authentication
   useEffect(() => {
@@ -148,12 +143,35 @@ export const Onboarding: React.FC = () => {
     async (field: string, value: string | number) => {
       if (!store.user?.id) return;
 
+      // Skip saving if value is empty string (but allow 0 for age)
+      if (field !== "age" && (value === "" || value === null || value === undefined)) {
+        return;
+      }
+
+      // For age, ensure it's a valid number >= 18
+      if (field === "age") {
+        const ageNum = typeof value === "number" ? value : Number(value);
+        if (isNaN(ageNum) || ageNum < 18) {
+          return;
+        }
+      }
+
       setIsSaving(true);
       setSaveError("");
 
       try {
         const updateData: Record<string, string | number> = {};
-        updateData[field] = value;
+        // Ensure proper type conversion
+        if (field === "age") {
+          updateData[field] = Number(value);
+        } else {
+          // Trim string values
+          const stringValue = String(value).trim();
+          if (stringValue.length < 2 && field !== "age") {
+            return; // Don't save if too short
+          }
+          updateData[field] = stringValue;
+        }
 
         const response = await apiClient.put(`/api/profiles/${store.user.id}`, updateData, true);
 
@@ -161,8 +179,11 @@ export const Onboarding: React.FC = () => {
           throw new Error("Error saving field");
         }
 
-        // Refresh user info
-        await userServices.getUserInfo(0, true);
+        // Refresh user info and update store
+        const userInfo = await userServices.getUserInfo(0, true);
+        if (userInfo && !(userInfo instanceof Error) && userInfo.user) {
+          dispatch({ type: "getUserInfo", payload: userInfo.user });
+        }
       } catch (err) {
         console.error("Error saving field:", err);
         setSaveError("Error saving. Please try again.");
@@ -170,23 +191,40 @@ export const Onboarding: React.FC = () => {
         setIsSaving(false);
       }
     },
-    [store.user?.id]
+    [store.user?.id, dispatch]
   );
+
+  // Store timeout refs for cleanup
+  const saveTimeoutsRef = React.useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
   // Handle input change with auto-save
   const handleInputChange = useCallback(
     (field: keyof OnboardingState, value: string | number) => {
       setFormState((prev) => ({ ...prev, [field]: value }));
 
-      // Auto-save after a short delay
-      const timeoutId = setTimeout(() => {
-        saveField(field, value);
-      }, 500);
+      // Clear previous timeout for this field
+      if (saveTimeoutsRef.current[field]) {
+        clearTimeout(saveTimeoutsRef.current[field]);
+      }
 
-      return () => clearTimeout(timeoutId);
+      // Auto-save after a short delay
+      saveTimeoutsRef.current[field] = setTimeout(() => {
+        saveField(field, value);
+        delete saveTimeoutsRef.current[field];
+      }, 800);
     },
     [saveField]
   );
+
+  // Cleanup timeouts on unmount
+  useEffect(() => {
+    const timeouts = saveTimeoutsRef.current;
+    return () => {
+      Object.values(timeouts).forEach((timeout) => {
+        clearTimeout(timeout);
+      });
+    };
+  }, []);
 
   // Add game
   const handleAddGame = useCallback(async () => {
@@ -238,8 +276,11 @@ export const Onboarding: React.FC = () => {
         image: gameImage,
       });
 
-      // Refresh user info
-      await userServices.getUserInfo(0, true);
+      // Refresh user info and update store
+      const userInfo = await userServices.getUserInfo(0, true);
+      if (userInfo && !(userInfo instanceof Error) && userInfo.user) {
+        dispatch({ type: "getUserInfo", payload: userInfo.user });
+      }
 
       // Reset form
       setGameFormData({ title: "", hours_played: 0, image: "" });
@@ -249,7 +290,7 @@ export const Onboarding: React.FC = () => {
       console.error("Error adding game:", err);
       setGameFormErrors({ repeatedGame: "Error adding game. Please try again." });
     }
-  }, [store.user?.profile?.id, store.user?.profile?.games, gameFormData, rawgApi]);
+  }, [store.user?.profile?.id, store.user?.profile?.games, gameFormData, rawgApi, dispatch]);
 
   // Get user's games
   const userGames = store.user?.profile?.games || [];
@@ -275,14 +316,6 @@ export const Onboarding: React.FC = () => {
             {completionPercentage}% complete ({6 - missingFields.length}/6 fields)
           </p>
         </div>
-
-        {/* Completion Message */}
-        {isComplete && (
-          <div className="onboarding-success">
-            <i className="fa-solid fa-check-circle" />
-            <p>Profile complete! Redirecting...</p>
-          </div>
-        )}
 
         {/* Error Message */}
         {saveError && (
@@ -439,21 +472,32 @@ export const Onboarding: React.FC = () => {
         </div>
 
         {/* Continue Button */}
-        {!isComplete && (
-          <div className="onboarding-actions">
-            <button
-              type="button"
-              className="btn-continue"
-              disabled={!isComplete || isSaving}
-              onClick={() => navigate("/private/profile")}
-            >
-              {isSaving ? "Saving..." : "Continue"}
-            </button>
-            <p className="help-text">
-              Fields are saved automatically. Complete all fields marked with * to continue.
-            </p>
-          </div>
-        )}
+        <div className="onboarding-actions">
+          {isComplete ? (
+            <>
+              <button type="button" className="btn-continue" onClick={handleContinueToProfile}>
+                Next
+              </button>
+              <p className="help-text">
+                Click Next to go to your profile and start using PlayerLink!
+              </p>
+            </>
+          ) : (
+            <>
+              <button
+                type="button"
+                className="btn-continue"
+                disabled={!isComplete || isSaving}
+                onClick={() => navigate("/private/profile")}
+              >
+                {isSaving ? "Saving..." : "Continue"}
+              </button>
+              <p className="help-text">
+                Fields are saved automatically. Complete all fields marked with * to continue.
+              </p>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Game Form Modal */}

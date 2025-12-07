@@ -1,10 +1,13 @@
 .navbar-home-font {
   color: #ffffff !important;
-  text-shadow: 0 1.5px 0 #0088fe, 0 1.5px 1.5px #0088fe;
+  text-shadow:
+    0 1.5px 0 #0088fe,
+    0 1.5px 1.5px #0088fe;
   font-size: 18px;
 }
 .navbar-home-btn {
-  background: linear-gradient(#131219, #131219) padding-box,
+  background:
+    linear-gradient(#131219, #131219) padding-box,
     linear-gradient(var(--angle), #6bf1fa, #f538ff) border-box;
   animation: 2s rotate linear infinite;
   border-width: 2px;
@@ -33,7 +36,9 @@
   font-family: "Audiowide", sans-serif;
   font-size: 30px;
   color: white;
-  text-shadow: 0 2px 2px #00aaff, 0 4px 6px #0077ff;
+  text-shadow:
+    0 2px 2px #00aaff,
+    0 4px 6px #0077ff;
   position: relative;
   z-index: 2;
 }
@@ -43,14 +48,32 @@
 }
 
 .modal-home {
-  background: transparent;
-  border: none;
+  background: transparent !important;
+  border: none !important;
 }
 
 .modal-home .modal-content {
-  background: transparent;
-  border: none;
-  box-shadow: none;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.modal-home .modal-dialog {
+  border: none !important;
+  background: transparent !important;
+}
+
+#startModal .modal-content,
+#forgotPasswordModal .modal-content {
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+#startModal .modal-dialog,
+#forgotPasswordModal .modal-dialog {
+  background: transparent !important;
+  border: none !important;
 }
 
 .btn-close-modal {
@@ -107,7 +130,8 @@
 
 @media (max-width: 1024px) {
   .navbar-home-btn {
-    background: linear-gradient(#131219, #131219) padding-box,
+    background:
+      linear-gradient(#131219, #131219) padding-box,
       linear-gradient(var(--angle), #6bf1fa, #f538ff) border-box;
     animation: 2s rotate linear infinite;
     border-width: 2px;

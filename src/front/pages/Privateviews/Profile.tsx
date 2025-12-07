@@ -780,13 +780,6 @@ const Profile: React.FC = () => {
         </div>
       )}
 
-      {isComplete && (
-        <div className="profile-completion-success">
-          <i className="fa-solid fa-check-circle" />
-          <span>Profile complete! You can now use all PlayerLink features.</span>
-        </div>
-      )}
-
       <div className="profile-container">
         <ProfileHeader
           photo={profile.photo}

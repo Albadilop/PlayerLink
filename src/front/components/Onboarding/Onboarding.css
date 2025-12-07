@@ -5,6 +5,7 @@
   display: flex;
   justify-content: center;
   align-items: flex-start;
+  overflow: hidden;
 }
 
 .onboarding-content {
@@ -363,7 +364,7 @@
   max-width: 500px;
   width: 90%;
   max-height: 90vh;
-  overflow-y: auto;
+  overflow: hidden;
   animation: slideUp 0.3s ease;
 }
 
