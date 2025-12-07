@@ -1,132 +1,349 @@
-/* ProfileInfoTab styles are inherited from Profile.css */
+/* ===== INFO SECTION BASE ===== */
 .info-section {
-  padding: 20px;
-  background: linear-gradient(145deg, #0e0e1a, #1a1a2f);
-  border: 3px solid #7f00ff;
-  border-radius: 15px;
-  margin-top: 20px;
+  padding: 1rem;
+  background: linear-gradient(145deg, #0a0f1c, #12182b);
+  border-radius: 16px;
+  border: 2px solid transparent;
+  background-image:
+    linear-gradient(145deg, #0a0f1c, #12182b), linear-gradient(135deg, #00f0ff, #8f00ff);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+  box-sizing: border-box;
+  gap: 0.75rem;
 }
 
-.info-section label {
+.info-section:hover {
+  box-shadow: 0 6px 40px rgba(143, 0, 255, 0.2);
+}
+
+/* ===== SECTION GROUPS ===== */
+.info-section-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.info-section-title {
+  font-family: "Orbitron", sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #00f0ff;
+  margin: 0 0 0.5rem 0;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
+  gap: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(0, 240, 255, 0.2);
+}
+
+.info-section-title i {
+  font-size: 1rem;
+  color: #8f00ff;
+  filter: drop-shadow(0 0 5px rgba(143, 0, 255, 0.6));
+}
+
+/* ===== FIELD CARDS ===== */
+.info-field-card {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(0, 240, 255, 0.15);
+  border-radius: 8px;
+  padding: 0.6rem;
+  transition: all 0.2s ease;
+}
+
+.info-field-card:hover {
+  background: rgba(0, 0, 0, 0.4);
+  border-color: rgba(0, 240, 255, 0.3);
+}
+
+/* ===== FIELD LABELS ===== */
+.info-field-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.4rem;
   color: #00f0ff;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  text-shadow: 0 0 8px rgba(0, 240, 255, 0.3);
+  letter-spacing: 0.3px;
 }
 
-.info-section input,
-.info-section select {
+.info-field-label i {
+  font-size: 0.8rem;
+  color: #8f00ff;
+}
+
+/* ===== FIELD INPUTS ===== */
+.info-field-input {
   width: 100%;
-  padding: 8px;
-  background: #1a1a2f;
-  border: 2px solid #7f00ff;
-  border-radius: 5px;
+  padding: 0.5rem 0.75rem;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(0, 240, 255, 0.3);
+  border-radius: 6px;
   color: #fff;
-  margin-bottom: 15px;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+  font-family: inherit;
 }
 
-.info-section input:focus,
-.info-section select:focus {
+.info-field-input:focus {
   outline: none;
-  border-color: #00ffff;
+  border-color: #00f0ff;
+  box-shadow: 0 0 8px rgba(0, 240, 255, 0.2);
+  background: rgba(0, 240, 255, 0.05);
 }
 
-.info-section p {
-  margin-bottom: 15px;
+.info-field-input::placeholder {
+  color: #666;
+  font-style: italic;
+}
+
+/* ===== FIELD VALUES (Read-only) ===== */
+.info-field-value {
   color: #e0e0e0;
-  min-height: 38px;
-  padding: 10px 12px;
+  min-height: 32px;
+  padding: 0.5rem 0.75rem;
   background: rgba(0, 0, 0, 0.3);
   border: 1px solid rgba(0, 240, 255, 0.2);
-  border-radius: 8px;
+  border-radius: 6px;
   display: flex;
   align-items: center;
-  transition: all 0.3s ease;
+  font-size: 0.85rem;
+  white-space: pre-line;
+  word-wrap: break-word;
+  line-height: 1.4;
 }
 
-.info-section p:empty::before {
+.info-field-value:empty::before {
   content: "—";
   color: #666;
   font-style: italic;
 }
 
-.info-section p:hover {
-  border-color: rgba(0, 240, 255, 0.4);
-  background: rgba(0, 0, 0, 0.4);
+/* ===== EDIT BUTTON ===== */
+.edit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: linear-gradient(135deg, #8f00ff, #6b00cc);
+  border: 1px solid rgba(0, 240, 255, 0.3);
+  color: #fff;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  transition: all 0.2s ease;
 }
 
-.edit-btn {
-  background: linear-gradient(145deg, #7f00ff, #5a00b3);
-  border: 2px solid #00ffff;
-  color: #fff;
-  padding: 10px 30px;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: all 0.3s;
+.edit-btn i {
+  font-size: 0.8rem;
 }
 
 .edit-btn:hover {
-  background: linear-gradient(145deg, #5a00b3, #7f00ff);
-  transform: scale(1.05);
+  background: linear-gradient(135deg, #a64dff, #8f00ff);
+  border-color: rgba(0, 240, 255, 0.5);
 }
 
+.info-section-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(0, 240, 255, 0.2);
+}
+
+.cancel-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: transparent;
+  border: 1px solid rgba(255, 77, 77, 0.5);
+  color: #ff4d4d;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  transition: all 0.2s ease;
+}
+
+.cancel-btn i {
+  font-size: 0.8rem;
+}
+
+.cancel-btn:hover {
+  background: rgba(255, 77, 77, 0.1);
+  border-color: rgba(255, 77, 77, 0.8);
+  color: #ff6666;
+}
+
+/* ===== SECTION BUTTONS (Preferences/Languages) ===== */
 .section-container {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 0.4rem;
 }
 
 .section-button {
-  background: transparent;
-  border: 2px solid #7f00ff;
-  color: #fff;
-  padding: 8px 15px;
-  border-radius: 5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.75rem;
+  font-weight: 600;
+  border: 1px solid #00f0ff;
+  border-radius: 6px;
+  background: rgba(0, 240, 255, 0.1);
+  color: #00f0ff;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  font-size: 0.75rem;
+  width: fit-content;
+}
+
+.section-button i {
+  font-size: 0.7rem;
 }
 
 .section-button:hover {
-  background: #7f00ff;
+  background: rgba(0, 240, 255, 0.2);
   color: #fff;
 }
 
 .gaming-prefs-box {
-  margin-bottom: 15px;
+  margin-bottom: 0;
 }
 
+/* ===== PREFERENCES TAGS ===== */
+.preferences-tags-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.4rem;
+}
+
+.preference-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.6rem;
+  background: rgba(0, 240, 255, 0.15);
+  border: 1px solid rgba(0, 240, 255, 0.3);
+  border-radius: 6px;
+  color: #00f0ff;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: capitalize;
+  transition: all 0.2s ease;
+}
+
+.preference-tag:hover {
+  background: rgba(0, 240, 255, 0.25);
+  border-color: rgba(0, 240, 255, 0.5);
+  transform: translateY(-1px);
+}
+
+/* ===== TOOLTIP ===== */
 .tooltip-wrapper {
   position: relative;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  margin-left: 0.5rem;
 }
 
 .discord-info-icon {
-  color: #00ffff;
+  color: #8f00ff;
   cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.3s ease;
+  filter: drop-shadow(0 0 3px rgba(143, 0, 255, 0.5));
+}
+
+.discord-info-icon:hover {
+  color: #00f0ff;
+  filter: drop-shadow(0 0 5px rgba(0, 240, 255, 0.8));
+  transform: scale(1.2);
 }
 
 .tooltip-text {
   visibility: hidden;
+  opacity: 0;
   position: absolute;
-  background: #1a1a2f;
-  border: 2px solid #00ffff;
-  padding: 10px;
-  border-radius: 5px;
-  z-index: 1;
+  background: linear-gradient(145deg, #0a0f1c, #12182b);
+  border: 2px solid #00f0ff;
+  padding: 12px;
+  border-radius: 10px;
+  z-index: 1000;
   bottom: 125%;
   left: 50%;
-  transform: translateX(-50%);
-  width: 200px;
+  transform: translateX(-50%) translateY(-5px);
+  width: 220px;
   color: #fff;
-  font-size: 12px;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  box-shadow: 0 4px 20px rgba(0, 240, 255, 0.3);
+  transition: all 0.3s ease;
+  pointer-events: none;
+}
+
+.tooltip-text strong {
+  color: #00f0ff;
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.85rem;
 }
 
 .tooltip-wrapper:hover .tooltip-text {
   visibility: visible;
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .info-section {
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .info-section-title {
+    font-size: 0.95rem;
+  }
+
+  .info-field-card {
+    padding: 0.75rem;
+  }
+
+  .info-field-label {
+    font-size: 0.8rem;
+  }
+
+  .info-field-input,
+  .info-field-value {
+    font-size: 0.85rem;
+    padding: 0.6rem 0.8rem;
+  }
+
+  .edit-btn {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.85rem;
+  }
 }

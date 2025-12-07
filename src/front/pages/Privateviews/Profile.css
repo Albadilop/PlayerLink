@@ -319,6 +319,8 @@
 }
 /*-------------------------------- 2 test ---------------------------------------*/
 
+/* Info section styles are now in ProfileInfoTab.css for better organization */
+/* These styles are kept for backward compatibility but ProfileInfoTab.css takes precedence */
 .info-section {
   padding: 1rem;
   background: linear-gradient(145deg, #0a0f1c, #12182b);
@@ -333,81 +335,14 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
   min-height: 0;
   box-sizing: border-box;
 }
 
 .info-section:hover {
   box-shadow: 0 6px 40px rgba(143, 0, 255, 0.2);
-}
-
-.info-section label {
-  color: #00f0ff;
-  font-weight: 600;
-  margin-top: 0.5rem;
-  margin-bottom: 0.25rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  text-shadow: 0 0 8px rgba(0, 240, 255, 0.3);
-}
-
-.info-section input,
-.info-section select,
-.info-section textarea {
-  background: rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(0, 240, 255, 0.3);
-  color: white;
-  width: 100%;
-  padding: 8px 10px;
-  border-radius: 10px;
-  transition: all 0.3s ease;
-  font-size: 0.85rem;
-}
-
-.info-section input:focus,
-.info-section select:focus,
-.info-section textarea:focus {
-  border-color: #00f0ff;
-  box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
-  outline: none;
-  background: rgba(0, 240, 255, 0.05);
-}
-
-.info-section input:hover,
-.info-section select:hover,
-.info-section textarea:hover {
-  border-color: rgba(0, 240, 255, 0.5);
-}
-
-.info-section p {
-  padding: 8px 10px;
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(0, 240, 255, 0.2);
-  border-radius: 8px;
-  color: #e0e0e0;
-  margin-bottom: 0.35rem;
-  white-space: pre-line;
-  transition: all 0.3s ease;
-  min-height: 32px;
-  display: flex;
-  align-items: center;
-  font-size: 0.85rem;
-}
-
-.info-section p:empty::before {
-  content: "—";
-  color: #666;
-  font-style: italic;
-}
-
-.info-section p:hover {
-  border-color: rgba(0, 240, 255, 0.4);
-  background: rgba(0, 0, 0, 0.4);
 }
 
 /* === Resoluciones pequeñas pantalla general. === */
