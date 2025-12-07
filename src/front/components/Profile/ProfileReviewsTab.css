@@ -127,13 +127,20 @@
   font-style: italic;
 }
 
+/* Área de contenido de reviews */
+.reviews-content-area {
+  flex: 1;
+  min-height: 0;
+}
+
 /* Estilos de paginación */
 .pagination-container {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  margin: 0.75rem 0 0.5rem 0;
+  margin-top: auto;
+  padding-top: 0.75rem;
   flex-wrap: wrap;
   flex-shrink: 0;
 }

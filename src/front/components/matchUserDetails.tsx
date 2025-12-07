@@ -13,7 +13,7 @@ import { parsePreferences } from "../utils/formatters";
 import { GameImage } from "./GameImage";
 import type { Game, Profile } from "../types";
 
-const GAMES_PER_PAGE = 4;
+const GAMES_PER_PAGE = 5;
 
 interface CommentForm {
   stars: number;
@@ -389,93 +389,94 @@ export const MatchUserDetails: React.FC = () => {
                 </h2>
               </div>
             </div>
-            <div className="row mt-5 gap-3 d-flez justify-content-center gamesbigbox p-2">
-              {sortedGames.length > 0 ? (
-                <>
-                  {paginationData.currentGames.map((el, i) => (
-                    <div key={i} className="game-card">
-                      <div className="game-card-content">
-                        <div className="game-info">
-                          <div className="game-title-section">
-                            <GameImage
-                              gameTitle={el.gameTitle}
-                              gameImage={el.gameImage}
-                              className="game-image"
-                              alt={el.gameTitle}
-                              rawgApiKey={import.meta.env.VITE_RAWG_KEY || null}
-                            />
-                            <h5 className="game-title">{el.gameTitle}</h5>
+            <div className="games-content-area">
+              <div className="row mt-3 gap-2 d-flez justify-content-center gamesbigbox p-2">
+                {sortedGames.length > 0 ? (
+                  <>
+                    {paginationData.currentGames.map((el, i) => (
+                      <div key={i} className="game-card">
+                        <div className="game-card-content">
+                          <div className="game-info">
+                            <div className="game-title-section">
+                              <GameImage
+                                gameTitle={el.gameTitle}
+                                gameImage={el.gameImage}
+                                className="game-image"
+                                alt={el.gameTitle}
+                                rawgApiKey={import.meta.env.VITE_RAWG_KEY || null}
+                              />
+                              <h5 className="game-title">{el.gameTitle}</h5>
+                            </div>
                           </div>
-                        </div>
 
-                        <div className="game-stats">
-                          <div className="hours-display">
-                            <img
-                              src={selectMedal(el.gameHoursPlayed)}
-                              alt="Medal"
-                              className="game-medal"
-                            />
-                            <span className="hours-text">{el.gameHoursPlayed} hours</span>
+                          <div className="game-stats">
+                            <div className="hours-display">
+                              <img
+                                src={selectMedal(el.gameHoursPlayed)}
+                                alt="Medal"
+                                className="game-medal"
+                              />
+                              <span className="hours-text">{el.gameHoursPlayed} hours</span>
+                            </div>
                           </div>
                         </div>
                       </div>
+                    ))}
+                  </>
+                ) : (
+                  <div className="empty-state">
+                    <div className="empty-state-icon">
+                      <i className="fa-solid fa-gamepad"></i>
                     </div>
-                  ))}
-
-                  {/* Controles de paginación */}
-                  {paginationData.totalPages > 1 && (
-                    <div className="pagination-container">
-                      <button
-                        className="pagination-btn"
-                        onClick={handlePrevious}
-                        disabled={currentPage === 1}
-                        aria-label="Previous page"
-                      >
-                        <i className="fa-solid fa-chevron-left"></i> Previous
-                      </button>
-
-                      <div className="pagination-numbers">
-                        {getPageNumbers().map((page, index) => {
-                          if (page === "...") {
-                            return (
-                              <span key={`ellipsis-${index}`} className="pagination-ellipsis">
-                                ...
-                              </span>
-                            );
-                          }
-                          return (
-                            <button
-                              key={page}
-                              className={`pagination-number ${currentPage === page ? "active" : ""}`}
-                              onClick={() => handlePageClick(page as number)}
-                              aria-label={`Go to page ${page}`}
-                            >
-                              {page}
-                            </button>
-                          );
-                        })}
-                      </div>
-
-                      <button
-                        className="pagination-btn"
-                        onClick={handleNext}
-                        disabled={currentPage === paginationData.totalPages}
-                        aria-label="Next page"
-                      >
-                        Next <i className="fa-solid fa-chevron-right"></i>
-                      </button>
-                    </div>
-                  )}
-                </>
-              ) : (
-                <div className="empty-state">
-                  <div className="empty-state-icon">
-                    <i className="fa-solid fa-gamepad"></i>
+                    <p className="empty-state-text">No games available yet</p>
                   </div>
-                  <p className="empty-state-text">No games available yet</p>
-                </div>
-              )}
+                )}
+              </div>
             </div>
+            {/* Controles de paginación - al final de la tarjeta */}
+            {sortedGames.length > 0 && paginationData.totalPages > 1 && (
+              <div className="pagination-container">
+                <button
+                  className="pagination-btn"
+                  onClick={handlePrevious}
+                  disabled={currentPage === 1}
+                  aria-label="Previous page"
+                >
+                  <i className="fa-solid fa-chevron-left"></i> Previous
+                </button>
+
+                <div className="pagination-numbers">
+                  {getPageNumbers().map((page, index) => {
+                    if (page === "...") {
+                      return (
+                        <span key={`ellipsis-${index}`} className="pagination-ellipsis">
+                          ...
+                        </span>
+                      );
+                    }
+                    return (
+                      <button
+                        key={page}
+                        className={`pagination-number ${currentPage === page ? "active" : ""}`}
+                        onClick={() => handlePageClick(page as number)}
+                        aria-label={`Go to page ${page}`}
+                      >
+                        {page}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <button
+                  className="pagination-btn"
+                  onClick={handleNext}
+                  disabled={currentPage === paginationData.totalPages}
+                  aria-label="Next page"
+                >
+                  Next <i className="fa-solid fa-chevron-right"></i>
+                </button>
+              </div>
+            )}
           </div>
         )}
 

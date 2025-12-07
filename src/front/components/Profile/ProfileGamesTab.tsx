@@ -6,7 +6,7 @@ import { selectMedal } from "../../utils/profileHelpers";
 import { GameImage } from "../GameImage";
 import "./ProfileGamesTab.css";
 
-const GAMES_PER_PAGE = 4;
+const GAMES_PER_PAGE = 5;
 
 export interface ProfileGamesTabProps {
   games: Game[];
@@ -294,158 +294,158 @@ export const ProfileGamesTab: React.FC<ProfileGamesTabProps> = ({
           }}
         />
       </div>
-      <div className="row mt-3 gap-2 d-flez justify-content-center gamesbigbox p-2">
-        {games.length > 0 ? (
-          <>
-            {paginationData.currentGames.map((el, i) => (
-              <div key={i} className="game-card">
-                <div className="game-card-content">
-                  <div className="game-info">
-                    <div className="game-title-section">
-                      <GameImage
-                        gameTitle={el.gameTitle}
-                        gameImage={el.gameImage}
-                        className="game-image"
-                        alt={el.gameTitle}
-                        rawgApiKey={import.meta.env.VITE_RAWG_KEY || null}
-                      />
-                      <h5 className="game-title">{el.gameTitle}</h5>
+      <div className="games-content-area">
+        <div className="row mt-3 gap-2 d-flez justify-content-center gamesbigbox p-2">
+          {games.length > 0 ? (
+            <>
+              {paginationData.currentGames.map((el, i) => (
+                <div key={i} className="game-card">
+                  <div className="game-card-content">
+                    <div className="game-info">
+                      <div className="game-title-section">
+                        <GameImage
+                          gameTitle={el.gameTitle}
+                          gameImage={el.gameImage}
+                          className="game-image"
+                          alt={el.gameTitle}
+                          rawgApiKey={import.meta.env.VITE_RAWG_KEY || null}
+                        />
+                        <h5 className="game-title">{el.gameTitle}</h5>
+                      </div>
                     </div>
-                  </div>
 
-                  {idOfGameBeingEdited === el.id ? (
-                    <form className="game-edit-form" onSubmit={(e) => handleSubmit(e, el.id)}>
-                      <div className="edit-form-content">
-                        {errorCeroHours && <div className="error-message">{errorCeroHours}</div>}
-                        <div className="edit-input-group">
-                          <input
-                            className="input-hours"
-                            type="number"
-                            name="hours_played"
-                            min="1"
-                            max="999999"
-                            value={game.hours_played}
-                            onChange={(e) => setGame({ ...game, hours_played: e.target.value })}
-                            placeholder="Hours"
-                            autoFocus
-                          />
-                          <div className="edit-actions">
-                            <button
-                              type="submit"
-                              className="btn-action btn-save"
-                              title="Save changes"
-                            >
-                              <i className="fa-solid fa-floppy-disk"></i>
-                            </button>
-                            <button
-                              type="button"
-                              className="btn-action btn-cancel"
-                              onClick={() => setIdOfGameBeingEdited(0)}
-                              title="Cancel"
-                            >
-                              <i className="fa-solid fa-xmark"></i>
-                            </button>
+                    {idOfGameBeingEdited === el.id ? (
+                      <form className="game-edit-form" onSubmit={(e) => handleSubmit(e, el.id)}>
+                        <div className="edit-form-content">
+                          {errorCeroHours && <div className="error-message">{errorCeroHours}</div>}
+                          <div className="edit-input-group">
+                            <input
+                              className="input-hours"
+                              type="number"
+                              name="hours_played"
+                              min="1"
+                              max="999999"
+                              value={game.hours_played}
+                              onChange={(e) => setGame({ ...game, hours_played: e.target.value })}
+                              placeholder="Hours"
+                              autoFocus
+                            />
+                            <div className="edit-actions">
+                              <button
+                                type="submit"
+                                className="btn-action btn-save"
+                                title="Save changes"
+                              >
+                                <i className="fa-solid fa-floppy-disk"></i>
+                              </button>
+                              <button
+                                type="button"
+                                className="btn-action btn-cancel"
+                                onClick={() => setIdOfGameBeingEdited(0)}
+                                title="Cancel"
+                              >
+                                <i className="fa-solid fa-xmark"></i>
+                              </button>
+                            </div>
                           </div>
                         </div>
+                      </form>
+                    ) : (
+                      <div className="game-stats">
+                        <div className="hours-display">
+                          <img
+                            src={selectMedal(el.gameHoursPlayed)}
+                            alt="Medal"
+                            className="game-medal"
+                          />
+                          <span className="hours-text">{el.gameHoursPlayed} hours</span>
+                        </div>
+                        <div className="game-actions">
+                          <button
+                            className="btn-action btn-edit"
+                            onClick={() => handleStartEdit(el.id, el.gameHoursPlayed)}
+                            title="Edit hours"
+                          >
+                            <i className="fa-solid fa-pencil"></i>
+                          </button>
+                          <button
+                            className="btn-action btn-delete"
+                            onClick={() => onDeleteGame(el.id)}
+                            title="Delete game"
+                          >
+                            <i className="fa-solid fa-trash"></i>
+                          </button>
+                        </div>
                       </div>
-                    </form>
-                  ) : (
-                    <div className="game-stats">
-                      <div className="hours-display">
-                        <img
-                          src={selectMedal(el.gameHoursPlayed)}
-                          alt="Medal"
-                          className="game-medal"
-                        />
-                        <span className="hours-text">{el.gameHoursPlayed} hours</span>
-                      </div>
-                      <div className="game-actions">
-                        <button
-                          className="btn-action btn-edit"
-                          onClick={() => handleStartEdit(el.id, el.gameHoursPlayed)}
-                          title="Edit hours"
-                        >
-                          <i className="fa-solid fa-pencil"></i>
-                        </button>
-                        <button
-                          className="btn-action btn-delete"
-                          onClick={() => onDeleteGame(el.id)}
-                          title="Delete game"
-                        >
-                          <i className="fa-solid fa-trash"></i>
-                        </button>
-                      </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
+              ))}
+            </>
+          ) : (
+            <div className="empty-state">
+              <div className="empty-state-icon">
+                <i className="fa-solid fa-gamepad"></i>
               </div>
-            ))}
-          </>
-        ) : (
-          <div className="empty-state">
-            <div className="empty-state-icon">
-              <i className="fa-solid fa-gamepad"></i>
+              <h3 className="empty-state-title">No games yet</h3>
+              <p className="empty-state-message">
+                Start building your gaming profile by adding your favorite games!
+              </p>
+              <button
+                type="button"
+                className="btn-add-first-game"
+                data-bs-toggle="modal"
+                data-bs-target="#commentModal"
+              >
+                <i className="fa-solid fa-plus"></i> Add Your First Game
+              </button>
             </div>
-            <h3 className="empty-state-title">No games yet</h3>
-            <p className="empty-state-message">
-              Start building your gaming profile by adding your favorite games!
-            </p>
-            <button
-              type="button"
-              className="btn-add-first-game"
-              data-bs-toggle="modal"
-              data-bs-target="#commentModal"
-            >
-              <i className="fa-solid fa-plus"></i> Add Your First Game
-            </button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
-      {/* Controles de paginación - siempre visible */}
+      {/* Controles de paginación - al final de la tarjeta */}
       {games.length > 0 && paginationData.totalPages > 1 && (
-        <>
-          <div className="pagination-container">
-            <button
-              className="pagination-btn"
-              onClick={handlePrevious}
-              disabled={currentPage === 1}
-              aria-label="Previous page"
-            >
-              <i className="fa-solid fa-chevron-left"></i> Previous
-            </button>
+        <div className="pagination-container">
+          <button
+            className="pagination-btn"
+            onClick={handlePrevious}
+            disabled={currentPage === 1}
+            aria-label="Previous page"
+          >
+            <i className="fa-solid fa-chevron-left"></i> Previous
+          </button>
 
-            <div className="pagination-numbers">
-              {getPageNumbers().map((page, index) => {
-                if (page === "...") {
-                  return (
-                    <span key={`ellipsis-${index}`} className="pagination-ellipsis">
-                      ...
-                    </span>
-                  );
-                }
+          <div className="pagination-numbers">
+            {getPageNumbers().map((page, index) => {
+              if (page === "...") {
                 return (
-                  <button
-                    key={page}
-                    className={`pagination-number ${currentPage === page ? "active" : ""}`}
-                    onClick={() => handlePageClick(page as number)}
-                    aria-label={`Go to page ${page}`}
-                  >
-                    {page}
-                  </button>
+                  <span key={`ellipsis-${index}`} className="pagination-ellipsis">
+                    ...
+                  </span>
                 );
-              })}
-            </div>
-
-            <button
-              className="pagination-btn"
-              onClick={handleNext}
-              disabled={currentPage === paginationData.totalPages}
-              aria-label="Next page"
-            >
-              Next <i className="fa-solid fa-chevron-right"></i>
-            </button>
+              }
+              return (
+                <button
+                  key={page}
+                  className={`pagination-number ${currentPage === page ? "active" : ""}`}
+                  onClick={() => handlePageClick(page as number)}
+                  aria-label={`Go to page ${page}`}
+                >
+                  {page}
+                </button>
+              );
+            })}
           </div>
-        </>
+
+          <button
+            className="pagination-btn"
+            onClick={handleNext}
+            disabled={currentPage === paginationData.totalPages}
+            aria-label="Next page"
+          >
+            Next <i className="fa-solid fa-chevron-right"></i>
+          </button>
+        </div>
       )}
     </div>
   );

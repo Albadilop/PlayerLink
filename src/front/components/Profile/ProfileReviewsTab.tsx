@@ -7,7 +7,7 @@ export interface ProfileReviewsTabProps {
   showLeaveCommentButton?: boolean;
 }
 
-const REVIEWS_PER_PAGE = 3;
+const REVIEWS_PER_PAGE = 4;
 
 const renderStars = (stars: number) => {
   return [...Array(5)].map((_, i) => (
@@ -126,78 +126,78 @@ export const ProfileReviewsTab: React.FC<ProfileReviewsTabProps> = ({
           </div>
         )}
       </div>
-      <div className="row">
-        {safeReviews && safeReviews.length > 0 ? (
-          <>
-            {paginationData.currentReviews.map((review) => (
-              <div key={review.id} className="review-card">
-                <div className="review-container">
-                  <div className="review-header">
-                    <span className="review-author">{review.author_nickname}</span>
-                    <div className="review-stars">{renderStars(review.stars)}</div>
+      <div className="reviews-content-area">
+        <div className="row">
+          {safeReviews && safeReviews.length > 0 ? (
+            <>
+              {paginationData.currentReviews.map((review) => (
+                <div key={review.id} className="review-card">
+                  <div className="review-container">
+                    <div className="review-header">
+                      <span className="review-author">{review.author_nickname}</span>
+                      <div className="review-stars">{renderStars(review.stars)}</div>
+                    </div>
+                    <p className="m-0 border-0 review-box">
+                      <span className="fa-solid fa-comment"></span>
+                      {review.comment}
+                    </p>
                   </div>
-                  <p className="m-0 border-0 review-box">
-                    <span className="fa-solid fa-comment"></span>
-                    {review.comment}
-                  </p>
                 </div>
+              ))}
+            </>
+          ) : (
+            <div className="reviews-empty-state">
+              <div className="reviews-empty-state-icon">
+                <i className="fa-solid fa-comments"></i>
               </div>
-            ))}
-          </>
-        ) : (
-          <div className="reviews-empty-state">
-            <div className="reviews-empty-state-icon">
-              <i className="fa-solid fa-comments"></i>
+              <p className="reviews-empty-state-text">No comments yet.</p>
             </div>
-            <p className="reviews-empty-state-text">No comments yet.</p>
-          </div>
-        )}
+          )}
+        </div>
       </div>
-      {/* Controles de paginación - siempre visible */}
+      {/* Controles de paginación - al final de la tarjeta */}
       {safeReviews && safeReviews.length > 0 && paginationData.totalPages > 1 && (
-        <>
-          <div className="pagination-container">
-            <button
-              className="pagination-btn"
-              onClick={handlePrevious}
-              disabled={currentPage === 1}
-              aria-label="Página anterior"
-            >
-              <i className="fa-solid fa-chevron-left"></i> Previous
-            </button>
+        <div className="pagination-container">
+          <button
+            className="pagination-btn"
+            onClick={handlePrevious}
+            disabled={currentPage === 1}
+            aria-label="Página anterior"
+          >
+            <i className="fa-solid fa-chevron-left"></i> Previous
+          </button>
 
-            <div className="pagination-numbers">
-              {getPageNumbers().map((page, index) => {
-                if (page === "...") {
-                  return (
-                    <span key={`ellipsis-${index}`} className="pagination-ellipsis">
-                      ...
-                    </span>
-                  );
-                }
+          <div className="pagination-numbers">
+            {getPageNumbers().map((page, index) => {
+              if (page === "...") {
                 return (
-                  <button
-                    key={page}
-                    className={`pagination-number ${currentPage === page ? "active" : ""}`}
-                    onClick={() => handlePageClick(page as number)}
-                    aria-label={`Ir a página ${page}`}
-                  >
-                    {page}
-                  </button>
+                  <span key={`ellipsis-${index}`} className="pagination-ellipsis">
+                    ...
+                  </span>
                 );
-              })}
-            </div>
-
-            <button
-              className="pagination-btn"
-              onClick={handleNext}
-              disabled={currentPage === paginationData.totalPages}
-              aria-label="Página siguiente"
-            >
-              Next <i className="fa-solid fa-chevron-right"></i>
-            </button>
+              }
+              return (
+                <button
+                  key={page}
+                  className={`pagination-number ${currentPage === page ? "active" : ""}`}
+                  onClick={() => handlePageClick(page as number)}
+                  aria-label={`Ir a página ${page}`}
+                >
+                  {page}
+                </button>
+              );
+            })}
           </div>
-        </>
+
+          <button
+            className="pagination-btn"
+            onClick={handleNext}
+            disabled={currentPage === paginationData.totalPages}
+            aria-label="Página siguiente"
+          >
+            Next <i className="fa-solid fa-chevron-right"></i>
+          </button>
+        </div>
       )}
     </div>
   );
