@@ -1,10 +1,29 @@
-import { Outlet, useLocation } from "react-router-dom";
+import React, { useEffect } from "react";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Sidebar } from "./Private-sidebar";
 import { PrivateNavbar } from "./Private-navbar";
+import { useProfileCompletion } from "../../hooks/useProfileCompletion";
 import "../Private/private-layout.css";
 
 export const PrivateLayout: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { isComplete } = useProfileCompletion();
+
+  useEffect(() => {
+    const currentPath = location.pathname;
+
+    // If profile is incomplete, only allow access to onboarding
+    if (!isComplete) {
+      if (currentPath !== "/private/onboarding") {
+        navigate("/private/onboarding", { replace: true });
+      }
+    }
+    // If profile is complete and user is on onboarding, redirect to profile
+    else if (isComplete && currentPath === "/private/onboarding") {
+      navigate("/private/profile", { replace: true });
+    }
+  }, [isComplete, location.pathname, navigate]);
 
   return (
     <div className="private-layout">
@@ -18,5 +37,3 @@ export const PrivateLayout: React.FC = () => {
     </div>
   );
 };
-
-

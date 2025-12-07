@@ -80,17 +80,17 @@ export const Register: React.FC<RegisterProps> = ({ onSwitch }) => {
             try {
               const userObj = JSON.parse(userStr);
               await dispatch({ type: "getUserInfo", payload: userObj });
-              navigate("/private/profile");
+              navigate("/private/onboarding");
             } catch (parseError) {
               console.error("Error parsing user data:", parseError);
               // Si falla el parse, usar directamente userInfo
               await dispatch({ type: "getUserInfo", payload: userInfo.user });
-              navigate("/private/profile");
+              navigate("/private/onboarding");
             }
           } else {
             // Si no está en localStorage, usar directamente userInfo
             await dispatch({ type: "getUserInfo", payload: userInfo.user });
-            navigate("/private/profile");
+            navigate("/private/onboarding");
           }
         } else {
           const errorMsg =

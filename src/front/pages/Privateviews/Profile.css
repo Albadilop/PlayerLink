@@ -1,3 +1,119 @@
+/* Profile Completion Banner */
+.profile-completion-banner {
+  margin: 1.5rem;
+  background: linear-gradient(145deg, rgba(255, 165, 0, 0.15), rgba(255, 140, 0, 0.15));
+  border: 3px solid #ffa500;
+  border-radius: 15px;
+  padding: 1.5rem;
+  box-shadow: 0 5px 20px rgba(255, 165, 0, 0.3);
+  animation: slideIn 0.5s ease;
+}
+
+.completion-banner-content {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+}
+
+.completion-banner-icon {
+  font-size: 2.5rem;
+  color: #ffa500;
+  flex-shrink: 0;
+}
+
+.completion-banner-text {
+  flex: 1;
+}
+
+.completion-banner-title {
+  color: #ffa500;
+  font-size: 1.3rem;
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+}
+
+.completion-banner-message {
+  color: #fff;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+}
+
+.completion-banner-fields {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1rem 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.completion-banner-fields li {
+  color: #ffa500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: rgba(255, 165, 0, 0.1);
+  border: 1px solid #ffa500;
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.completion-banner-fields li i {
+  color: #ff6b6b;
+}
+
+.completion-banner-button {
+  background: linear-gradient(145deg, #7f00ff, #5a00b3);
+  border: 2px solid #00f0ff;
+  color: #fff;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.completion-banner-button:hover {
+  background: linear-gradient(145deg, #5a00b3, #7f00ff);
+  transform: scale(1.05);
+  box-shadow: 0 0 15px rgba(127, 0, 255, 0.5);
+}
+
+.profile-completion-success {
+  margin: 1.5rem;
+  background: linear-gradient(145deg, rgba(0, 255, 0, 0.15), rgba(0, 200, 0, 0.15));
+  border: 3px solid #00ff00;
+  border-radius: 15px;
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  color: #00ff00;
+  font-weight: 600;
+  animation: slideIn 0.5s ease;
+}
+
+.profile-completion-success i {
+  font-size: 1.5rem;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .profile-container {
   display: flex;
   flex-wrap: wrap;

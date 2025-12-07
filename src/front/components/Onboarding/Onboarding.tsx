@@ -1,0 +1,538 @@
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import useGlobalReducer from "../../hooks/useGlobalReducer";
+import { useProfileCompletion } from "../../hooks/useProfileCompletion";
+import { getFieldLabel } from "../../utils/profileValidation";
+import userServices from "../../services/userServices";
+import gameServices from "../../services/gameServices";
+import apiClient from "../../services/apiClient";
+import { GENDER_OPTIONS, DEFAULT_VALUES } from "../../constants";
+import { GameFormData } from "../Profile/GameForm";
+import Select from "react-select";
+import "./Onboarding.css";
+
+interface OnboardingState {
+  name: string;
+  nick_name: string;
+  age: number;
+  gender: string;
+  location: string;
+}
+
+export const Onboarding: React.FC = () => {
+  const navigate = useNavigate();
+  const { store } = useGlobalReducer();
+  const { isComplete, missingFields, completionPercentage } = useProfileCompletion();
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string>("");
+  const [availableGames, setAvailableGames] = useState<string[]>([]);
+  const [loadingGames, setLoadingGames] = useState(false);
+  const [showGameForm, setShowGameForm] = useState(false);
+  const [gameFormData, setGameFormData] = useState<GameFormData>({
+    title: "",
+    hours_played: 0,
+    image: "",
+  });
+  const [gameFormErrors, setGameFormErrors] = useState<{
+    hoursPlayed?: string;
+    repeatedGame?: string;
+  }>({});
+
+  const rawgApi = import.meta.env.VITE_RAWG_KEY;
+
+  // Initialize form state from profile if available
+  const [formState, setFormState] = useState<OnboardingState>({
+    name: store.user?.profile?.name?.trim() || "",
+    nick_name: store.user?.profile?.nick_name?.trim() || "",
+    age: store.user?.profile?.age || 0,
+    gender: store.user?.profile?.gender?.trim() || DEFAULT_VALUES.GENDER_UNDEFINED,
+    location: store.user?.profile?.location?.trim() || "",
+  });
+
+  // Update form state when profile changes
+  useEffect(() => {
+    if (store.user?.profile) {
+      setFormState({
+        name: store.user.profile.name?.trim() || "",
+        nick_name: store.user.profile.nick_name?.trim() || "",
+        age: store.user.profile.age || 0,
+        gender: store.user.profile.gender?.trim() || DEFAULT_VALUES.GENDER_UNDEFINED,
+        location: store.user.profile.location?.trim() || "",
+      });
+    }
+  }, [store.user?.profile]);
+
+  // Redirect if profile is complete
+  useEffect(() => {
+    if (isComplete) {
+      // Small delay to show completion message
+      setTimeout(() => {
+        navigate("/private/profile");
+      }, 1500);
+    }
+  }, [isComplete, navigate]);
+
+  // Check authentication
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token || !store.user) {
+      navigate("/");
+    }
+  }, [navigate, store.user]);
+
+  // Fetch available games
+  const fetchGames = useCallback(async () => {
+    if (!rawgApi || availableGames.length > 0) return;
+
+    setLoadingGames(true);
+    try {
+      const pageSize = 40;
+      const pages = 5; // Reduced for onboarding
+      let allGames: string[] = [];
+
+      const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+      for (let page = 1; page <= pages; page++) {
+        try {
+          const resp = await fetch(
+            `https://api.rawg.io/api/games?key=${rawgApi}&page_size=${pageSize}&page=${page}`,
+            {
+              method: "GET",
+              headers: { Accept: "application/json" },
+            }
+          );
+
+          if (!resp.ok) {
+            if (resp.status === 429) {
+              await delay(3000);
+              page--;
+              continue;
+            }
+            break;
+          }
+
+          const data = await resp.json();
+          if (data.results && Array.isArray(data.results)) {
+            allGames = allGames.concat(data.results.map((g: { name: string }) => g.name));
+          }
+
+          if (!data.next) break;
+          if (page < pages) await delay(200);
+        } catch (pageError) {
+          console.error(`Error on page ${page}:`, pageError);
+          await delay(1000);
+        }
+      }
+
+      setAvailableGames(allGames);
+    } catch (err) {
+      console.error("Error fetching games:", err);
+    } finally {
+      setLoadingGames(false);
+    }
+  }, [rawgApi, availableGames.length]);
+
+  useEffect(() => {
+    if (showGameForm && availableGames.length === 0) {
+      fetchGames();
+    }
+  }, [showGameForm, availableGames.length, fetchGames]);
+
+  const gameOptions = useMemo(
+    () => availableGames.map((name) => ({ value: name, label: name })),
+    [availableGames]
+  );
+
+  // Save profile field
+  const saveField = useCallback(
+    async (field: string, value: string | number) => {
+      if (!store.user?.id) return;
+
+      setIsSaving(true);
+      setSaveError("");
+
+      try {
+        const updateData: Record<string, string | number> = {};
+        updateData[field] = value;
+
+        const response = await apiClient.put(`/api/profiles/${store.user.id}`, updateData, true);
+
+        if (!response.ok) {
+          throw new Error("Error saving field");
+        }
+
+        // Refresh user info
+        await userServices.getUserInfo(0, true);
+      } catch (err) {
+        console.error("Error saving field:", err);
+        setSaveError("Error al guardar. Intenta de nuevo.");
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [store.user?.id]
+  );
+
+  // Handle input change with auto-save
+  const handleInputChange = useCallback(
+    (field: keyof OnboardingState, value: string | number) => {
+      setFormState((prev) => ({ ...prev, [field]: value }));
+
+      // Auto-save after a short delay
+      const timeoutId = setTimeout(() => {
+        saveField(field, value);
+      }, 500);
+
+      return () => clearTimeout(timeoutId);
+    },
+    [saveField]
+  );
+
+  // Add game
+  const handleAddGame = useCallback(async () => {
+    if (!store.user?.profile?.id) return;
+
+    setGameFormErrors({});
+
+    // Validate
+    if (!gameFormData.title) {
+      setGameFormErrors({ repeatedGame: "Please select a game" });
+      return;
+    }
+
+    if (!gameFormData.hours_played || gameFormData.hours_played <= 0) {
+      setGameFormErrors({ hoursPlayed: "Please enter valid hours played" });
+      return;
+    }
+
+    // Check for duplicate games
+    const existingGames = store.user.profile.games || [];
+    if (existingGames.some((g) => g.gameTitle === gameFormData.title)) {
+      setGameFormErrors({ repeatedGame: "This game is already in your list" });
+      return;
+    }
+
+    try {
+      // Fetch game image from RAWG
+      let gameImage = "";
+      if (rawgApi) {
+        try {
+          const searchResp = await fetch(
+            `https://api.rawg.io/api/games?key=${rawgApi}&search=${encodeURIComponent(gameFormData.title)}&page_size=1`,
+            { headers: { Accept: "application/json" } }
+          );
+          if (searchResp.ok) {
+            const searchData = await searchResp.json();
+            if (searchData.results && searchData.results.length > 0) {
+              gameImage = searchData.results[0].background_image || "";
+            }
+          }
+        } catch (err) {
+          console.warn("Could not fetch game image:", err);
+        }
+      }
+
+      await gameServices.postNewGame(store.user.profile.id, {
+        title: gameFormData.title,
+        hours_played: Number(gameFormData.hours_played),
+        image: gameImage,
+      });
+
+      // Refresh user info
+      await userServices.getUserInfo(0, true);
+
+      // Reset form
+      setGameFormData({ title: "", hours_played: 0, image: "" });
+      setShowGameForm(false);
+      setGameFormErrors({});
+    } catch (err) {
+      console.error("Error adding game:", err);
+      setGameFormErrors({ repeatedGame: "Error adding game. Please try again." });
+    }
+  }, [store.user?.profile?.id, store.user?.profile?.games, gameFormData, rawgApi]);
+
+  // Get user's games
+  const userGames = store.user?.profile?.games || [];
+
+  return (
+    <div className="onboarding-container">
+      <div className="onboarding-content">
+        <div className="onboarding-header">
+          <h1 className="onboarding-title">
+            <i className="fa-solid fa-rocket" /> Completa tu Perfil
+          </h1>
+          <p className="onboarding-subtitle">
+            Completa estos campos para desbloquear todas las funcionalidades de PlayerLink
+          </p>
+        </div>
+
+        {/* Progress Bar */}
+        <div className="onboarding-progress">
+          <div className="progress-bar-container">
+            <div className="progress-bar-fill" style={{ width: `${completionPercentage}%` }} />
+          </div>
+          <p className="progress-text">
+            {completionPercentage}% completado ({6 - missingFields.length}/6 campos)
+          </p>
+        </div>
+
+        {/* Completion Message */}
+        {isComplete && (
+          <div className="onboarding-success">
+            <i className="fa-solid fa-check-circle" />
+            <p>¡Perfil completo! Redirigiendo...</p>
+          </div>
+        )}
+
+        {/* Error Message */}
+        {saveError && (
+          <div className="onboarding-error">
+            <i className="fa-solid fa-exclamation-circle" />
+            <p>{saveError}</p>
+          </div>
+        )}
+
+        {/* Missing Fields Indicator */}
+        {missingFields.length > 0 && !isComplete && (
+          <div className="onboarding-missing">
+            <p className="missing-title">Campos pendientes:</p>
+            <ul className="missing-list">
+              {missingFields.map((field) => (
+                <li key={field}>
+                  <i className="fa-solid fa-circle-xmark" />
+                  {getFieldLabel(field)}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Form */}
+        <div className="onboarding-form">
+          <div className="form-section">
+            <h3 className="section-title">Información Básica</h3>
+
+            {/* Name */}
+            <div className="form-group">
+              <label className={missingFields.includes("name") ? "required" : ""}>
+                Nombre <span className="required-mark">*</span>
+              </label>
+              <input
+                type="text"
+                value={formState.name}
+                onChange={(e) => handleInputChange("name", e.target.value)}
+                placeholder="Tu nombre"
+                maxLength={40}
+                className={missingFields.includes("name") ? "error" : ""}
+              />
+              {missingFields.includes("name") && (
+                <span className="field-error">Mínimo 2 caracteres</span>
+              )}
+            </div>
+
+            {/* Nickname */}
+            <div className="form-group">
+              <label className={missingFields.includes("nick_name") ? "required" : ""}>
+                Nickname <span className="required-mark">*</span>
+              </label>
+              <input
+                type="text"
+                value={formState.nick_name}
+                onChange={(e) => handleInputChange("nick_name", e.target.value)}
+                placeholder="Tu nickname"
+                maxLength={21}
+                className={missingFields.includes("nick_name") ? "error" : ""}
+              />
+              {missingFields.includes("nick_name") && (
+                <span className="field-error">Mínimo 2 caracteres</span>
+              )}
+            </div>
+
+            {/* Age and Gender */}
+            <div className="form-row">
+              <div className="form-group">
+                <label className={missingFields.includes("age") ? "required" : ""}>
+                  Edad <span className="required-mark">*</span>
+                </label>
+                <input
+                  type="number"
+                  value={formState.age || ""}
+                  onChange={(e) => handleInputChange("age", Number(e.target.value))}
+                  placeholder="18+"
+                  min={18}
+                  max={120}
+                  className={missingFields.includes("age") ? "error" : ""}
+                />
+                {missingFields.includes("age") && (
+                  <span className="field-error">Debes ser mayor de 18 años</span>
+                )}
+              </div>
+
+              <div className="form-group">
+                <label className={missingFields.includes("gender") ? "required" : ""}>
+                  Género <span className="required-mark">*</span>
+                </label>
+                <select
+                  value={formState.gender}
+                  onChange={(e) => handleInputChange("gender", e.target.value)}
+                  className={missingFields.includes("gender") ? "error" : ""}
+                >
+                  {GENDER_OPTIONS.map((gender) => (
+                    <option key={gender} value={gender}>
+                      {gender}
+                    </option>
+                  ))}
+                </select>
+                {missingFields.includes("gender") && (
+                  <span className="field-error">Selecciona un género</span>
+                )}
+              </div>
+            </div>
+
+            {/* Location */}
+            <div className="form-group">
+              <label className={missingFields.includes("location") ? "required" : ""}>
+                Ubicación <span className="required-mark">*</span>
+              </label>
+              <input
+                type="text"
+                value={formState.location}
+                onChange={(e) => handleInputChange("location", e.target.value)}
+                placeholder="Tu ciudad o país"
+                maxLength={50}
+                className={missingFields.includes("location") ? "error" : ""}
+              />
+              {missingFields.includes("location") && (
+                <span className="field-error">Mínimo 2 caracteres</span>
+              )}
+            </div>
+          </div>
+
+          {/* Games Section */}
+          <div className="form-section">
+            <h3 className="section-title">
+              Juegos <span className="required-mark">*</span>
+            </h3>
+            <p className="section-description">Agrega al menos un juego a tu perfil</p>
+
+            {/* Games List */}
+            {userGames.length > 0 && (
+              <div className="games-list">
+                {userGames.map((game) => (
+                  <div key={game.id} className="game-item">
+                    <span className="game-name">{game.gameTitle}</span>
+                    <span className="game-hours">{game.gameHoursPlayed}h</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Add Game Button */}
+            <button type="button" className="btn-add-game" onClick={() => setShowGameForm(true)}>
+              <i className="fa-solid fa-plus" /> Agregar Juego
+            </button>
+
+            {missingFields.includes("games") && (
+              <span className="field-error">Agrega al menos un juego</span>
+            )}
+          </div>
+        </div>
+
+        {/* Continue Button */}
+        {!isComplete && (
+          <div className="onboarding-actions">
+            <button
+              type="button"
+              className="btn-continue"
+              disabled={!isComplete || isSaving}
+              onClick={() => navigate("/private/profile")}
+            >
+              {isSaving ? "Guardando..." : "Continuar"}
+            </button>
+            <p className="help-text">
+              Los campos se guardan automáticamente. Completa todos los campos marcados con * para
+              continuar.
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Game Form Modal */}
+      {showGameForm && (
+        <div className="modal-overlay" onClick={() => setShowGameForm(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Agregar Juego</h3>
+              <button
+                type="button"
+                className="modal-close"
+                onClick={() => {
+                  setShowGameForm(false);
+                  setGameFormErrors({});
+                }}
+              >
+                <i className="fa-solid fa-times" />
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="form-group">
+                <label>Selecciona un juego</label>
+                <Select
+                  options={gameOptions}
+                  value={gameOptions.find((opt) => opt.value === gameFormData.title) || null}
+                  onChange={(selected) =>
+                    setGameFormData((prev) => ({
+                      ...prev,
+                      title: selected?.value || "",
+                    }))
+                  }
+                  isSearchable
+                  isClearable
+                  placeholder="Buscar juego..."
+                  isLoading={loadingGames}
+                />
+                {gameFormErrors.repeatedGame && (
+                  <span className="field-error">{gameFormErrors.repeatedGame}</span>
+                )}
+              </div>
+              <div className="form-group">
+                <label>Horas jugadas</label>
+                <input
+                  type="number"
+                  value={gameFormData.hours_played || ""}
+                  onChange={(e) =>
+                    setGameFormData((prev) => ({
+                      ...prev,
+                      hours_played: Number(e.target.value),
+                    }))
+                  }
+                  placeholder="Ej: 42"
+                  min={1}
+                  max={10000}
+                />
+                {gameFormErrors.hoursPlayed && (
+                  <span className="field-error">{gameFormErrors.hoursPlayed}</span>
+                )}
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button
+                type="button"
+                className="btn-cancel"
+                onClick={() => {
+                  setShowGameForm(false);
+                  setGameFormErrors({});
+                }}
+              >
+                Cancelar
+              </button>
+              <button type="button" className="btn-save" onClick={handleAddGame}>
+                Agregar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
