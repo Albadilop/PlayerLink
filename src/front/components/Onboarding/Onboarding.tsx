@@ -759,20 +759,56 @@ export const Onboarding: React.FC = () => {
                   <i className="fa-solid fa-clock onboarding-game-label-icon"></i>
                   Hours played
                 </label>
-                <input
-                  type="number"
-                  className="onboarding-game-input"
-                  value={gameFormData.hours_played || ""}
-                  onChange={(e) =>
-                    setGameFormData((prev) => ({
-                      ...prev,
-                      hours_played: Number(e.target.value),
-                    }))
-                  }
-                  placeholder="e.g., 42"
-                  min={1}
-                  max={10000}
-                />
+                <div className="onboarding-game-input-container">
+                  <input
+                    type="number"
+                    className="onboarding-game-input hours-input"
+                    value={gameFormData.hours_played || ""}
+                    onChange={(e) =>
+                      setGameFormData((prev) => ({
+                        ...prev,
+                        hours_played: Number(e.target.value),
+                      }))
+                    }
+                    placeholder="e.g., 42"
+                    min={1}
+                    max={10000}
+                  />
+                  <div className="hours-spinner-buttons">
+                    <button
+                      type="button"
+                      className="hours-spinner-btn hours-spinner-up"
+                      onClick={() => {
+                        const currentValue = Number(gameFormData.hours_played) || 0;
+                        if (currentValue < 10000) {
+                          setGameFormData((prev) => ({
+                            ...prev,
+                            hours_played: currentValue + 1,
+                          }));
+                        }
+                      }}
+                      aria-label="Increase hours"
+                    >
+                      <i className="fa-solid fa-chevron-up"></i>
+                    </button>
+                    <button
+                      type="button"
+                      className="hours-spinner-btn hours-spinner-down"
+                      onClick={() => {
+                        const currentValue = Number(gameFormData.hours_played) || 0;
+                        if (currentValue > 1) {
+                          setGameFormData((prev) => ({
+                            ...prev,
+                            hours_played: currentValue - 1,
+                          }));
+                        }
+                      }}
+                      aria-label="Decrease hours"
+                    >
+                      <i className="fa-solid fa-chevron-down"></i>
+                    </button>
+                  </div>
+                </div>
                 {gameFormErrors.hoursPlayed && (
                   <div className="onboarding-game-error">
                     <i className="fa-solid fa-exclamation-circle"></i>
@@ -782,17 +818,6 @@ export const Onboarding: React.FC = () => {
               </div>
             </div>
             <div className="modal-footer onboarding-game-footer">
-              <button
-                type="button"
-                className="btn onboarding-game-btn-cancel"
-                onClick={() => {
-                  setShowGameForm(false);
-                  setGameFormErrors({});
-                }}
-              >
-                <i className="fa-solid fa-times"></i>
-                Cancel
-              </button>
               <button type="button" className="btn onboarding-game-btn-add" onClick={handleAddGame}>
                 <i className="fa-solid fa-plus"></i>
                 Add Game

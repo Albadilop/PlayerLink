@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
+import ReactDOM from "react-dom";
 import Select from "react-select";
 import "../Onboarding/Onboarding.css";
 import "./GameForm.css";
@@ -42,14 +43,99 @@ export const GameForm: React.FC<GameFormProps> = ({
     onChange("title", selected?.value || "");
   };
 
-  return (
-    <div className="modal fade" id="commentModal" tabIndex={-1} aria-hidden="true">
+  const modalInitializedRef = useRef(false);
+
+  useEffect(() => {
+    // Esperar a que el modal esté en el DOM antes de inicializarlo
+    const initModal = () => {
+      if (modalInitializedRef.current) return;
+
+      const modalEl = document.getElementById("gameFormModal");
+      if (modalEl && window.bootstrap?.Modal) {
+        // Limpiar cualquier instancia existente
+        const existingInstance = window.bootstrap.Modal.getInstance(modalEl);
+        if (existingInstance) {
+          existingInstance.dispose();
+        }
+
+        // Crear una nueva instancia limpia
+        new window.bootstrap.Modal(modalEl, {
+          backdrop: "static",
+          keyboard: false,
+        });
+
+        modalInitializedRef.current = true;
+      }
+    };
+
+    // Intentar inicializar inmediatamente
+    initModal();
+
+    // Si no está disponible, intentar después de un pequeño delay
+    if (!modalInitializedRef.current) {
+      const timeoutId = setTimeout(initModal, 100);
+      return () => {
+        clearTimeout(timeoutId);
+        // Cleanup al desmontar
+        const modalEl = document.getElementById("gameFormModal");
+        if (modalEl && window.bootstrap?.Modal) {
+          const existingInstance = window.bootstrap.Modal.getInstance(modalEl);
+          if (existingInstance) {
+            existingInstance.dispose();
+          }
+        }
+        modalInitializedRef.current = false;
+      };
+    }
+
+    return () => {
+      // Cleanup al desmontar
+      const modalEl = document.getElementById("gameFormModal");
+      if (modalEl && window.bootstrap?.Modal) {
+        const existingInstance = window.bootstrap.Modal.getInstance(modalEl);
+        if (existingInstance) {
+          existingInstance.dispose();
+        }
+      }
+      modalInitializedRef.current = false;
+    };
+  }, []);
+
+  const handleCancel = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onCancel();
+
+    // Cerrar el modal usando Bootstrap
+    const modalEl = document.getElementById("gameFormModal");
+    if (modalEl && window.bootstrap?.Modal) {
+      const modal = window.bootstrap.Modal.getInstance(modalEl);
+      if (modal) {
+        modal.hide();
+      }
+    }
+  };
+
+  const handleSubmit = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onSubmit();
+  };
+
+  const modalContent = (
+    <div
+      className="modal fade"
+      id="gameFormModal"
+      tabIndex={-1}
+      aria-hidden="true"
+      aria-labelledby="gameFormModalLabel"
+    >
       <div className="modal-dialog modal-dialog-centered">
         <div className="modal-content onboarding-game-modal">
           <div className="modal-header onboarding-game-header">
             <div className="onboarding-game-title-wrapper">
               <i className="fa-solid fa-gamepad onboarding-game-icon"></i>
-              <h5 className="modal-title onboarding-game-title" id="commentModalLabel">
+              <h5 className="modal-title onboarding-game-title" id="gameFormModalLabel">
                 Add Game
               </h5>
             </div>
@@ -58,6 +144,11 @@ export const GameForm: React.FC<GameFormProps> = ({
               className="modal-close onboarding-game-close"
               data-bs-dismiss="modal"
               aria-label="Close"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleCancel(e);
+              }}
             >
               <i className="fa-solid fa-times" />
             </button>
@@ -211,14 +302,13 @@ export const GameForm: React.FC<GameFormProps> = ({
           <div className="modal-footer onboarding-game-footer">
             <button
               type="button"
-              className="btn onboarding-game-btn-cancel"
-              data-bs-dismiss="modal"
-              onClick={onCancel}
+              className="btn onboarding-game-btn-add"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleSubmit(e);
+              }}
             >
-              <i className="fa-solid fa-times"></i>
-              Cancel
-            </button>
-            <button type="button" className="btn onboarding-game-btn-add" onClick={onSubmit}>
               <i className="fa-solid fa-plus"></i>
               Add Game
             </button>
@@ -227,4 +317,7 @@ export const GameForm: React.FC<GameFormProps> = ({
       </div>
     </div>
   );
+
+  // Renderizar el modal directamente en el body usando Portal
+  return ReactDOM.createPortal(modalContent, document.body);
 };

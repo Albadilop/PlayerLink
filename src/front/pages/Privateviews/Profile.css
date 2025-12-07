@@ -852,8 +852,14 @@
   visibility: hidden;
   transition: opacity 0.2s ease-in-out;
   z-index: 999;
+  pointer-events: none;
 }
 
 .discord-info-tooltip-text strong {
   color: #00ffff;
+}
+
+.tooltip-wrapper:hover .discord-info-tooltip-text {
+  opacity: 1;
+  visibility: visible;
 }

@@ -393,9 +393,9 @@
     0 8px 30px rgba(0, 0, 0, 0.6),
     0 0 20px rgba(0, 240, 255, 0.2),
     inset 0 0 0 1px rgba(143, 0, 255, 0.3);
-  opacity: 1;
-  visibility: visible;
-  transform: translateX(-50%) translateY(0);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(-50%) translateY(-5px);
 }
 
 .medal-info-tooltip-text > * {
