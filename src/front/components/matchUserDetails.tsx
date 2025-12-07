@@ -268,7 +268,6 @@ export const MatchUserDetails: React.FC = () => {
                   <img src={game.gameImage} alt={game.gameTitle} className="match-game-img" />
                   <div className="match-game-info">
                     <span className="match-game-title">{game.gameTitle}</span>
-                    <span className="match-game-hours">{game.gameHoursPlayed}h</span>
                   </div>
                   <img
                     src={selectMedal(game.gameHoursPlayed)}
@@ -373,7 +372,7 @@ export const MatchUserDetails: React.FC = () => {
                     <span className="tooltip-text medal-info-tooltip-text">
                       <strong>Medal System:</strong>
                       <div>
-                        <i className="fa-solid fa-medal medal-info-gold"></i> Gold: 2500+ hours
+                        <i className="fa-solid fa-medal medal-info-gold"></i> Gold: +2500 hours
                       </div>
                       <div>
                         <i className="fa-solid fa-medal medal-info-silver"></i> Silver: 500-2499

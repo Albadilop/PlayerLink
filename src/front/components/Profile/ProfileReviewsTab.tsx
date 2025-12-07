@@ -19,6 +19,8 @@ const renderStars = (stars: number) => {
 };
 
 export const ProfileReviewsTab: React.FC<ProfileReviewsTabProps> = ({ reviews }) => {
+  console.log("ProfileReviewsTab - received reviews:", reviews);
+  console.log("ProfileReviewsTab - reviews length:", reviews?.length);
   const [currentPage, setCurrentPage] = useState(1);
 
   // Calcular paginación

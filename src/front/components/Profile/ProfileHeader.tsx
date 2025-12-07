@@ -69,6 +69,9 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
             {topThreeGames.map((game, i) => (
               <div key={game.id || i} className="profile-game-card">
                 <img src={game.gameImage} alt={game.gameTitle} className="profile-game-img" />
+                <div className="profile-game-info">
+                  <span className="profile-game-title">{game.gameTitle}</span>
+                </div>
                 <img
                   src={selectMedal(game.gameHoursPlayed)}
                   alt="Medal"

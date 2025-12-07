@@ -256,7 +256,7 @@ export const ProfileGamesTab: React.FC<ProfileGamesTabProps> = ({
                 >
                   <strong>Medal System:</strong>
                   <div>
-                    <i className="fa-solid fa-medal medal-info-gold"></i> Gold: 2500+ hours
+                    <i className="fa-solid fa-medal medal-info-gold"></i> Gold: +2500 hours
                   </div>
                   <div>
                     <i className="fa-solid fa-medal medal-info-silver"></i> Silver: 500-2499 hours

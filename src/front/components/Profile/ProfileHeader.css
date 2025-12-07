@@ -225,6 +225,20 @@
   border: 2px solid rgba(0, 240, 255, 0.3);
 }
 
+.profile-game-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.profile-game-title {
+  display: block;
+  font-size: 0.8rem;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .profile-medal {
   width: 32px;
   height: auto;

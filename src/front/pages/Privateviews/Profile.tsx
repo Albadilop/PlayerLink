@@ -205,12 +205,23 @@ const Profile: React.FC = () => {
   }, [store.user, navigate, dispatch]);
 
   const getReviews = useCallback(async () => {
-    if (!store.user?.id) return;
-    reviewServices.getAllReviewsReceived(store.user.id).then((data) => {
+    if (!store.user?.id) {
+      console.log("getReviews: No user ID available");
+      return;
+    }
+    console.log("getReviews: Fetching reviews for user ID:", store.user.id);
+    try {
+      const data = await reviewServices.getAllReviewsReceived(store.user.id);
+      console.log("getReviews: Response data:", data);
       if (!(data instanceof Error)) {
+        console.log("getReviews: Dispatching reviews to store:", data);
         dispatch({ type: "matchReviewsReceived", payload: data });
+      } else {
+        console.error("Error loading reviews:", data);
       }
-    });
+    } catch (error) {
+      console.error("Error in getReviews:", error);
+    }
   }, [store.user?.id, dispatch]);
 
   const fetchGames = useCallback(async () => {
@@ -430,6 +441,13 @@ const Profile: React.FC = () => {
       getReviews();
     }
   }, [activeTab, availableGames.length, fetchGames, getReviews]);
+
+  // Cargar reviews cuando el usuario esté disponible
+  useEffect(() => {
+    if (store.user?.id) {
+      getReviews();
+    }
+  }, [store.user?.id, getReviews]);
 
   const handlePicChange = async (fileName: string) => {
     if (!store.user?.id) {
@@ -751,6 +769,9 @@ const Profile: React.FC = () => {
   };
 
   const reviews = store.matchReviewsReceived?.reviews_received || [];
+  console.log("Profile component - reviews from store:", reviews);
+  console.log("Profile component - store.matchReviewsReceived:", store.matchReviewsReceived);
+  console.log("Profile component - reviews length:", reviews.length);
 
   return (
     <>
