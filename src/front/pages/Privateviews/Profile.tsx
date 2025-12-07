@@ -205,12 +205,23 @@ const Profile: React.FC = () => {
   }, [store.user, navigate, dispatch]);
 
   const getReviews = useCallback(async () => {
-    if (!store.user?.id) return;
-    reviewServices.getAllReviewsReceived(store.user.id).then((data) => {
+    if (!store.user?.id) {
+      return;
+    }
+    try {
+      const data = await reviewServices.getAllReviewsReceived(store.user.id);
       if (!(data instanceof Error)) {
         dispatch({ type: "matchReviewsReceived", payload: data });
+      } else {
+        console.error("Error loading reviews:", data);
+        // Guardar un objeto vacío en lugar del Error
+        dispatch({ type: "matchReviewsReceived", payload: { reviews_received: [] } });
       }
-    });
+    } catch (error) {
+      console.error("Error in getReviews:", error);
+      // Guardar un objeto vacío en caso de error
+      dispatch({ type: "matchReviewsReceived", payload: { reviews_received: [] } });
+    }
   }, [store.user?.id, dispatch]);
 
   const fetchGames = useCallback(async () => {
@@ -431,6 +442,13 @@ const Profile: React.FC = () => {
     }
   }, [activeTab, availableGames.length, fetchGames, getReviews]);
 
+  // Cargar reviews cuando el usuario esté disponible
+  useEffect(() => {
+    if (store.user?.id) {
+      getReviews();
+    }
+  }, [store.user?.id, getReviews]);
+
   const handlePicChange = async (fileName: string) => {
     if (!store.user?.id) {
       console.error("User not available");
@@ -456,6 +474,46 @@ const Profile: React.FC = () => {
       }
     } catch (err) {
       console.error("Error al cambiar foto:", err);
+    } finally {
+      setShowModal(false);
+    }
+  };
+
+  const handlePhotoUpload = async (file: File) => {
+    if (!store.user?.id) {
+      console.error("User not available");
+      return;
+    }
+    try {
+      const result = await userServices.uploadUserPhoto(store.user.id, file);
+      const newKey = result.photo;
+
+      // Actualizar estado local
+      setProfile((prev) => ({ ...prev, photo: newKey }));
+
+      // Actualizar store global para que persista al navegar
+      if (store.user?.profile) {
+        const updatedUser = {
+          ...store.user,
+          profile: {
+            ...store.user.profile,
+            photo: newKey,
+          },
+        };
+        dispatch({ type: "getUserInfo", payload: updatedUser });
+      }
+    } catch (err) {
+      console.error("Error uploading photo:", err);
+      setNotice(
+        <h4 className="text-center text-danger">
+          <i className="fa-solid fa-triangle-exclamation text-warning fa-xl"></i>
+          Error uploading photo. Please try again.
+        </h4>
+      );
+      if (clearNoticeTimerRef.current) {
+        clearTimeout(clearNoticeTimerRef.current);
+      }
+      clearNoticeTimerRef.current = setTimeout(() => setNotice(""), 5000);
     } finally {
       setShowModal(false);
     }
@@ -710,7 +768,13 @@ const Profile: React.FC = () => {
     }
   };
 
-  const reviews = store.matchReviewsReceived?.reviews_received || [];
+  // Asegurar que matchReviewsReceived no sea un Error
+  const reviewsData =
+    store.matchReviewsReceived instanceof Error
+      ? { reviews_received: [] }
+      : store.matchReviewsReceived;
+
+  const reviews = reviewsData?.reviews_received || [];
 
   return (
     <>
@@ -766,6 +830,7 @@ const Profile: React.FC = () => {
           isOpen={showModal}
           currentPhoto={profile.photo}
           onSelect={handlePicChange}
+          onUpload={handlePhotoUpload}
           onClose={() => setShowModal(false)}
         />
       </div>

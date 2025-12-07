@@ -5,6 +5,7 @@
   align-items: center;
   width: 100%;
   max-width: 300px;
+  height: 750px; /* Altura fija para mantener el tamaño constante */
   padding: 1.5rem;
   background: linear-gradient(145deg, #0a0f1c, #12182b);
   border: 2px solid transparent;
@@ -17,6 +18,7 @@
 
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
   box-sizing: border-box;
+  overflow: hidden; /* Evitar que el contenido se desborde */
 }
 
 /* ===== AVATAR SECTION ===== */
@@ -115,49 +117,96 @@
 /* ===== BIO ===== */
 .profile-bio {
   width: 100%;
-  min-height: 60px;
+  height: 120px; /* Altura fija para la bio */
   padding: 1rem;
   margin-top: 1rem;
   background: rgba(0, 0, 0, 0.3);
   border-radius: 12px;
   border: 1px solid rgba(143, 0, 255, 0.3);
   box-sizing: border-box;
-  overflow: hidden;
+  overflow-y: auto; /* Permitir scroll vertical */
+  overflow-x: hidden; /* Ocultar scroll horizontal */
   word-wrap: break-word;
   overflow-wrap: break-word;
+  display: flex;
+  align-items: flex-start; /* Alinear al inicio para mejor scroll */
+  justify-content: center;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+/* Estilos para el scrollbar personalizado */
+.profile-bio::-webkit-scrollbar {
+  width: 6px;
+}
+
+.profile-bio::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+}
+
+.profile-bio::-webkit-scrollbar-thumb {
+  background: rgba(143, 0, 255, 0.5);
+  border-radius: 10px;
+  transition: background 0.3s ease;
+}
+
+.profile-bio::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 240, 255, 0.7);
 }
 
 .profile-bio p {
   margin: 0;
   color: #c0c0c0;
   font-size: 0.9rem;
-  line-height: 1.5;
+  line-height: 1.4;
   text-align: center;
   font-style: italic;
   word-wrap: break-word;
   overflow-wrap: break-word;
-  white-space: pre-wrap;
   max-width: 100%;
+  white-space: normal;
 }
 
 .profile-bio-textarea {
   width: 100%;
-  min-height: 60px;
+  height: 100%; /* Usar toda la altura disponible del contenedor */
   max-width: 100%;
   padding: 0.8rem;
   background: rgba(0, 0, 0, 0.4);
   border: 1px solid rgba(0, 240, 255, 0.3);
   border-radius: 10px;
   color: #fff;
-  font-size: 0.9rem;
-  line-height: 1.5;
-  resize: vertical;
+  font-size: clamp(0.65rem, 2.5vw, 0.9rem); /* Tamaño de fuente adaptativo */
+  line-height: 1.4;
+  resize: none; /* Desactivar resize para mantener altura fija */
   transition: all 0.3s ease;
   box-sizing: border-box;
   font-family: inherit;
   word-wrap: break-word;
   overflow-wrap: break-word;
+  overflow-y: auto; /* Permitir scroll vertical si es necesario */
   overflow-x: hidden;
+}
+
+/* Estilos para el scrollbar personalizado del textarea */
+.profile-bio-textarea::-webkit-scrollbar {
+  width: 6px;
+}
+
+.profile-bio-textarea::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+}
+
+.profile-bio-textarea::-webkit-scrollbar-thumb {
+  background: rgba(143, 0, 255, 0.5);
+  border-radius: 10px;
+  transition: background 0.3s ease;
+}
+
+.profile-bio-textarea::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 240, 255, 0.7);
 }
 
 .profile-bio-textarea:focus {
@@ -225,6 +274,20 @@
   border: 2px solid rgba(0, 240, 255, 0.3);
 }
 
+.profile-game-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.profile-game-title {
+  display: block;
+  font-size: 0.8rem;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .profile-medal {
   width: 32px;
   height: auto;
@@ -241,6 +304,7 @@
 @media (max-width: 992px) {
   .profile-header {
     padding: 1rem;
+    height: 700px; /* Altura ligeramente menor en móvil */
   }
 
   .profile-avatar-wrapper {
@@ -250,5 +314,9 @@
 
   .profile-nickname {
     font-size: 1.5rem;
+  }
+
+  .profile-bio {
+    height: 100px; /* Altura ligeramente menor en móvil */
   }
 }

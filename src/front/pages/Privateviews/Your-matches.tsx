@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import useGlobalReducer from "../../hooks/useGlobalReducer";
 import matchServices from "../../services/matchServices";
 import { MatchMiniCard } from "../../components/matchMiniCard";
+import logoApp from "../../assets/img/logos/logo-app.png";
+import "./Your-matches.css";
 
 export const YourMatches: React.FC = () => {
   const navigate = useNavigate();
@@ -54,21 +56,22 @@ export const YourMatches: React.FC = () => {
                   </div>
                 ))
             ) : (
-              <div className="d-flex justify-content-center w-50 mt-5">
-                <div
-                  className="text-center search-mate-font px-3 py-2 rounded"
-                  style={{
-                    width: "fit-content",
-                    border: "2px solid #00f0ff",
-                    color: "#00f0ff",
-                    backgroundColor: "#121212",
-                  }}
-                >
-                  <h4 className="text-center my-2 search-mate-font ">
-                    {" "}
-                    No matches yet! <br />
-                    Your perfect gaming buddy might be just one search away!
-                  </h4>
+              <div className="no-matches-empty-state">
+                <div className="no-matches-icon">
+                  <img src={logoApp} alt="PlayerLink Logo" className="no-matches-logo" />
+                </div>
+                <h2 className="no-matches-title">No matches yet!</h2>
+                <p className="no-matches-message">
+                  Your perfect gaming buddy might be just one search away!
+                </p>
+                <div className="no-matches-actions">
+                  <button
+                    className="btn-search-now"
+                    onClick={() => navigate("/private/search-a-mate")}
+                    type="button"
+                  >
+                    <i className="fa-solid fa-magnifying-glass"></i> Start Searching
+                  </button>
                 </div>
               </div>
             )}

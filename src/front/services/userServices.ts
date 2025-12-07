@@ -14,6 +14,7 @@ interface UserServices {
   getUserInfo: (retryCount?: number, forceRefresh?: boolean) => Promise<UserInfoResponse | Error>;
   getUserInfoById: (user_id: number) => Promise<UserInfoResponse | Error>;
   changeUserPhoto: (user_id: number, photo: { photo: string }) => Promise<unknown>;
+  uploadUserPhoto: (user_id: number, file: File) => Promise<{ photo: string }>;
   changeUserEmail: (user_id: number, newEmail: string) => Promise<ApiResponse<unknown>>;
   deleteAccount: (userId: number) => Promise<ApiResponse<unknown>>;
   changeUserPassword: (
@@ -178,6 +179,31 @@ const userServices: UserServices = {
       return response.data;
     }
     throw new Error(response.error || "Something went wrong");
+  },
+
+  uploadUserPhoto: async (user_id: number, file: File): Promise<{ photo: string }> => {
+    const formData = new FormData();
+    formData.append("photo", file);
+
+    const token = localStorage.getItem("token");
+    const BASE_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3001";
+    const url = `${BASE_URL.replace(/\/+$/, "")}/api/profiles/photo/upload/${user_id}`;
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
+      throw new Error(errorData.error || `Upload failed with status ${response.status}`);
+    }
+
+    const data = await response.json();
+    return { photo: data.photo };
   },
 
   changeUserEmail: async (user_id: number, newEmail: string): Promise<ApiResponse<unknown>> => {

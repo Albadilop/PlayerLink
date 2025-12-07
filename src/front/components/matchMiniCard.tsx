@@ -5,6 +5,7 @@ import silverMedal from "../assets/img/medals/silver-medal.png";
 import bronzeMedal from "../assets/img/medals/bronze-medal.png";
 import { useNavigate } from "react-router-dom";
 import { getPhotoAsset, defaultPhoto } from "../constants/photoAssets";
+import { GameImage } from "./GameImage";
 import type { Game } from "../types";
 
 interface MatchMiniCardProps {
@@ -98,7 +99,13 @@ export const MatchMiniCard: React.FC<MatchMiniCardProps> = ({
             <div className="match-mini-games-grid">
               {topThreeGames.map((game, idx) => (
                 <div key={game.id || idx} className="match-mini-game-item">
-                  <img src={game.gameImage} alt={game.gameTitle} className="match-mini-game-img" />
+                  <GameImage
+                    gameTitle={game.gameTitle}
+                    gameImage={game.gameImage}
+                    className="match-mini-game-img"
+                    alt={game.gameTitle}
+                    rawgApiKey={import.meta.env.VITE_RAWG_KEY || null}
+                  />
                   <img
                     src={selectMedal(game.gameHoursPlayed)}
                     alt="Medal"

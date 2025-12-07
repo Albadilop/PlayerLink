@@ -1,5 +1,5 @@
-import { medalAssets } from '../constants/medalAssets';
-import { getPhotoAsset, defaultPhoto } from '../constants/photoAssets';
+import { medalAssets } from "../constants/medalAssets";
+import { getPhotoAsset, defaultPhoto } from "../constants/photoAssets";
 
 /**
  * Selecciona la medalla apropiada basada en las horas de juego
@@ -7,7 +7,7 @@ import { getPhotoAsset, defaultPhoto } from '../constants/photoAssets';
  * @returns Ruta a la imagen de la medalla
  */
 export const selectMedal = (hours: number | string): string => {
-  const h = typeof hours === 'string' ? parseInt(hours, 10) : hours;
+  const h = typeof hours === "string" ? parseInt(hours, 10) : hours;
   if (isNaN(h) || h === 0) {
     return medalAssets.bronze;
   }
@@ -29,6 +29,14 @@ export const selectPhoto = (photoKey: string | null | undefined): string => {
   if (!photoKey) {
     return defaultPhoto;
   }
+
+  // Si es una foto subida (empieza con "uploaded_"), construir la URL del endpoint
+  if (photoKey.startsWith("uploaded_")) {
+    const filename = photoKey.replace("uploaded_", "");
+    const BASE_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3001";
+    return `${BASE_URL.replace(/\/+$/, "")}/api/profiles/photo/${filename}`;
+  }
+
   return getPhotoAsset(photoKey) || defaultPhoto;
 };
 
@@ -40,7 +48,7 @@ export const selectPhoto = (photoKey: string | null | undefined): string => {
 export const calculateTotalHours = (games: Array<{ gameHoursPlayed?: number | null }>): number => {
   return games.reduce((total, game) => {
     const hours = game.gameHoursPlayed || 0;
-    return total + (typeof hours === 'number' ? hours : parseInt(String(hours), 10) || 0);
+    return total + (typeof hours === "number" ? hours : parseInt(String(hours), 10) || 0);
   }, 0);
 };
 
@@ -59,10 +67,9 @@ export const getTopGames = <T extends { gameHoursPlayed?: number | null }>(
     .sort((a, b) => {
       const hoursA = a.gameHoursPlayed || 0;
       const hoursB = b.gameHoursPlayed || 0;
-      const numA = typeof hoursA === 'number' ? hoursA : parseInt(String(hoursA), 10) || 0;
-      const numB = typeof hoursB === 'number' ? hoursB : parseInt(String(hoursB), 10) || 0;
+      const numA = typeof hoursA === "number" ? hoursA : parseInt(String(hoursA), 10) || 0;
+      const numB = typeof hoursB === "number" ? hoursB : parseInt(String(hoursB), 10) || 0;
       return numB - numA;
     })
     .slice(0, topN);
 };
-
