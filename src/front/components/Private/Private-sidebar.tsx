@@ -3,6 +3,7 @@ import "./private-sidebar.css";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import useGlobalReducer from "../../hooks/useGlobalReducer";
+import { useProfileCompletion } from "../../hooks/useProfileCompletion";
 
 interface SidebarProps {
   activePath: string;
@@ -18,6 +19,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePath: _activePath }) => 
   const [open, setOpen] = useState<boolean>(false);
   const navigate = useNavigate();
   const { dispatch } = useGlobalReducer();
+  const { isComplete } = useProfileCompletion();
 
   const links: SidebarLink[] = [
     { to: "/private/profile", icon: "fa-solid fa-user", label: "Profile" },
@@ -62,19 +64,53 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePath: _activePath }) => 
 
         {/* Navigation Links */}
         <nav className="sidebar-nav">
-          {links.map((link, index) => (
-            <NavLink
-              key={link.to}
-              to={link.to}
-              className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}
-              onClick={() => setOpen(false)}
-              style={{ animationDelay: `${index * 0.05}s` }}
-            >
-              <span className="sidebar-link-indicator" />
-              <i className={`sidebar-link-icon ${link.icon}`} />
-              <span className="sidebar-link-text">{link.label}</span>
-            </NavLink>
-          ))}
+          {links.map((link, index) => {
+            // Disable links to profile, search, matches, find games, and settings if onboarding is incomplete
+            const isRestrictedRoute =
+              !isComplete &&
+              (link.to === "/private/profile" ||
+                link.to === "/private/search-a-mate" ||
+                link.to === "/private/your-matches" ||
+                link.to === "/private/find-games" ||
+                link.to === "/private/settings");
+
+            if (isRestrictedRoute) {
+              return (
+                <span
+                  key={link.to}
+                  className="sidebar-link disabled"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigate("/private/onboarding");
+                    setOpen(false);
+                  }}
+                  style={{
+                    animationDelay: `${index * 0.05}s`,
+                    cursor: "not-allowed",
+                    opacity: 0.6,
+                  }}
+                >
+                  <span className="sidebar-link-indicator" />
+                  <i className={`sidebar-link-icon ${link.icon}`} />
+                  <span className="sidebar-link-text">{link.label}</span>
+                </span>
+              );
+            }
+
+            return (
+              <NavLink
+                key={link.to}
+                to={link.to}
+                className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}
+                onClick={() => setOpen(false)}
+                style={{ animationDelay: `${index * 0.05}s` }}
+              >
+                <span className="sidebar-link-indicator" />
+                <i className={`sidebar-link-icon ${link.icon}`} />
+                <span className="sidebar-link-text">{link.label}</span>
+              </NavLink>
+            );
+          })}
         </nav>
 
         {/* Logout Button */}

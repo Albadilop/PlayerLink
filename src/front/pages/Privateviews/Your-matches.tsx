@@ -26,22 +26,29 @@ export const YourMatches: React.FC = () => {
 
   return (
     <div className="container-fluid px-2 px-sm-4">
-      <div className="row gy-4 d-flex justify-content-around">
+      <div className="row gy-4">
         {loading ? (
-          <>
-            <div className="spinner-border text-info" role="status"></div>
-            <h4 className="mt-3 text-center my-2 search-mate-font ">Loading matches...</h4>
-          </>
+          <div className="col-12">
+            <div className="loading-matches-state">
+              <div className="loading-matches-spinner"></div>
+              <h4 className="loading-matches-text">Loading matches...</h4>
+            </div>
+          </div>
         ) : (
           <>
             {Array.isArray(store.userMatchesInfo) && store.userMatchesInfo.length > 0 ? (
               store.userMatchesInfo
                 .slice()
-                .reverse()
+                .sort((a, b) => {
+                  // Ordenar del más reciente al más antiguo
+                  const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+                  const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+                  return dateB - dateA; // Orden descendente (más reciente primero)
+                })
                 .map((el, index) => (
                   <div
                     key={el.user_id || el.match_id || `match-${index}`}
-                    className="col-lg-4 col-md-6 col-sm-12"
+                    className="col-lg-3 col-md-6 col-sm-12"
                   >
                     <MatchMiniCard
                       id={el.user_id}

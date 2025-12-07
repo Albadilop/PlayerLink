@@ -40,6 +40,7 @@ export interface Review {
   author_nickname: string;
   stars: number;
   comment: string | null;
+  created_at?: string;
 }
 
 export interface Like {
@@ -85,6 +86,7 @@ export interface UserMatchInfo {
   match_id?: number;
   id?: number;
   photo?: string;
+  created_at?: string;
 }
 
 export interface ReviewsReceived {

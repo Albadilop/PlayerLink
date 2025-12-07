@@ -23,9 +23,15 @@ export const ProfileReviewsTab: React.FC<ProfileReviewsTabProps> = ({
   reviews,
   showLeaveCommentButton = false,
 }) => {
-  // Asegurar que reviews sea un array
+  // Asegurar que reviews sea un array y ordenarlos por fecha (más reciente primero)
   const safeReviews = useMemo(() => {
-    return Array.isArray(reviews) ? reviews : [];
+    const reviewsArray = Array.isArray(reviews) ? reviews : [];
+    return [...reviewsArray].sort((a, b) => {
+      // Ordenar del más reciente al más antiguo
+      const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+      const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+      return dateB - dateA; // Orden descendente (más reciente primero)
+    });
   }, [reviews]);
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -130,20 +136,52 @@ export const ProfileReviewsTab: React.FC<ProfileReviewsTabProps> = ({
         <div className="row">
           {safeReviews && safeReviews.length > 0 ? (
             <>
-              {paginationData.currentReviews.map((review) => (
-                <div key={review.id} className="review-card">
-                  <div className="review-container">
-                    <div className="review-header">
-                      <span className="review-author">{review.author_nickname}</span>
-                      <div className="review-stars">{renderStars(review.stars)}</div>
+              {paginationData.currentReviews.map((review) => {
+                const formatDate = (dateString?: string) => {
+                  if (!dateString) return "";
+                  const date = new Date(dateString);
+                  const now = new Date();
+                  const diffTime = Math.abs(now.getTime() - date.getTime());
+                  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+                  if (diffDays === 0) {
+                    return "Today";
+                  } else if (diffDays === 1) {
+                    return "Yesterday";
+                  } else if (diffDays < 7) {
+                    return `${diffDays} days ago`;
+                  } else {
+                    return date.toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "short",
+                      day: "numeric",
+                    });
+                  }
+                };
+
+                return (
+                  <div key={review.id} className="col-12 review-card">
+                    <div className="review-container">
+                      <div className="review-header">
+                        <div className="review-header-left">
+                          <span className="review-author">{review.author_nickname}</span>
+                          {review.created_at && (
+                            <span className="review-date">
+                              <i className="fa-solid fa-clock"></i>
+                              {formatDate(review.created_at)}
+                            </span>
+                          )}
+                        </div>
+                        <div className="review-stars">{renderStars(review.stars)}</div>
+                      </div>
+                      <p className="m-0 border-0 review-box">
+                        <i className="fa-solid fa-comment"></i>
+                        <span>{review.comment}</span>
+                      </p>
                     </div>
-                    <p className="m-0 border-0 review-box">
-                      <span className="fa-solid fa-comment"></span>
-                      {review.comment}
-                    </p>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </>
           ) : (
             <div className="reviews-empty-state">

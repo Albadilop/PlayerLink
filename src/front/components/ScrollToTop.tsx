@@ -9,19 +9,17 @@ interface ScrollToTopProps {
 }
 
 const ScrollToTop = ({ children }: ScrollToTopProps) => {
-    const location = useLocation();
-    const prevLocation = useRef(location.pathname);
+  const location = useLocation();
+  const prevLocation = useRef(location.pathname);
 
-    useEffect(() => {
-        if (location.pathname !== prevLocation.current) {
-            window.scrollTo(0, 0);
-        }
-        prevLocation.current = location.pathname;
-    }, [location.pathname]);
+  useEffect(() => {
+    if (location.pathname !== prevLocation.current) {
+      window.scrollTo(0, 0);
+    }
+    prevLocation.current = location.pathname;
+  }, [location.pathname]);
 
-    return <>{children}</>;
+  return <>{children}</>;
 };
 
 export default ScrollToTop;
-
-

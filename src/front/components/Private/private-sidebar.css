@@ -139,6 +139,35 @@
   text-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
 }
 
+/* Disabled state */
+.sidebar-link.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.sidebar-link.disabled .sidebar-link-icon {
+  color: rgba(143, 0, 255, 0.5);
+}
+
+.sidebar-link.disabled .sidebar-link-text {
+  color: #a0a0a0;
+}
+
+.sidebar-link.disabled:hover {
+  background: rgba(255, 77, 77, 0.1);
+  border-color: rgba(255, 77, 77, 0.3);
+  opacity: 0.8;
+}
+
+.sidebar-link.disabled:hover .sidebar-link-icon {
+  color: rgba(255, 77, 77, 0.7);
+  text-shadow: 0 0 8px rgba(255, 77, 77, 0.5);
+}
+
+.sidebar-link.disabled:hover .sidebar-link-text {
+  color: rgba(255, 255, 255, 0.7);
+}
+
 /* ===== LOGOUT BUTTON ===== */
 .sidebar-logout {
   display: flex;

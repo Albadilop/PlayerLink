@@ -1,10 +1,10 @@
-import React from 'react';
-import { renderHook, act } from '@testing-library/react';
-import { StoreProvider, useGlobalReducer } from '../useGlobalReducer';
-import type { User } from '../../types';
+import React from "react";
+import { renderHook, act } from "@testing-library/react";
+import { StoreProvider, useGlobalReducer } from "../useGlobalReducer";
+import type { User } from "../../types";
 
-describe('useGlobalReducer', () => {
-  it('should initialize with default state', () => {
+describe("useGlobalReducer", () => {
+  it("should initialize with default state", () => {
     const wrapper = ({ children }: { children: React.ReactNode }) => (
       <StoreProvider>{children}</StoreProvider>
     );
@@ -16,7 +16,7 @@ describe('useGlobalReducer', () => {
     expect(result.current.store.userMatchesInfo).toBeNull();
   });
 
-  it('should update user on getUserInfo action', () => {
+  it("should update user on getUserInfo action", () => {
     const wrapper = ({ children }: { children: React.ReactNode }) => (
       <StoreProvider>{children}</StoreProvider>
     );
@@ -25,13 +25,13 @@ describe('useGlobalReducer', () => {
 
     const mockUser: User = {
       id: 1,
-      email: 'test@example.com',
+      email: "test@example.com",
       profile: null,
     };
 
     act(() => {
       result.current.dispatch({
-        type: 'getUserInfo',
+        type: "getUserInfo",
         payload: mockUser,
       });
     });
@@ -39,7 +39,7 @@ describe('useGlobalReducer', () => {
     expect(result.current.store.user).toEqual(mockUser);
   });
 
-  it('should update searchMatchProfiles on getSearchMatchProfiles action', () => {
+  it("should update searchMatchProfiles on getSearchMatchProfiles action", () => {
     const wrapper = ({ children }: { children: React.ReactNode }) => (
       <StoreProvider>{children}</StoreProvider>
     );
@@ -50,16 +50,16 @@ describe('useGlobalReducer', () => {
       {
         id: 1,
         user_id: 1,
-        nick_name: 'user1',
-        gender: 'Male',
+        nick_name: "user1",
+        gender: "Male",
         age: 25,
-        name: 'User 1',
+        name: "User 1",
         discord: null,
         preferences: null,
         zodiac: null,
-        location: 'City 1',
+        location: "City 1",
         bio: null,
-        photo: 'photo1',
+        photo: "photo1",
         language: null,
         steam: null,
         games: [],
@@ -68,7 +68,7 @@ describe('useGlobalReducer', () => {
 
     act(() => {
       result.current.dispatch({
-        type: 'getSearchMatchProfiles',
+        type: "getSearchMatchProfiles",
         payload: mockProfiles,
       });
     });
@@ -76,7 +76,7 @@ describe('useGlobalReducer', () => {
     expect(result.current.store.searchMatchProfiles).toEqual(mockProfiles);
   });
 
-  it('should clear user on logout action', () => {
+  it("should clear user on logout action", () => {
     const wrapper = ({ children }: { children: React.ReactNode }) => (
       <StoreProvider>{children}</StoreProvider>
     );
@@ -86,13 +86,13 @@ describe('useGlobalReducer', () => {
     // First set a user
     const mockUser: User = {
       id: 1,
-      email: 'test@example.com',
+      email: "test@example.com",
       profile: null,
     };
 
     act(() => {
       result.current.dispatch({
-        type: 'getUserInfo',
+        type: "getUserInfo",
         payload: mockUser,
       });
     });
@@ -102,14 +102,14 @@ describe('useGlobalReducer', () => {
     // Then logout
     act(() => {
       result.current.dispatch({
-        type: 'logout',
+        type: "logout",
       });
     });
 
     expect(result.current.store.user).toBeNull();
   });
 
-  it('should add match on addMatch action', () => {
+  it("should add match on addMatch action", () => {
     const wrapper = ({ children }: { children: React.ReactNode }) => (
       <StoreProvider>{children}</StoreProvider>
     );
@@ -119,16 +119,16 @@ describe('useGlobalReducer', () => {
     const mockMatch = {
       id: 1,
       user_id: 2,
-      nick_name: 'matcheduser',
-      gender: 'Female',
+      nick_name: "matcheduser",
+      gender: "Female",
       age: 24,
-      name: 'Matched User',
+      name: "Matched User",
       discord: null,
       preferences: null,
       zodiac: null,
-      location: 'City 2',
+      location: "City 2",
       bio: null,
-      photo: 'photo2',
+      photo: "photo2",
       language: null,
       steam: null,
       games: [],
@@ -136,7 +136,7 @@ describe('useGlobalReducer', () => {
 
     act(() => {
       result.current.dispatch({
-        type: 'addMatch',
+        type: "addMatch",
         payload: mockMatch,
       });
     });
@@ -145,5 +145,3 @@ describe('useGlobalReducer', () => {
     expect(result.current.store.userMatchesInfo).toBeDefined();
   });
 });
-
-

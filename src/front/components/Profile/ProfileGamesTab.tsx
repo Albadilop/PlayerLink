@@ -1,10 +1,21 @@
-import React, { useState, useMemo, useRef, useEffect } from "react";
-import { GameForm, GameFormData } from "./GameForm";
+import React, { useState, useMemo } from "react";
+import Select from "react-select";
 import type { Game } from "../../types";
-import type { SelectOption } from "./GameForm";
-import { selectMedal } from "../../utils/profileHelpers";
+import { selectMedal, formatHours } from "../../utils/profileHelpers";
 import { GameImage } from "../GameImage";
+import "../Onboarding/Onboarding.css";
 import "./ProfileGamesTab.css";
+
+export interface GameFormData {
+  title: string;
+  hours_played: number | string;
+  image: string;
+}
+
+export interface SelectOption {
+  value: string;
+  label: string;
+}
 
 const GAMES_PER_PAGE = 5;
 
@@ -33,16 +44,19 @@ export const ProfileGamesTab: React.FC<ProfileGamesTabProps> = ({
   const [errorHoursPlayed, setErrorHoursPlayed] = useState<string>("");
   const [errorCeroHours, setErrorCeroHours] = useState<string>("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
-  const [showTooltip, setShowTooltip] = useState(false);
-  const tooltipIconRef = useRef<HTMLElement>(null);
-  const tooltipRef = useRef<HTMLSpanElement>(null);
+  const [showGameForm, setShowGameForm] = useState(false);
+  const [showMedalInfo, setShowMedalInfo] = useState<string | null>(null);
 
-  const handleChange = (field: keyof GameFormData, value: string | number) => {
+  const handleChange = React.useCallback((field: keyof GameFormData, value: string | number) => {
     setGame((prev) => ({ ...prev, [field]: value }));
-  };
+  }, []);
 
   const handleAdd = async () => {
+    console.log("[ProfileGamesTab] handleAdd llamado", {
+      game: game,
+      gamesCount: games.length,
+    });
+
     setErrorRepeatedGame("");
     setErrorHoursPlayed("");
 
@@ -52,28 +66,29 @@ export const ProfileGamesTab: React.FC<ProfileGamesTabProps> = ({
       !game.hours_played ||
       Number(game.hours_played) <= 0
     ) {
+      console.log("[ProfileGamesTab] Validación fallida: campos incompletos");
       setErrorHoursPlayed("You must complete all the information");
       return;
     }
 
     if (games.some((g) => g.gameTitle === game.title)) {
+      console.log("[ProfileGamesTab] Validación fallida: juego duplicado");
       setErrorRepeatedGame("This game is already on the list");
       return;
     }
 
     try {
+      console.log("[ProfileGamesTab] Llamando onAddGame");
       await onAddGame(game);
+
+      console.log("[ProfileGamesTab] onAddGame completado, cerrando modal");
       // Cerrar modal y limpiar
-      const modalEl = document.getElementById("commentModal");
-      if (modalEl && window.bootstrap?.Modal) {
-        const modal = window.bootstrap.Modal.getInstance(modalEl);
-        if (modal) modal.hide();
-      }
+      setShowGameForm(false);
       setGame({ title: "", hours_played: "", image: "" });
       setErrorRepeatedGame("");
       setErrorHoursPlayed("");
     } catch (err) {
-      console.error("Error adding game:", err);
+      console.error("[ProfileGamesTab] Error adding game:", err);
     }
   };
 
@@ -128,52 +143,6 @@ export const ProfileGamesTab: React.FC<ProfileGamesTabProps> = ({
   React.useEffect(() => {
     setCurrentPage(1);
   }, [sortedGames.length]);
-
-  // Calcular posición del tooltip cuando se muestra
-  useEffect(() => {
-    const updateTooltipPosition = () => {
-      if (tooltipIconRef.current && showTooltip) {
-        const rect = tooltipIconRef.current.getBoundingClientRect();
-        const tooltipWidth = 260;
-        const tooltipHeight = 180; // Aproximado
-        const spacing = 12;
-
-        let top = rect.top - tooltipHeight - spacing;
-        let left = rect.left + rect.width / 2 - tooltipWidth / 2;
-
-        // Asegurar que no se salga de la pantalla por la izquierda
-        if (left < 10) {
-          left = 10;
-        }
-
-        // Asegurar que no se salga de la pantalla por la derecha
-        if (left + tooltipWidth > window.innerWidth - 10) {
-          left = window.innerWidth - tooltipWidth - 10;
-        }
-
-        // Si no cabe arriba, mostrarlo abajo
-        if (top < 10) {
-          top = rect.bottom + spacing;
-        }
-
-        setTooltipPosition({
-          top: top + window.scrollY,
-          left: left + window.scrollX,
-        });
-      }
-    };
-
-    if (showTooltip) {
-      updateTooltipPosition();
-      window.addEventListener("scroll", updateTooltipPosition, true);
-      window.addEventListener("resize", updateTooltipPosition);
-    }
-
-    return () => {
-      window.removeEventListener("scroll", updateTooltipPosition, true);
-      window.removeEventListener("resize", updateTooltipPosition);
-    };
-  }, [showTooltip]);
 
   const handlePrevious = () => {
     if (currentPage > 1) {
@@ -234,66 +203,325 @@ export const ProfileGamesTab: React.FC<ProfileGamesTabProps> = ({
 
   return (
     <div className="container info-section">
-      <div className="row d-flex justify-content-around align-items-center">
-        <div className="col-lg-6 col-md-12 col-sm-12 mt-3">
-          <h2 className="section-title">
-            <i className="fa-solid fa-gamepad section-title-icon"></i>
-            Games
-            <span className="tooltip-wrapper">
-              <i
-                ref={tooltipIconRef}
-                className="fa-solid fa-circle-info medals-info-icon"
-                onMouseEnter={() => setShowTooltip(true)}
-                onMouseLeave={() => setShowTooltip(false)}
-              ></i>
-              {showTooltip && (
-                <span
-                  ref={tooltipRef}
-                  className="tooltip-text medal-info-tooltip-text"
-                  style={{
-                    top: `${tooltipPosition.top}px`,
-                    left: `${tooltipPosition.left}px`,
-                  }}
-                >
-                  <strong>Medal System:</strong>
-                  <div>
-                    <i className="fa-solid fa-medal medal-info-gold"></i> Gold: +2500 hours
-                  </div>
-                  <div>
-                    <i className="fa-solid fa-medal medal-info-silver"></i> Silver: 500-2499 hours
-                  </div>
-                  <div>
-                    <i className="fa-solid fa-medal medal-info-bronze"></i> Bronze: 0-499 hours
-                  </div>
-                  <span className="medal-info-tooltip-arrow"></span>
-                </span>
-              )}
+      <div className="row justify-content-between align-items-center mb-3">
+        <div className="col-auto">
+          <h3 className="m-0 d-flex align-items-center gap-2 flex-wrap">
+            <span className="d-flex align-items-center gap-2">
+              <i className="fa-solid fa-gamepad section-title-icon"></i>
+              Games
             </span>
-          </h2>
+            <span className="medal-badges-container">
+              <span
+                className="medal-badge medal-badge-gold"
+                onClick={() => setShowMedalInfo(showMedalInfo === "gold" ? null : "gold")}
+                style={{ cursor: "pointer" }}
+              >
+                <i className="fa-solid fa-medal"></i>
+                <span className="medal-badge-text">Gold</span>
+              </span>
+              <span
+                className="medal-badge medal-badge-silver"
+                onClick={() => setShowMedalInfo(showMedalInfo === "silver" ? null : "silver")}
+                style={{ cursor: "pointer" }}
+              >
+                <i className="fa-solid fa-medal"></i>
+                <span className="medal-badge-text">Silver</span>
+              </span>
+              <span
+                className="medal-badge medal-badge-bronze"
+                onClick={() => setShowMedalInfo(showMedalInfo === "bronze" ? null : "bronze")}
+                style={{ cursor: "pointer" }}
+              >
+                <i className="fa-solid fa-medal"></i>
+                <span className="medal-badge-text">Bronze</span>
+              </span>
+            </span>
+          </h3>
         </div>
-        <button
-          type="button"
-          className="btn-add-game col-lg-4 col-md-12 col-sm-12"
-          data-bs-toggle="modal"
-          data-bs-target="#commentModal"
-        >
-          Add a new game
-        </button>
+        <div className="col-auto">
+          <button type="button" className="btn-add-game" onClick={() => setShowGameForm(true)}>
+            Add a new game
+          </button>
+        </div>
+      </div>
 
-        <GameForm
-          game={game}
-          gameOptions={gameOptions}
-          errorHoursPlayed={errorHoursPlayed}
-          errorRepeatedGame={errorRepeatedGame}
-          onChange={handleChange}
-          onSubmit={handleAdd}
-          onCancel={() => {
-            setGame({ title: "", hours_played: "", image: "" });
+      {/* Medal Info Modal */}
+      {showMedalInfo && (
+        <div className="modal-overlay" onClick={() => setShowMedalInfo(null)}>
+          <div className="modal-content medal-info-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header medal-info-header">
+              <div className="medal-info-title-wrapper">
+                <i
+                  className={`fa-solid fa-medal medal-info-icon ${
+                    showMedalInfo === "gold"
+                      ? "medal-info-gold"
+                      : showMedalInfo === "silver"
+                        ? "medal-info-silver"
+                        : "medal-info-bronze"
+                  }`}
+                ></i>
+                <h3 className="medal-info-title">
+                  {showMedalInfo === "gold"
+                    ? "Gold Medal"
+                    : showMedalInfo === "silver"
+                      ? "Silver Medal"
+                      : "Bronze Medal"}
+                </h3>
+              </div>
+              <button
+                type="button"
+                className="modal-close medal-info-close"
+                onClick={() => setShowMedalInfo(null)}
+              >
+                <i className="fa-solid fa-times" />
+              </button>
+            </div>
+            <div className="modal-body medal-info-body">
+              <div className="medal-info-content">
+                <p className="medal-info-description">
+                  {showMedalInfo === "gold" ? (
+                    <>
+                      <strong>Gold Medal</strong> is awarded to players who have played{" "}
+                      <strong className="medal-info-hours">2500 hours or more</strong> in a single
+                      game.
+                    </>
+                  ) : showMedalInfo === "silver" ? (
+                    <>
+                      <strong>Silver Medal</strong> is awarded to players who have played between{" "}
+                      <strong className="medal-info-hours">500 and 2499 hours</strong> in a single
+                      game.
+                    </>
+                  ) : (
+                    <>
+                      <strong>Bronze Medal</strong> is awarded to players who have played between{" "}
+                      <strong className="medal-info-hours">0 and 499 hours</strong> in a single
+                      game.
+                    </>
+                  )}
+                </p>
+                <div className="medal-info-range">
+                  <span className="medal-info-label">Hours Range:</span>
+                  <span className="medal-info-value">
+                    {showMedalInfo === "gold"
+                      ? "2500+ hours"
+                      : showMedalInfo === "silver"
+                        ? "500 - 2499 hours"
+                        : "0 - 499 hours"}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Game Form Modal */}
+      {showGameForm && (
+        <div
+          className="modal-overlay"
+          onClick={() => {
+            setShowGameForm(false);
             setErrorRepeatedGame("");
             setErrorHoursPlayed("");
           }}
-        />
-      </div>
+        >
+          <div className="modal-content onboarding-game-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header onboarding-game-header">
+              <div className="onboarding-game-title-wrapper">
+                <i className="fa-solid fa-gamepad onboarding-game-icon"></i>
+                <h3 className="onboarding-game-title">Add Game</h3>
+              </div>
+              <button
+                type="button"
+                className="modal-close onboarding-game-close"
+                onClick={() => {
+                  setShowGameForm(false);
+                  setErrorRepeatedGame("");
+                  setErrorHoursPlayed("");
+                }}
+              >
+                <i className="fa-solid fa-times" />
+              </button>
+            </div>
+            <div className="modal-body onboarding-game-body">
+              <div className="form-group onboarding-game-group">
+                <label className="onboarding-game-label">
+                  <i className="fa-solid fa-list onboarding-game-label-icon"></i>
+                  Select a game
+                </label>
+                <div className="onboarding-game-select-wrapper">
+                  <Select
+                    options={gameOptions}
+                    value={gameOptions.find((opt) => opt.value === game.title) || null}
+                    onChange={(selected) => handleChange("title", selected?.value || "")}
+                    isSearchable
+                    isClearable
+                    placeholder="Search for a game..."
+                    className="onboarding-game-select"
+                    classNamePrefix="onboarding-select"
+                    menuPortalTarget={document.body}
+                    styles={{
+                      menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                      menu: (base) => ({
+                        ...base,
+                        background: "linear-gradient(145deg, #0e0e1a, #1a1a2f)",
+                        border: "2px solid #7f00ff",
+                        borderRadius: "10px",
+                        boxShadow:
+                          "0 10px 30px rgba(127, 0, 255, 0.4), 0 0 20px rgba(0, 240, 255, 0.2), inset 0 0 20px rgba(127, 0, 255, 0.1)",
+                        marginTop: "0.5rem",
+                        overflow: "hidden",
+                      }),
+                      menuList: (base) => ({
+                        ...base,
+                        padding: "0.5rem",
+                        maxHeight: "300px",
+                      }),
+                      option: (base, state) => ({
+                        ...base,
+                        backgroundColor: state.isSelected
+                          ? "rgba(127, 0, 255, 0.3)"
+                          : state.isFocused
+                            ? "rgba(0, 240, 255, 0.15)"
+                            : "transparent",
+                        background: state.isSelected
+                          ? "linear-gradient(90deg, rgba(127, 0, 255, 0.3), rgba(0, 240, 255, 0.3))"
+                          : undefined,
+                        color: state.isSelected || state.isFocused ? "#00f0ff" : "#ffffff",
+                        padding: "0.75rem 1rem",
+                        cursor: "pointer",
+                        borderRadius: "6px",
+                        margin: "0.25rem 0",
+                        fontWeight: state.isSelected ? 600 : 400,
+                        textShadow: state.isFocused ? "0 0 5px rgba(0, 240, 255, 0.5)" : "none",
+                        "&:hover": {
+                          backgroundColor: "rgba(0, 240, 255, 0.1)",
+                          color: "#00f0ff",
+                        },
+                      }),
+                      control: (base, state) => ({
+                        ...base,
+                        backgroundColor: state.isFocused
+                          ? "rgba(0, 0, 0, 0.5)"
+                          : "rgba(0, 0, 0, 0.4)",
+                        border: "2px solid",
+                        borderColor: state.isFocused ? "#00f0ff" : "#7f00ff",
+                        borderRadius: "10px",
+                        boxShadow: state.isFocused
+                          ? "inset 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 15px rgba(0, 240, 255, 0.4), 0 0 25px rgba(0, 240, 255, 0.2)"
+                          : "inset 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 10px rgba(127, 0, 255, 0.2)",
+                        minHeight: "48px",
+                        cursor: "pointer",
+                        "&:hover": {
+                          borderColor: "#8f00ff",
+                          boxShadow:
+                            "inset 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 15px rgba(143, 0, 255, 0.3)",
+                        },
+                      }),
+                      placeholder: (base) => ({
+                        ...base,
+                        color: "rgba(255, 255, 255, 0.4)",
+                      }),
+                      singleValue: (base) => ({
+                        ...base,
+                        color: "#ffffff",
+                        fontWeight: 500,
+                      }),
+                      input: (base) => ({
+                        ...base,
+                        color: "#ffffff",
+                        caretColor: "#00f0ff",
+                      }),
+                      indicatorSeparator: (base) => ({
+                        ...base,
+                        backgroundColor: "rgba(127, 0, 255, 0.3)",
+                      }),
+                      dropdownIndicator: (base) => ({
+                        ...base,
+                        color: "#7f00ff",
+                        "&:hover": {
+                          color: "#00f0ff",
+                        },
+                      }),
+                      clearIndicator: (base) => ({
+                        ...base,
+                        color: "rgba(255, 107, 107, 0.7)",
+                        "&:hover": {
+                          color: "#ff6b6b",
+                        },
+                      }),
+                    }}
+                  />
+                </div>
+                {errorRepeatedGame && (
+                  <div className="onboarding-game-error">
+                    <i className="fa-solid fa-exclamation-circle"></i>
+                    <span>{errorRepeatedGame}</span>
+                  </div>
+                )}
+              </div>
+              <div className="form-group onboarding-game-group">
+                <label className="onboarding-game-label">
+                  <i className="fa-solid fa-clock onboarding-game-label-icon"></i>
+                  Hours played
+                </label>
+                <div className="onboarding-game-input-container">
+                  <input
+                    type="number"
+                    className="onboarding-game-input hours-input"
+                    value={game.hours_played || ""}
+                    onChange={(e) => handleChange("hours_played", Number(e.target.value))}
+                    placeholder="e.g., 42"
+                    min={1}
+                    max={10000}
+                  />
+                  <div className="hours-spinner-buttons">
+                    <button
+                      type="button"
+                      className="hours-spinner-btn hours-spinner-up"
+                      onClick={() => {
+                        const currentValue = Number(game.hours_played) || 0;
+                        if (currentValue < 10000) {
+                          handleChange("hours_played", currentValue + 1);
+                        }
+                      }}
+                      aria-label="Increase hours"
+                    >
+                      <i className="fa-solid fa-chevron-up"></i>
+                    </button>
+                    <button
+                      type="button"
+                      className="hours-spinner-btn hours-spinner-down"
+                      onClick={() => {
+                        const currentValue = Number(game.hours_played) || 0;
+                        if (currentValue > 1) {
+                          handleChange("hours_played", currentValue - 1);
+                        }
+                      }}
+                      aria-label="Decrease hours"
+                    >
+                      <i className="fa-solid fa-chevron-down"></i>
+                    </button>
+                  </div>
+                </div>
+                {errorHoursPlayed && (
+                  <div className="onboarding-game-error">
+                    <i className="fa-solid fa-exclamation-circle"></i>
+                    <span>{errorHoursPlayed}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="modal-footer onboarding-game-footer">
+              <button type="button" className="btn onboarding-game-btn-add" onClick={handleAdd}>
+                <i className="fa-solid fa-plus"></i>
+                Add Game
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="games-content-area">
         <div className="row mt-3 gap-2 d-flez justify-content-center gamesbigbox p-2">
           {games.length > 0 ? (
@@ -358,7 +586,7 @@ export const ProfileGamesTab: React.FC<ProfileGamesTabProps> = ({
                             alt="Medal"
                             className="game-medal"
                           />
-                          <span className="hours-text">{el.gameHoursPlayed} hours</span>
+                          <span className="hours-text">{formatHours(el.gameHoursPlayed)}</span>
                         </div>
                         <div className="game-actions">
                           <button
@@ -394,8 +622,7 @@ export const ProfileGamesTab: React.FC<ProfileGamesTabProps> = ({
               <button
                 type="button"
                 className="btn-add-first-game"
-                data-bs-toggle="modal"
-                data-bs-target="#commentModal"
+                onClick={() => setShowGameForm(true)}
               >
                 <i className="fa-solid fa-plus"></i> Add Your First Game
               </button>

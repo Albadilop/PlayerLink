@@ -6,7 +6,7 @@ import "./matchUserDetails.css";
 import "../pages/Privateviews/Profile.css";
 import "./Profile/ProfileGamesTab.css";
 import reviewServices from "../services/reviewServices";
-import { selectMedal, selectPhoto } from "../utils/profileHelpers";
+import { selectMedal, selectPhoto, formatHours } from "../utils/profileHelpers";
 import { ProfileInfoTab } from "./Profile/ProfileInfoTab";
 import { ProfileReviewsTab } from "./Profile/ProfileReviewsTab";
 import { parsePreferences } from "../utils/formatters";
@@ -51,6 +51,7 @@ export const MatchUserDetails: React.FC = () => {
   const [hoverRating, setHoverRating] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [currentPage, setCurrentPage] = useState(1);
+  const [showMedalInfo, setShowMedalInfo] = useState<string | null>(null);
 
   // Obtener y ordenar juegos por horas (de mayor a menor)
   const sortedGames = useMemo(() => {
@@ -264,8 +265,8 @@ export const MatchUserDetails: React.FC = () => {
   if (isLoading || !store.itsMatchInfo) {
     return (
       <div className="match-profile-loading">
-        <div className="spinner-border text-info" role="status" />
-        <p>Loading profile...</p>
+        <div className="loading-matches-spinner"></div>
+        <h4 className="loading-matches-text">Loading profile...</h4>
       </div>
     );
   }
@@ -317,7 +318,7 @@ export const MatchUserDetails: React.FC = () => {
                     data-bs-trigger="hover focus"
                     data-bs-container="body"
                     data-bs-placement="right"
-                    data-bs-content={`${game.gameTitle} — ${game.gameHoursPlayed}h`}
+                    data-bs-content={`${game.gameTitle} — ${formatHours(game.gameHoursPlayed)}`}
                   />
                 </div>
               ))}
@@ -364,31 +365,116 @@ export const MatchUserDetails: React.FC = () => {
         {/* Games Tab */}
         {activeTab === "Games" && (
           <div className="container info-section">
-            <div className="row d-flex justify-content-around align-items-center">
-              <div className="col-lg-6 col-md-12 col-sm-12 mt-3">
-                <h2 className="section-title">
-                  <i className="fa-solid fa-gamepad section-title-icon"></i>
-                  Games
-                  <span className="tooltip-wrapper">
-                    <i className="fa-solid fa-circle-info medals-info-icon"></i>
-                    <span className="tooltip-text medal-info-tooltip-text">
-                      <strong>Medal System:</strong>
-                      <div>
-                        <i className="fa-solid fa-medal medal-info-gold"></i> Gold: +2500 hours
-                      </div>
-                      <div>
-                        <i className="fa-solid fa-medal medal-info-silver"></i> Silver: 500-2499
-                        hours
-                      </div>
-                      <div>
-                        <i className="fa-solid fa-medal medal-info-bronze"></i> Bronze: 0-499 hours
-                      </div>
-                      <span className="medal-info-tooltip-arrow"></span>
+            <div className="row justify-content-between align-items-center mb-3">
+              <div className="col-auto">
+                <h3 className="m-0 d-flex align-items-center gap-2 flex-wrap">
+                  <span className="d-flex align-items-center gap-2">
+                    <i className="fa-solid fa-gamepad section-title-icon"></i>
+                    Games
+                  </span>
+                  <span className="medal-badges-container">
+                    <span
+                      className="medal-badge medal-badge-gold"
+                      onClick={() => setShowMedalInfo(showMedalInfo === "gold" ? null : "gold")}
+                      style={{ cursor: "pointer" }}
+                    >
+                      <i className="fa-solid fa-medal"></i>
+                      <span className="medal-badge-text">Gold</span>
+                    </span>
+                    <span
+                      className="medal-badge medal-badge-silver"
+                      onClick={() => setShowMedalInfo(showMedalInfo === "silver" ? null : "silver")}
+                      style={{ cursor: "pointer" }}
+                    >
+                      <i className="fa-solid fa-medal"></i>
+                      <span className="medal-badge-text">Silver</span>
+                    </span>
+                    <span
+                      className="medal-badge medal-badge-bronze"
+                      onClick={() => setShowMedalInfo(showMedalInfo === "bronze" ? null : "bronze")}
+                      style={{ cursor: "pointer" }}
+                    >
+                      <i className="fa-solid fa-medal"></i>
+                      <span className="medal-badge-text">Bronze</span>
                     </span>
                   </span>
-                </h2>
+                </h3>
               </div>
             </div>
+
+            {/* Medal Info Modal */}
+            {showMedalInfo && (
+              <div className="modal-overlay" onClick={() => setShowMedalInfo(null)}>
+                <div
+                  className="modal-content medal-info-modal"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="modal-header medal-info-header">
+                    <div className="medal-info-title-wrapper">
+                      <i
+                        className={`fa-solid fa-medal medal-info-icon ${
+                          showMedalInfo === "gold"
+                            ? "medal-info-gold"
+                            : showMedalInfo === "silver"
+                              ? "medal-info-silver"
+                              : "medal-info-bronze"
+                        }`}
+                      ></i>
+                      <h3 className="medal-info-title">
+                        {showMedalInfo === "gold"
+                          ? "Gold Medal"
+                          : showMedalInfo === "silver"
+                            ? "Silver Medal"
+                            : "Bronze Medal"}
+                      </h3>
+                    </div>
+                    <button
+                      type="button"
+                      className="modal-close medal-info-close"
+                      onClick={() => setShowMedalInfo(null)}
+                    >
+                      <i className="fa-solid fa-times" />
+                    </button>
+                  </div>
+                  <div className="modal-body medal-info-body">
+                    <div className="medal-info-content">
+                      <p className="medal-info-description">
+                        {showMedalInfo === "gold" ? (
+                          <>
+                            <strong>Gold Medal</strong> is awarded to players who have played{" "}
+                            <strong className="medal-info-hours">2500 hours or more</strong> in a
+                            single game.
+                          </>
+                        ) : showMedalInfo === "silver" ? (
+                          <>
+                            <strong>Silver Medal</strong> is awarded to players who have played
+                            between <strong className="medal-info-hours">500 and 2499 hours</strong>{" "}
+                            in a single game.
+                          </>
+                        ) : (
+                          <>
+                            <strong>Bronze Medal</strong> is awarded to players who have played
+                            between <strong className="medal-info-hours">0 and 499 hours</strong> in
+                            a single game.
+                          </>
+                        )}
+                      </p>
+                      <div className="medal-info-range">
+                        <span className="medal-info-label">Hours Range:</span>
+                        <span className="medal-info-value">
+                          {showMedalInfo === "gold"
+                            ? "2500+ hours"
+                            : showMedalInfo === "silver"
+                              ? "500 - 2499 hours"
+                              : "0 - 499 hours"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="games-content-area">
               <div className="row mt-3 gap-2 d-flez justify-content-center gamesbigbox p-2">
                 {sortedGames.length > 0 ? (
@@ -416,7 +502,7 @@ export const MatchUserDetails: React.FC = () => {
                                 alt="Medal"
                                 className="game-medal"
                               />
-                              <span className="hours-text">{el.gameHoursPlayed} hours</span>
+                              <span className="hours-text">{formatHours(el.gameHoursPlayed)}</span>
                             </div>
                           </div>
                         </div>
@@ -491,76 +577,75 @@ export const MatchUserDetails: React.FC = () => {
               aria-labelledby="commentModalLabel"
               aria-hidden="true"
             >
-              <div className="modal-dialog">
-                <div className="modal-content modal-sci-fi">
-                  <div className="modal-header modal-sci-fi-header">
-                    <h5 className="modal-title modal-sci-fi-title" id="commentModalLabel">
-                      Leave a new comment
-                    </h5>
+              <div className="modal-dialog modal-dialog-centered">
+                <div className="modal-content onboarding-game-modal">
+                  <div className="modal-header onboarding-game-header">
+                    <div className="onboarding-game-title-wrapper">
+                      <i className="fa-solid fa-comment onboarding-game-icon"></i>
+                      <h3 className="onboarding-game-title" id="commentModalLabel">
+                        Leave a new comment
+                      </h3>
+                    </div>
                     <button
                       type="button"
-                      className="btn-close"
+                      className="modal-close onboarding-game-close"
                       data-bs-dismiss="modal"
                       aria-label="Close"
-                    />
+                    >
+                      <i className="fa-solid fa-times" />
+                    </button>
                   </div>
-                  <div className="modal-body">
-                    <div className="modal-body modal-sci-fi-body">
-                      {/* Rating */}
-                      <div className="mb-3 text-warning">
-                        <label className="form-label">Stars</label>
-                        <div>
-                          {[1, 2, 3, 4, 5].map((star) => (
-                            <i
-                              key={star}
-                              className={`fa-star fa-2x ${
-                                (hoverRating || newComment.stars) >= star
-                                  ? "fa-solid"
-                                  : "fa-regular"
-                              }`}
-                              style={{ cursor: "pointer", marginRight: "0.5rem" }}
-                              onClick={() => setNewComment((prev) => ({ ...prev, stars: star }))}
-                              onMouseEnter={() => setHoverRating(star)}
-                              onMouseLeave={() => setHoverRating(0)}
-                            />
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Comment textarea */}
-                      <div className="mb-3">
-                        <label htmlFor="newComment" className="form-label">
-                          Comment
-                        </label>
-                        <textarea
-                          id="newComment"
-                          className="form-control"
-                          rows={3}
-                          value={newComment.comment}
-                          onChange={(e) =>
-                            setNewComment((prev) => ({ ...prev, comment: e.target.value }))
-                          }
-                        />
+                  <div className="modal-body onboarding-game-body">
+                    {/* Rating */}
+                    <div className="form-group onboarding-game-group">
+                      <label className="onboarding-game-label">
+                        <i className="fa-solid fa-star onboarding-game-label-icon"></i>
+                        Rating
+                      </label>
+                      <div className="comment-rating-stars">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <i
+                            key={star}
+                            className={`fa-star comment-star ${
+                              (hoverRating || newComment.stars) >= star ? "fa-solid" : "fa-regular"
+                            }`}
+                            onClick={() => setNewComment((prev) => ({ ...prev, stars: star }))}
+                            onMouseEnter={() => setHoverRating(star)}
+                            onMouseLeave={() => setHoverRating(0)}
+                          />
+                        ))}
                       </div>
                     </div>
+
+                    {/* Comment textarea */}
+                    <div className="form-group onboarding-game-group">
+                      <label className="onboarding-game-label" htmlFor="newComment">
+                        <i className="fa-solid fa-comment-dots onboarding-game-label-icon"></i>
+                        Comment
+                      </label>
+                      <textarea
+                        id="newComment"
+                        className="onboarding-game-textarea"
+                        rows={4}
+                        value={newComment.comment}
+                        onChange={(e) =>
+                          setNewComment((prev) => ({ ...prev, comment: e.target.value }))
+                        }
+                        placeholder="Write your comment here..."
+                      />
+                    </div>
                   </div>
-                  <div className="modal-footer modal-sci-fi-footer">
+                  <div className="modal-footer onboarding-game-footer">
                     <button
                       type="button"
-                      className="btn btn-sci-fi-primary"
-                      data-bs-dismiss="modal"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="button"
-                      className="btn-sci-fi-primary"
+                      className="btn onboarding-game-btn-add"
                       onClick={(e) => {
                         e.preventDefault();
                         handleSaveComment(e as unknown as React.FormEvent<HTMLFormElement>);
                       }}
                       disabled={!newComment.comment.trim() || newComment.stars === 0}
                     >
+                      <i className="fa-solid fa-check"></i>
                       Save comment
                     </button>
                   </div>

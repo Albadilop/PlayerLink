@@ -1,110 +1,122 @@
-/* ProfileReviewsTab styles are inherited from Profile.css */
+/* ProfileReviewsTab styles */
 .review-card {
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
   padding: 0;
   background: transparent;
   border: none;
-  border-radius: 12px;
-  transition: all 0.3s ease;
-}
-
-.review-card:hover {
-  transform: translateY(-2px);
+  width: 100%;
 }
 
 .review-container {
   color: #fff;
-  padding: 0.9rem;
-  background: linear-gradient(145deg, rgba(10, 15, 28, 0.8), rgba(18, 24, 43, 0.8));
-  border: 2px solid transparent;
+  padding: 1.2rem;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(0, 240, 255, 0.2);
   border-radius: 12px;
-  background-image:
-    linear-gradient(145deg, rgba(10, 15, 28, 0.9), rgba(18, 24, 43, 0.9)),
-    linear-gradient(135deg, rgba(0, 240, 255, 0.2), rgba(143, 0, 255, 0.2));
-  background-origin: border-box;
-  background-clip: padding-box, border-box;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
   transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
   position: relative;
   overflow: hidden;
+  min-height: 90px;
 }
 
-.review-container::before {
+.review-container::after {
   content: "";
   position: absolute;
   top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, #00f0ff, #8f00ff);
-  opacity: 0;
-  transition: opacity 0.3s ease;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.1), transparent);
+  transition: left 0.5s ease;
 }
 
 .review-card:hover .review-container {
-  box-shadow: 0 6px 25px rgba(143, 0, 255, 0.4);
-  border-color: rgba(0, 240, 255, 0.3);
+  background: rgba(0, 0, 0, 0.5);
+  border-color: rgba(0, 240, 255, 0.4);
+  box-shadow: 0 4px 15px rgba(0, 240, 255, 0.15);
+  transform: translateY(-2px);
 }
 
-.review-card:hover .review-container::before {
-  opacity: 1;
+.review-card:hover .review-container::after {
+  left: 100%;
 }
 
 .review-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 0.75rem;
+  margin: 0;
   flex-wrap: wrap;
   gap: 0.5rem;
+}
+
+.review-header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .review-author {
   font-weight: 600;
   color: #00f0ff;
-  font-size: 1rem;
-  text-shadow: 0 0 8px rgba(0, 240, 255, 0.3);
+  font-size: 0.9rem;
+}
+
+.review-date {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  color: #999;
+  font-style: italic;
+}
+
+.review-date i {
+  font-size: 0.7rem;
+  color: #8f00ff;
 }
 
 .review-stars {
   display: flex;
-  gap: 0.2rem;
+  gap: 0.25rem;
   align-items: center;
 }
 
-.review-box {
-  margin-top: 0.75rem;
-  padding: 0.875rem;
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 8px;
-  color: #e0e0e0;
-  line-height: 1.6;
-  border-left: 3px solid rgba(0, 240, 255, 0.4);
-  transition: all 0.3s ease;
+.review-stars i {
+  font-size: 0.85rem;
 }
 
-.review-card:hover .review-box {
-  border-left-color: #00f0ff;
-  background: rgba(0, 0, 0, 0.4);
+.review-box {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  border: none;
+  color: #e0e0e0;
+  line-height: 1.5;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  word-break: break-word;
 }
 
 .review-box .fa-comment {
   color: #8f00ff;
-  margin-right: 0.5rem;
-  opacity: 0.7;
-  transition: all 0.3s ease;
-}
-
-.review-card:hover .review-box .fa-comment {
-  opacity: 1;
-  color: #00f0ff;
+  font-size: 0.7rem;
+  margin-top: 0.2rem;
+  flex-shrink: 0;
 }
 
 /* Sobrescribir el estilo de .info-section p que aplica fondo negro */
 .info-section p.review-box {
-  background: rgba(0, 0, 0, 0.3) !important;
+  background: transparent !important;
   border: none !important;
-  border-left: 3px solid rgba(0, 240, 255, 0.4) !important;
+  padding: 0.3rem 0 !important;
+  margin: 0 !important;
 }
 
 /* Empty state para reviews */
@@ -131,6 +143,16 @@
 .reviews-content-area {
   flex: 1;
   min-height: 0;
+  overflow: visible;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+}
+
+.reviews-content-area .row {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 0;
 }
 
 /* Estilos de paginación */
@@ -139,36 +161,48 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  margin-top: auto;
+  margin-top: 0.75rem;
   padding-top: 0.75rem;
   flex-wrap: wrap;
   flex-shrink: 0;
+  position: relative;
+  z-index: 10;
+  border-top: 1px solid rgba(0, 240, 255, 0.2);
 }
 
 .pagination-btn {
-  padding: 8px 16px;
+  padding: 0.6rem 1.2rem;
   background: linear-gradient(135deg, #8f00ff, #6b00cc);
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
+  border: 2px solid rgba(0, 240, 255, 0.3);
+  border-radius: 10px;
   color: #fff;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+  font-weight: 600;
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 0.5rem;
+  box-shadow: 0 0 15px rgba(143, 0, 255, 0.3);
+  position: relative;
+  z-index: 1;
 }
 
 .pagination-btn:hover:not(:disabled) {
   background: linear-gradient(135deg, #a64dff, #8f00ff);
+  border-color: rgba(0, 240, 255, 0.5);
   transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(143, 0, 255, 0.4);
+  box-shadow:
+    0 0 25px rgba(143, 0, 255, 0.5),
+    0 4px 15px rgba(0, 240, 255, 0.2);
 }
 
 .pagination-btn:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
   background: linear-gradient(135deg, #4a4a4a, #2a2a2a);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: none;
 }
 
 .pagination-numbers {
@@ -178,24 +212,28 @@
 }
 
 .pagination-number {
-  min-width: 32px;
-  height: 32px;
+  min-width: 36px;
+  height: 36px;
   padding: 6px 10px;
-  background: transparent;
-  border: 2px solid rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(0, 240, 255, 0.2);
   border-radius: 8px;
   color: #fff;
   cursor: pointer;
   font-size: 0.85rem;
+  font-weight: 500;
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+  z-index: 1;
 }
 
 .pagination-number:hover:not(.active) {
-  background: rgba(143, 0, 255, 0.2);
+  background: rgba(143, 0, 255, 0.25);
   border-color: rgba(143, 0, 255, 0.5);
+  transform: translateY(-1px);
 }
 
 .pagination-number.active {
@@ -203,6 +241,7 @@
   border-color: #00f0ff;
   box-shadow: 0 0 15px rgba(0, 240, 255, 0.5);
   font-weight: 600;
+  color: #fff;
 }
 
 .pagination-ellipsis {

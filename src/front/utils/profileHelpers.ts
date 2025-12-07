@@ -53,6 +53,17 @@ export const calculateTotalHours = (games: Array<{ gameHoursPlayed?: number | nu
 };
 
 /**
+ * Formatea las horas con singular/plural correcto
+ * @param hours - Número de horas
+ * @returns String formateado (ej: "1 hour" o "5 hours")
+ */
+export const formatHours = (hours: number | string | null | undefined): string => {
+  const h = typeof hours === "string" ? parseInt(hours, 10) : hours || 0;
+  if (isNaN(h)) return "0 hours";
+  return h === 1 ? "1 hour" : `${h} hours`;
+};
+
+/**
  * Obtiene los top N juegos ordenados por horas jugadas
  * @param games - Array de juegos
  * @param topN - Número de juegos a retornar (default: 3)

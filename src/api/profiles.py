@@ -23,6 +23,50 @@ profiles_bp = Blueprint('profiles', __name__)
 base = BaseEndpoint()
 
 
+def is_profile_complete(profile: Profile) -> tuple[bool, list[str]]:
+    """
+    Check if a profile has all required fields completed.
+    
+    Required fields:
+    - name (minimum 2 characters)
+    - nick_name (minimum 2 characters)
+    - age (must be >= 18)
+    - gender (minimum 2 characters)
+    - location (minimum 2 characters)
+    - At least 1 game in games list
+    
+    Returns:
+        Tuple of (is_complete: bool, missing_fields: list[str])
+    """
+    missing_fields = []
+    
+    # Validate name
+    if not profile.name or len(profile.name.strip()) < 2:
+        missing_fields.append('name')
+    
+    # Validate nick_name
+    if not profile.nick_name or len(profile.nick_name.strip()) < 2:
+        missing_fields.append('nick_name')
+    
+    # Validate age
+    if not profile.age or profile.age < 18:
+        missing_fields.append('age')
+    
+    # Validate gender
+    if not profile.gender or len(profile.gender.strip()) < 2:
+        missing_fields.append('gender')
+    
+    # Validate location
+    if not profile.location or len(profile.location.strip()) < 2:
+        missing_fields.append('location')
+    
+    # Validate at least 1 game
+    if not profile.games or len(profile.games) == 0:
+        missing_fields.append('games')
+    
+    return len(missing_fields) == 0, missing_fields
+
+
 @profiles_bp.route('/profiles', methods=['GET'])
 def get_profiles() -> Tuple[Response, int]:
     stmt = select(Profile)
@@ -115,18 +159,33 @@ def post_profile(user_id: int, _user: User, _data: dict) -> Tuple[Response, int]
 @validate_json()
 def put_profile(user_id: int, _user: User, _profile: Profile, _data: dict) -> Tuple[Response, int]:
     """Update an existing profile"""
-    _profile.gender = _data.get('gender', _profile.gender)
-    _profile.preferences = _data.get('preferences', _profile.preferences)
-    _profile.zodiac = _data.get('zodiac', _profile.zodiac)
-    _profile.discord = _data.get('discord', _profile.discord)
-    _profile.age = _data.get('age', _profile.age)
-    _profile.name = _data.get('name', _profile.name)
-    _profile.location = _data.get('location', _profile.location)
-    _profile.nick_name = _data.get('nick_name', _profile.nick_name)
-    _profile.bio = _data.get('bio', _profile.bio)
-    _profile.language = _data.get('languages', _profile.language)
-    _profile.steam_id = _data.get('steam_id', _profile.steam_id)
-    _profile.photo = _data.get('photo', _profile.photo)
+    # Update fields only if they are present in the request
+    if 'gender' in _data:
+        _profile.gender = _data['gender']
+    if 'preferences' in _data:
+        _profile.preferences = _data['preferences']
+    if 'zodiac' in _data:
+        _profile.zodiac = _data['zodiac']
+    if 'discord' in _data:
+        _profile.discord = _data['discord']
+    if 'age' in _data:
+        _profile.age = _data['age']
+    if 'name' in _data:
+        _profile.name = _data['name']
+    if 'location' in _data:
+        _profile.location = _data['location']
+    if 'nick_name' in _data:
+        _profile.nick_name = _data['nick_name']
+    if 'bio' in _data:
+        _profile.bio = _data['bio']
+    if 'languages' in _data:
+        _profile.language = _data['languages']
+    if 'language' in _data:
+        _profile.language = _data['language']
+    if 'steam_id' in _data:
+        _profile.steam_id = _data['steam_id']
+    if 'photo' in _data:
+        _profile.photo = _data['photo']
 
     db.session.commit()
     return base.serialize_response(_profile, 200)
@@ -253,5 +312,28 @@ def get_uploaded_photo(filename: str) -> Tuple[Response, int]:
     
     from flask import send_from_directory
     return send_from_directory(upload_dir, secure_filename(filename)), 200
+
+
+@profiles_bp.route('/profiles/check-completion/<int:user_id>', methods=['GET'])
+@jwt_required()
+@handle_errors
+@require_user_exists('user_id')
+@require_ownership
+def check_profile_completion(user_id: int, _user: User) -> Tuple[Response, int]:
+    """Check if a user's profile is complete with all required fields"""
+    if not _user.profile:
+        return jsonify({
+            'is_complete': False,
+            'missing_fields': ['profile'],
+            'message': 'Profile does not exist'
+        }), 200
+    
+    is_complete, missing_fields = is_profile_complete(_user.profile)
+    
+    return jsonify({
+        'is_complete': is_complete,
+        'missing_fields': missing_fields,
+        'message': 'Profile is complete' if is_complete else 'Profile is incomplete'
+    }), 200
 
 

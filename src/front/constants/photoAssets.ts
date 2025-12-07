@@ -28,5 +28,3 @@ export const getPhotoAsset = (photoKey: string): string => {
 };
 
 export { photo1 as defaultPhoto };
-
-

@@ -6,6 +6,8 @@ import "../../pages/Privateviews/Profile.css";
 
 // Hooks y servicios
 import useGlobalReducer from "../../hooks/useGlobalReducer";
+import { useProfileCompletion } from "../../hooks/useProfileCompletion";
+import { getFieldLabel } from "../../utils/profileValidation";
 import userServices from "../../services/userServices";
 import reviewServices from "../../services/reviewServices";
 import gameServices from "../../services/gameServices";
@@ -23,7 +25,7 @@ import {
   ProfileInfoTab,
   ProfileGamesTab,
   ProfileReviewsTab,
-  GameFormData,
+  type GameFormData,
 } from "../../components/Profile";
 
 import { useNavigate } from "react-router-dom";
@@ -61,6 +63,7 @@ const Profile: React.FC = () => {
   const [availableGames, setAvailableGames] = useState<string[]>([]);
   const [loadingAvailableGames, setLoadingAvailableGames] = useState<boolean>(false);
   const { store, dispatch } = useGlobalReducer();
+  const { isComplete, missingFields, completionPercentage } = useProfileCompletion();
   const rawgApi = import.meta.env.VITE_RAWG_KEY;
   const gameOptions: SelectOption[] = availableGames.map((name) => ({ value: name, label: name }));
 
@@ -163,42 +166,6 @@ const Profile: React.FC = () => {
 
       setSelectedGamingPreferences(parsePreferences(profileData.preferences));
       setSelectedLanguages(parsePreferences(profileData.language));
-
-      const isIncomplete =
-        !profileData.name ||
-        profileData.name.length < 2 ||
-        !profileData.nick_name ||
-        profileData.nick_name.length < 2 ||
-        !profileData.age ||
-        profileData.age <= 0 ||
-        !profileData.gender ||
-        profileData.gender.length < 2 ||
-        !profileData.location ||
-        profileData.location.length < 2 ||
-        !profileData.zodiac ||
-        profileData.zodiac.length < 2 ||
-        !profileData.discord ||
-        profileData.discord.length < 2 ||
-        !profileData.steam ||
-        profileData.steam.length < 2 ||
-        !profileData.language ||
-        profileData.language.length < 2 ||
-        !profileData.preferences ||
-        profileData.preferences.length < 2 ||
-        !profileData.bio ||
-        profileData.bio.length < 2 ||
-        !profileData.photo ||
-        profileData.photo.length < 2;
-
-      if (isIncomplete) {
-        setNotice(
-          <h4 className="text-center text-danger">
-            <i className="fa-solid fa-triangle-exclamation text-warning fa-xl"></i> Profile
-            incomplete. Remember to complete it to unlock the full potential of PlayerLink.
-          </h4>
-        );
-        clearNoticeTimerRef.current = setTimeout(() => setNotice(""), 10000);
-      }
     } catch (error) {
       console.error("Error en loadProfile:", error);
     }
@@ -550,6 +517,30 @@ const Profile: React.FC = () => {
     setIsEditing(!isEditing);
   };
 
+  const handleCancel = () => {
+    // Restaurar los valores originales del perfil
+    const profileData = store.user?.profile;
+    if (profileData) {
+      setProfile({
+        name: profileData.name || " ",
+        nick_name: profileData.nick_name || "",
+        age: profileData.age || 0,
+        gender: profileData.gender || DEFAULT_VALUES.GENDER_UNDEFINED,
+        location: profileData.location || " ",
+        zodiac: profileData.zodiac || " ",
+        discord: profileData.discord || " ",
+        steam_id: profileData.steam || " ",
+        languages: profileData.language || " ",
+        preferences: profileData.preferences || " ",
+        bio: profileData.bio || " ",
+        photo: profileData.photo || DEFAULT_VALUES.PROFILE_PHOTO,
+      });
+      setSelectedGamingPreferences(parsePreferences(profileData.preferences));
+      setSelectedLanguages(parsePreferences(profileData.language));
+    }
+    setIsEditing(false);
+  };
+
   const handleInputChange = (field: keyof ProfileState, value: string | number) => {
     setProfile((prev) => ({ ...prev, [field]: value }));
   };
@@ -779,6 +770,40 @@ const Profile: React.FC = () => {
   return (
     <>
       {notice && <div className="alert alert-danger">{notice}</div>}
+
+      {/* Profile Completion Banner */}
+      {!isComplete && missingFields.length > 0 && (
+        <div className="profile-completion-banner">
+          <div className="completion-banner-content">
+            <div className="completion-banner-icon">
+              <i className="fa-solid fa-exclamation-triangle" />
+            </div>
+            <div className="completion-banner-text">
+              <h4 className="completion-banner-title">
+                Incomplete Profile ({completionPercentage}% complete)
+              </h4>
+              <p className="completion-banner-message">
+                Complete the following fields to unlock all features:
+              </p>
+              <ul className="completion-banner-fields">
+                {missingFields.map((field) => (
+                  <li key={field}>
+                    <i className="fa-solid fa-circle-xmark" />
+                    {getFieldLabel(field)}
+                  </li>
+                ))}
+              </ul>
+              <button
+                className="completion-banner-button"
+                onClick={() => navigate("/private/onboarding")}
+              >
+                <i className="fa-solid fa-rocket" /> Complete Profile
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="profile-container">
         <ProfileHeader
           photo={profile.photo}
@@ -808,6 +833,7 @@ const Profile: React.FC = () => {
               onShowGamingPreferencesModal={setShowGamingPreferencesModal}
               onShowLanguageModal={setShowLanguageModal}
               onSave={updateProfile}
+              onCancel={handleCancel}
             />
           )}
 
