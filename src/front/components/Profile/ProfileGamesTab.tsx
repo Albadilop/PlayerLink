@@ -3,6 +3,7 @@ import { GameForm, GameFormData } from "./GameForm";
 import type { Game } from "../../types";
 import type { SelectOption } from "./GameForm";
 import { selectMedal } from "../../utils/profileHelpers";
+import { GameImage } from "../GameImage";
 import "./ProfileGamesTab.css";
 
 const GAMES_PER_PAGE = 4;
@@ -276,7 +277,7 @@ export const ProfileGamesTab: React.FC<ProfileGamesTabProps> = ({
           data-bs-toggle="modal"
           data-bs-target="#commentModal"
         >
-          <i className="fa-solid fa-plus"></i> Add a new game
+          Add a new game
         </button>
 
         <GameForm
@@ -301,16 +302,13 @@ export const ProfileGamesTab: React.FC<ProfileGamesTabProps> = ({
                 <div className="game-card-content">
                   <div className="game-info">
                     <div className="game-title-section">
-                      {el.gameImage && (
-                        <img
-                          src={el.gameImage}
-                          alt={el.gameTitle}
-                          className="game-image"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).style.display = "none";
-                          }}
-                        />
-                      )}
+                      <GameImage
+                        gameTitle={el.gameTitle}
+                        gameImage={el.gameImage}
+                        className="game-image"
+                        alt={el.gameTitle}
+                        rawgApiKey={import.meta.env.VITE_RAWG_KEY || null}
+                      />
                       <h5 className="game-title">{el.gameTitle}</h5>
                     </div>
                   </div>

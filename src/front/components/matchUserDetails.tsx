@@ -10,6 +10,7 @@ import { selectMedal, selectPhoto } from "../utils/profileHelpers";
 import { ProfileInfoTab } from "./Profile/ProfileInfoTab";
 import { ProfileReviewsTab } from "./Profile/ProfileReviewsTab";
 import { parsePreferences } from "../utils/formatters";
+import { GameImage } from "./GameImage";
 import type { Game, Profile } from "../types";
 
 const GAMES_PER_PAGE = 4;
@@ -298,7 +299,13 @@ export const MatchUserDetails: React.FC = () => {
             <div className="match-games-list">
               {topThreeGames.map((game, i) => (
                 <div key={game.id || i} className="match-game-card">
-                  <img src={game.gameImage} alt={game.gameTitle} className="match-game-img" />
+                  <GameImage
+                    gameTitle={game.gameTitle}
+                    gameImage={game.gameImage}
+                    className="match-game-img"
+                    alt={game.gameTitle}
+                    rawgApiKey={import.meta.env.VITE_RAWG_KEY || null}
+                  />
                   <div className="match-game-info">
                     <span className="match-game-title">{game.gameTitle}</span>
                   </div>
@@ -390,16 +397,13 @@ export const MatchUserDetails: React.FC = () => {
                       <div className="game-card-content">
                         <div className="game-info">
                           <div className="game-title-section">
-                            {el.gameImage && (
-                              <img
-                                src={el.gameImage}
-                                alt={el.gameTitle}
-                                className="game-image"
-                                onError={(e) => {
-                                  (e.target as HTMLImageElement).style.display = "none";
-                                }}
-                              />
-                            )}
+                            <GameImage
+                              gameTitle={el.gameTitle}
+                              gameImage={el.gameImage}
+                              className="game-image"
+                              alt={el.gameTitle}
+                              rawgApiKey={import.meta.env.VITE_RAWG_KEY || null}
+                            />
                             <h5 className="game-title">{el.gameTitle}</h5>
                           </div>
                         </div>

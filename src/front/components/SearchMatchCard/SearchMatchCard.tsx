@@ -2,6 +2,7 @@ import "./SearchMatchCard.css";
 import React, { useEffect, useState } from "react";
 import searchMatchServices from "../../services/searchMatchServices";
 import { getPhotoAsset, defaultPhoto } from "../../constants/photoAssets";
+import { GameImage } from "../GameImage";
 import type { Profile } from "../../types";
 
 interface SearchMatchCardProps {
@@ -128,16 +129,13 @@ export const SearchMatchCard: React.FC<SearchMatchCardProps> = ({ profile, onLik
           {topGames.length > 0 ? (
             topGames.map((game, index) => (
               <div className="game-row" key={index}>
-                {game.gameImage && (
-                  <img
-                    src={game.gameImage}
-                    alt={game.gameTitle}
-                    className="game-image"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = "none";
-                    }}
-                  />
-                )}
+                <GameImage
+                  gameTitle={game.gameTitle}
+                  gameImage={game.gameImage}
+                  className="game-image"
+                  alt={game.gameTitle}
+                  rawgApiKey={import.meta.env.VITE_RAWG_KEY || null}
+                />
                 <span className="game-title">{game.gameTitle}</span>
                 <span className="game-hours">{game.gameHoursPlayed}h</span>
               </div>

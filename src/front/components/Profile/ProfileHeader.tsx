@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { selectPhoto, selectMedal } from "../../utils/profileHelpers";
+import { GameImage } from "../GameImage";
 import type { Game } from "../../types";
 import "./ProfileHeader.css";
 
@@ -78,7 +79,13 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
           <div className="profile-games-list">
             {topThreeGames.map((game, i) => (
               <div key={game.id || i} className="profile-game-card">
-                <img src={game.gameImage} alt={game.gameTitle} className="profile-game-img" />
+                <GameImage
+                  gameTitle={game.gameTitle}
+                  gameImage={game.gameImage}
+                  className="profile-game-img"
+                  alt={game.gameTitle}
+                  rawgApiKey={import.meta.env.VITE_RAWG_KEY || null}
+                />
                 <div className="profile-game-info">
                   <span className="profile-game-title">{game.gameTitle}</span>
                 </div>

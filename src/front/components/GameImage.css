@@ -1,0 +1,50 @@
+.game-image-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  border: 2px solid rgba(0, 240, 255, 0.3);
+  color: rgba(0, 240, 255, 0.5);
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+/* Inherit size from parent class */
+.game-image-placeholder.game-image,
+.game-image-placeholder.profile-game-img,
+.game-image-placeholder.match-game-img,
+.game-image-placeholder.match-mini-game-img,
+.game-image-placeholder.search-match-game-img {
+  width: 60px;
+  height: 35px;
+}
+
+.game-image-placeholder.profile-game-img {
+  width: 60px;
+  height: 35px;
+}
+
+.game-image-placeholder.match-game-img {
+  width: 50px;
+  height: 30px;
+}
+
+.game-image-placeholder.match-mini-game-img {
+  width: 40px;
+  height: 24px;
+  font-size: 0.9rem;
+}
+
+.game-image-placeholder.search-match-game-img {
+  width: 50px;
+  height: 30px;
+}
+
+.game-image-placeholder i.fa-spinner {
+  color: rgba(0, 240, 255, 0.7);
+}
+
+.game-image-placeholder i.fa-gamepad {
+  color: rgba(143, 0, 255, 0.5);
+}
