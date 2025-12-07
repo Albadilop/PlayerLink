@@ -223,6 +223,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
 }
 
 .game-row:last-child {
@@ -235,15 +236,26 @@
   transform: translateX(4px);
 }
 
+.game-row .game-image {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 2px solid rgba(0, 240, 255, 0.3);
+  flex-shrink: 0;
+}
+
 .game-row .game-title {
   color: #e0e0e0;
   font-weight: 500;
+  flex: 1;
 }
 
 .game-row .game-hours {
   color: #00f0ff;
   font-weight: 600;
   font-size: 0.85rem;
+  flex-shrink: 0;
 }
 
 /* ===== QUICK INFO ROW ===== */

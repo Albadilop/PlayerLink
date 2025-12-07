@@ -4,9 +4,12 @@ import userServices from "../services/userServices";
 import useGlobalReducer from "../hooks/useGlobalReducer";
 import "./matchUserDetails.css";
 import "../pages/Privateviews/Profile.css";
+import "./Profile/ProfileGamesTab.css";
 import reviewServices from "../services/reviewServices";
 import { selectMedal, selectPhoto } from "../utils/profileHelpers";
 import type { Game, Profile } from "../types";
+
+const GAMES_PER_PAGE = 4;
 
 interface CommentForm {
   stars: number;
@@ -55,12 +58,92 @@ export const MatchUserDetails: React.FC = () => {
   const [newComment, setNewComment] = useState<CommentForm>({ stars: 0, comment: "" });
   const [hoverRating, setHoverRating] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [currentPage, setCurrentPage] = useState(1);
 
-  const allGames = (store.itsMatchInfo?.profile?.games ?? []) as Game[];
-  const topThreeGames = allGames
-    .slice()
-    .sort((a, b) => (b.gameHoursPlayed ?? 0) - (a.gameHoursPlayed ?? 0))
-    .slice(0, 3);
+  // Obtener y ordenar juegos por horas (de mayor a menor)
+  const sortedGames = useMemo(() => {
+    const allGames = (store.itsMatchInfo?.profile?.games ?? []) as Game[];
+    return [...allGames].sort((a, b) => (b.gameHoursPlayed ?? 0) - (a.gameHoursPlayed ?? 0));
+  }, [store.itsMatchInfo?.profile?.games]);
+
+  const topThreeGames = sortedGames.slice(0, 3);
+
+  // Calcular paginación para el tab de Games
+  const paginationData = useMemo(() => {
+    const totalPages = Math.ceil(sortedGames.length / GAMES_PER_PAGE);
+    const startIndex = (currentPage - 1) * GAMES_PER_PAGE;
+    const endIndex = startIndex + GAMES_PER_PAGE;
+    const currentGames = sortedGames.slice(startIndex, endIndex);
+
+    return {
+      currentGames,
+      totalPages,
+      startIndex,
+      endIndex,
+    };
+  }, [sortedGames, currentPage]);
+
+  // Resetear a página 1 cuando cambian los juegos
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [sortedGames.length]);
+
+  const handlePrevious = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  const handleNext = () => {
+    if (currentPage < paginationData.totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const handlePageClick = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  // Generar números de página a mostrar
+  const getPageNumbers = () => {
+    const totalPages = paginationData.totalPages;
+    const pages: (number | string)[] = [];
+
+    if (totalPages <= 7) {
+      // Si hay 7 o menos páginas, mostrar todas
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      // Si hay más de 7 páginas, mostrar con elipsis
+      if (currentPage <= 3) {
+        // Al inicio
+        for (let i = 1; i <= 4; i++) {
+          pages.push(i);
+        }
+        pages.push("...");
+        pages.push(totalPages);
+      } else if (currentPage >= totalPages - 2) {
+        // Al final
+        pages.push(1);
+        pages.push("...");
+        for (let i = totalPages - 3; i <= totalPages; i++) {
+          pages.push(i);
+        }
+      } else {
+        // En el medio
+        pages.push(1);
+        pages.push("...");
+        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+          pages.push(i);
+        }
+        pages.push("...");
+        pages.push(totalPages);
+      }
+    }
+
+    return pages;
+  };
 
   useEffect(() => {
     if (!store.user) {
@@ -279,42 +362,129 @@ export const MatchUserDetails: React.FC = () => {
 
         {/* Games Tab */}
         {activeTab === "Games" && (
-          <div className="container match-info-section">
-            <div className="row justify-content-start">
-              <div className="col-lg-6 col-md-12 col-sm-12 d-flex align-items-center">
-                <h2 className="mb-0">Games</h2>
-                <span className="tooltip-wrapper ms-2">
-                  <i className="fa-solid fa-circle-info fa-xl medals-info-icon"></i>
-                  <span className="tooltip-text medal-info-tooltip-text">
-                    <strong>Medal Info:</strong>
-                    <div>
-                      <i className="fa-solid fa-medal mt-1 medal-info-gold"></i> +2500 hours
-                    </div>
-                    <div>
-                      <i className="fa-solid fa-medal mt-1 medal-info-silver"></i> +500 hours
-                    </div>
-                    <div>
-                      <i className="fa-solid fa-medal mt-1 medal-info-bronze"></i> 0-500 hours
-                    </div>
+          <div className="container info-section">
+            <div className="row d-flex justify-content-around align-items-center">
+              <div className="col-lg-6 col-md-12 col-sm-12 mt-3">
+                <h2 className="section-title">
+                  <i className="fa-solid fa-gamepad section-title-icon"></i>
+                  Games
+                  <span className="tooltip-wrapper">
+                    <i className="fa-solid fa-circle-info medals-info-icon"></i>
+                    <span className="tooltip-text medal-info-tooltip-text">
+                      <strong>Medal System:</strong>
+                      <div>
+                        <i className="fa-solid fa-medal medal-info-gold"></i> Gold: 2500+ hours
+                      </div>
+                      <div>
+                        <i className="fa-solid fa-medal medal-info-silver"></i> Silver: 500-2499
+                        hours
+                      </div>
+                      <div>
+                        <i className="fa-solid fa-medal medal-info-bronze"></i> Bronze: 0-499 hours
+                      </div>
+                      <span className="medal-info-tooltip-arrow"></span>
+                    </span>
                   </span>
-                </span>
+                </h2>
               </div>
             </div>
+            <div className="row mt-5 gap-3 d-flez justify-content-center gamesbigbox p-2">
+              {sortedGames.length > 0 ? (
+                <>
+                  {paginationData.currentGames.map((el, i) => (
+                    <div key={i} className="game-card">
+                      <div className="game-card-content">
+                        <div className="game-info">
+                          <div className="game-title-section">
+                            {el.gameImage && (
+                              <img
+                                src={el.gameImage}
+                                alt={el.gameTitle}
+                                className="game-image"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).style.display = "none";
+                                }}
+                              />
+                            )}
+                            <h5 className="game-title">{el.gameTitle}</h5>
+                          </div>
+                        </div>
 
-            <div className="row mt-5 gap-3 justify-content-center gamesbigbox">
-              {store.itsMatchInfo?.profile?.games && store.itsMatchInfo.profile.games.length > 0 ? (
-                store.itsMatchInfo.profile.games.map((el, i) => (
-                  <div key={i} className="col-12 gamesbox d-flex align-items-center py-3">
-                    <div className="row w-100 m-0">
-                      <div className="col-lg-10 col-md-12 d-flex justify-content-around align-items-center">
-                        <h6 className="m-0">{el.gameTitle}</h6>
-                        <h6 className="m-0">{el.gameHoursPlayed} hours</h6>
+                        <div className="game-stats">
+                          <div className="hours-display">
+                            <img
+                              src={selectMedal(el.gameHoursPlayed)}
+                              alt="Medal"
+                              className="game-medal"
+                            />
+                            <span className="hours-text">{el.gameHoursPlayed} hours</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))
+                  ))}
+
+                  {/* Controles de paginación */}
+                  {paginationData.totalPages > 1 && (
+                    <div className="pagination-container">
+                      <button
+                        className="pagination-btn"
+                        onClick={handlePrevious}
+                        disabled={currentPage === 1}
+                        aria-label="Previous page"
+                      >
+                        <i className="fa-solid fa-chevron-left"></i> Previous
+                      </button>
+
+                      <div className="pagination-numbers">
+                        {getPageNumbers().map((page, index) => {
+                          if (page === "...") {
+                            return (
+                              <span key={`ellipsis-${index}`} className="pagination-ellipsis">
+                                ...
+                              </span>
+                            );
+                          }
+                          return (
+                            <button
+                              key={page}
+                              className={`pagination-number ${currentPage === page ? "active" : ""}`}
+                              onClick={() => handlePageClick(page as number)}
+                              aria-label={`Go to page ${page}`}
+                            >
+                              {page}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      <button
+                        className="pagination-btn"
+                        onClick={handleNext}
+                        disabled={currentPage === paginationData.totalPages}
+                        aria-label="Next page"
+                      >
+                        Next <i className="fa-solid fa-chevron-right"></i>
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Información de paginación */}
+                  {paginationData.totalPages > 1 && (
+                    <div className="pagination-info">
+                      Showing {paginationData.startIndex + 1} -{" "}
+                      {Math.min(paginationData.endIndex, sortedGames.length)} of{" "}
+                      {sortedGames.length} games
+                    </div>
+                  )}
+                </>
               ) : (
-                <p className="text-center">No games available.</p>
+                <div className="empty-state">
+                  <div className="empty-state-icon">
+                    <i className="fa-solid fa-gamepad"></i>
+                  </div>
+                  <p className="empty-state-text">No games available yet</p>
+                </div>
               )}
             </div>
           </div>

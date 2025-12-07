@@ -128,6 +128,16 @@ export const SearchMatchCard: React.FC<SearchMatchCardProps> = ({ profile, onLik
           {topGames.length > 0 ? (
             topGames.map((game, index) => (
               <div className="game-row" key={index}>
+                {game.gameImage && (
+                  <img
+                    src={game.gameImage}
+                    alt={game.gameTitle}
+                    className="game-image"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = "none";
+                    }}
+                  />
+                )}
                 <span className="game-title">{game.gameTitle}</span>
                 <span className="game-hours">{game.gameHoursPlayed}h</span>
               </div>
