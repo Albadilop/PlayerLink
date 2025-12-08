@@ -260,15 +260,102 @@
 .settings-input-group select {
   flex: 1;
   padding: 8px;
-  background: #222;
-  border: 2px solid cyan;
-  border-radius: 8px;
-  color: white;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid #00f0ff;
+  border-radius: 6px;
+  color: #fff;
+  font-weight: 600;
+  box-shadow:
+    0 0 6px rgba(0, 240, 255, 0.4),
+    inset 0 0 2px rgba(0, 240, 255, 0.05);
+  transition: all 0.3s ease;
+}
+
+.settings-input-group input:focus {
+  outline: none;
+  border-color: #00ffff;
+  box-shadow:
+    0 0 10px rgba(0, 240, 255, 0.6),
+    inset 0 0 3px rgba(0, 240, 255, 0.1);
+  background: rgba(0, 0, 0, 0.7);
 }
 
 .settings-input-group label {
   min-width: 120px;
   color: white;
+}
+
+.settings-age-input {
+  width: 100%;
+  padding: 8px !important;
+  box-sizing: border-box;
+}
+
+/* Ocultar las flechas nativas del input number */
+.settings-age-input::-webkit-inner-spin-button,
+.settings-age-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.settings-age-input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+.settings-spinner-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  margin-bottom: 0;
+}
+
+.settings-spinner-btn {
+  width: 24px;
+  height: 24px;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid #00f0ff;
+  border-radius: 4px;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  padding: 0;
+  box-shadow:
+    0 0 6px rgba(0, 240, 255, 0.5),
+    inset 0 0 2px rgba(0, 240, 255, 0.1);
+}
+
+.settings-spinner-btn:hover {
+  background: rgba(0, 0, 0, 0.8);
+  border-color: #00ffff;
+  box-shadow:
+    0 0 10px rgba(0, 240, 255, 0.7),
+    inset 0 0 3px rgba(0, 240, 255, 0.2);
+  transform: scale(1.05);
+}
+
+.settings-spinner-btn:active {
+  background: rgba(0, 0, 0, 0.9);
+  border-color: #00ffff;
+  box-shadow:
+    0 0 12px rgba(0, 240, 255, 0.9),
+    inset 0 0 4px rgba(0, 240, 255, 0.3);
+  transform: scale(0.95);
+}
+
+.settings-spinner-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  border-color: rgba(0, 240, 255, 0.3);
+}
+
+.settings-spinner-btn i {
+  font-size: 0.7rem;
+  color: #fff;
+  text-shadow: 0 0 3px rgba(255, 255, 255, 0.5);
+  font-weight: 600;
 }
 
 .blocked-user-item {

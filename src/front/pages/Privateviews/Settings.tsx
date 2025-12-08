@@ -502,12 +502,20 @@ const SettingsView: React.FC = () => {
 
   return (
     <div className="settings-container">
-      <h2 className="settings-title">Settings</h2>
+      <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "20px" }}>
+        <h2 className="settings-title" style={{ marginBottom: 0 }}>
+          Settings
+        </h2>
+        {settingsSuccess && (
+          <div className="text-success" style={{ margin: 0, fontSize: "1rem" }}>
+            {settingsSuccess}
+          </div>
+        )}
+      </div>
 
       {settingsError && !settingsError.includes("Could not connect") && (
         <div className="text-danger mb-2">{settingsError}</div>
       )}
-      {settingsSuccess && <div className="text-success mb-2">{settingsSuccess}</div>}
 
       {/* Account Section */}
       <div className="settings-category">
@@ -534,36 +542,121 @@ const SettingsView: React.FC = () => {
             />
           </div>
           <div className="settings-input-group">
-            <label>Min Age:</label>
-            <input
-              type="number"
-              value={settings.matching.min_age_preference || ""}
-              onChange={(e) =>
-                handleInputChange(
-                  "matching",
-                  "min_age_preference",
-                  e.target.value ? parseInt(e.target.value) : null
-                )
-              }
-              min="18"
-              max="100"
-            />
-          </div>
-          <div className="settings-input-group">
-            <label>Max Age:</label>
-            <input
-              type="number"
-              value={settings.matching.max_age_preference || ""}
-              onChange={(e) =>
-                handleInputChange(
-                  "matching",
-                  "max_age_preference",
-                  e.target.value ? parseInt(e.target.value) : null
-                )
-              }
-              min="18"
-              max="100"
-            />
+            <label>Age Range:</label>
+            <div style={{ flex: 1, display: "flex", gap: "1rem" }}>
+              <div style={{ display: "flex", alignItems: "flex-end", gap: "0.5rem", flex: 1 }}>
+                <div style={{ flex: 1 }}>
+                  <label
+                    style={{
+                      fontSize: "0.85rem",
+                      color: "#aaa",
+                      marginBottom: "0.25rem",
+                      display: "block",
+                    }}
+                  >
+                    Min Age
+                  </label>
+                  <input
+                    type="number"
+                    value={settings.matching.min_age_preference || ""}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "matching",
+                        "min_age_preference",
+                        e.target.value ? parseInt(e.target.value) : null
+                      )
+                    }
+                    min="18"
+                    max="100"
+                    className="settings-age-input"
+                  />
+                </div>
+                <div className="settings-spinner-buttons">
+                  <button
+                    type="button"
+                    className="settings-spinner-btn settings-spinner-up"
+                    onClick={() => {
+                      const currentValue = settings.matching.min_age_preference || 18;
+                      if (currentValue < 100) {
+                        handleInputChange("matching", "min_age_preference", currentValue + 1);
+                      }
+                    }}
+                    aria-label="Increase min age"
+                  >
+                    <i className="fa-solid fa-chevron-up"></i>
+                  </button>
+                  <button
+                    type="button"
+                    className="settings-spinner-btn settings-spinner-down"
+                    onClick={() => {
+                      const currentValue = settings.matching.min_age_preference || 18;
+                      if (currentValue > 18) {
+                        handleInputChange("matching", "min_age_preference", currentValue - 1);
+                      }
+                    }}
+                    aria-label="Decrease min age"
+                  >
+                    <i className="fa-solid fa-chevron-down"></i>
+                  </button>
+                </div>
+              </div>
+              <div style={{ display: "flex", alignItems: "flex-end", gap: "0.5rem", flex: 1 }}>
+                <div style={{ flex: 1 }}>
+                  <label
+                    style={{
+                      fontSize: "0.85rem",
+                      color: "#aaa",
+                      marginBottom: "0.25rem",
+                      display: "block",
+                    }}
+                  >
+                    Max Age
+                  </label>
+                  <input
+                    type="number"
+                    value={settings.matching.max_age_preference || ""}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "matching",
+                        "max_age_preference",
+                        e.target.value ? parseInt(e.target.value) : null
+                      )
+                    }
+                    min="18"
+                    max="100"
+                    className="settings-age-input"
+                  />
+                </div>
+                <div className="settings-spinner-buttons">
+                  <button
+                    type="button"
+                    className="settings-spinner-btn settings-spinner-up"
+                    onClick={() => {
+                      const currentValue = settings.matching.max_age_preference || 18;
+                      if (currentValue < 100) {
+                        handleInputChange("matching", "max_age_preference", currentValue + 1);
+                      }
+                    }}
+                    aria-label="Increase max age"
+                  >
+                    <i className="fa-solid fa-chevron-up"></i>
+                  </button>
+                  <button
+                    type="button"
+                    className="settings-spinner-btn settings-spinner-down"
+                    onClick={() => {
+                      const currentValue = settings.matching.max_age_preference || 18;
+                      if (currentValue > 18) {
+                        handleInputChange("matching", "max_age_preference", currentValue - 1);
+                      }
+                    }}
+                    aria-label="Decrease max age"
+                  >
+                    <i className="fa-solid fa-chevron-down"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
           {ageValidationError && (
             <div className="text-danger" style={{ fontSize: "0.9rem", marginTop: "5px" }}>
