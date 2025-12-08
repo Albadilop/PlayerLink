@@ -1,4 +1,4 @@
-import type { Store, Action } from './types';
+import type { Store, Action } from "./types";
 
 function safeJSONParse<T>(key: string, fallback: T): T {
   try {
@@ -24,12 +24,15 @@ export const initialStore = (): Store => {
   };
 };
 
-export default function storeReducer(store: Store, action: Action = { type: "getUserInfo" }): Store {
+export default function storeReducer(
+  store: Store,
+  action: Action = { type: "getUserInfo" }
+): Store {
   switch (action.type) {
     case "addMatch": {
       const updatedMatches = store.userMatchesInfo
-        ? [...store.userMatchesInfo, action.payload as typeof store.userMatchesInfo[0]]
-        : [action.payload as typeof store.userMatchesInfo[0]];
+        ? [...store.userMatchesInfo, action.payload as (typeof store.userMatchesInfo)[0]]
+        : [action.payload as (typeof store.userMatchesInfo)[0]];
       localStorage.setItem("userMatchesInfo", JSON.stringify(updatedMatches));
       return {
         ...store,
@@ -38,25 +41,26 @@ export default function storeReducer(store: Store, action: Action = { type: "get
     }
 
     case "getSearchMatchProfilesFiltered":
-      localStorage.setItem(
-        "searchMatchProfiles",
-        JSON.stringify(action.payload)
-      );
+      localStorage.setItem("searchMatchProfiles", JSON.stringify(action.payload));
       return {
         ...store,
-        searchMatchProfiles: action.payload as Store['searchMatchProfiles'],
+        searchMatchProfiles: action.payload as Store["searchMatchProfiles"],
       };
 
-    case "saveLike":
-      const updatedLikes = [...store.likesSent, action.payload as typeof store.likesSent[0]];
+    case "saveLike": {
+      const updatedLikes = [...store.likesSent, action.payload as (typeof store.likesSent)[0]];
       localStorage.setItem("likesSent", JSON.stringify(updatedLikes));
       return {
         ...store,
         likesSent: updatedLikes,
       };
+    }
 
     case "saveDislike": {
-      const updatedDislikes = [...store.dislikesSent, action.payload as typeof store.dislikesSent[0]];
+      const updatedDislikes = [
+        ...store.dislikesSent,
+        action.payload as (typeof store.dislikesSent)[0],
+      ];
       localStorage.setItem("dislikesSent", JSON.stringify(updatedDislikes));
       return {
         ...store,
@@ -65,13 +69,10 @@ export default function storeReducer(store: Store, action: Action = { type: "get
     }
 
     case "getSearchMatchProfiles":
-      localStorage.setItem(
-        "searchMatchProfiles",
-        JSON.stringify(action.payload)
-      );
+      localStorage.setItem("searchMatchProfiles", JSON.stringify(action.payload));
       return {
         ...store,
-        searchMatchProfiles: action.payload as Store['searchMatchProfiles'],
+        searchMatchProfiles: action.payload as Store["searchMatchProfiles"],
       };
 
     case "getStarsByUser":
@@ -83,14 +84,22 @@ export default function storeReducer(store: Store, action: Action = { type: "get
     case "getItsMatchInfo":
       return {
         ...store,
-        itsMatchInfo: action.payload as Store['itsMatchInfo'],
+        itsMatchInfo: action.payload as Store["itsMatchInfo"],
       };
 
-    case "getAllMatchesInfo":
+    case "getAllMatchesInfo": {
+      const matches = action.payload as Store["userMatchesInfo"];
+      // Guardar en localStorage para persistencia
+      if (matches) {
+        localStorage.setItem("userMatchesInfo", JSON.stringify(matches));
+      } else {
+        localStorage.removeItem("userMatchesInfo");
+      }
       return {
         ...store,
-        userMatchesInfo: action.payload as Store['userMatchesInfo'],
+        userMatchesInfo: matches,
       };
+    }
 
     case "logout":
       localStorage.removeItem("user");
@@ -113,7 +122,7 @@ export default function storeReducer(store: Store, action: Action = { type: "get
     case "matchReviewsReceived":
       return {
         ...store,
-        matchReviewsReceived: action.payload as Store['matchReviewsReceived'],
+        matchReviewsReceived: action.payload as Store["matchReviewsReceived"],
       };
 
     case "getUserInfo":
@@ -123,11 +132,10 @@ export default function storeReducer(store: Store, action: Action = { type: "get
       }
       return {
         ...store,
-        user: action.payload as Store['user'],
+        user: action.payload as Store["user"],
       };
 
     default:
       return store;
   }
 }
-

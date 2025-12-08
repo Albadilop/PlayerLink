@@ -503,6 +503,10 @@
   padding: 0 !important;
   max-width: 300px !important;
   font-family: "Orbitron", "Segoe UI", sans-serif !important;
+  transition:
+    opacity 0.15s ease,
+    visibility 0.15s ease !important;
+  z-index: 1060 !important;
 }
 
 .popover-body {
