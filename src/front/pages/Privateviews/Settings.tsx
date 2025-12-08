@@ -710,18 +710,49 @@ const SettingsView: React.FC = () => {
           </div>
           <div className="settings-input-group">
             <label>Min Hours Played:</label>
-            <input
-              type="number"
-              value={settings.matching.min_hours_played || ""}
-              onChange={(e) =>
-                handleInputChange(
-                  "matching",
-                  "min_hours_played",
-                  e.target.value ? parseInt(e.target.value) : null
-                )
-              }
-              min="0"
-            />
+            <div style={{ display: "flex", alignItems: "flex-end", gap: "0.5rem", flex: 1 }}>
+              <div style={{ flex: 1 }}>
+                <input
+                  type="number"
+                  value={settings.matching.min_hours_played || ""}
+                  onChange={(e) =>
+                    handleInputChange(
+                      "matching",
+                      "min_hours_played",
+                      e.target.value ? parseInt(e.target.value) : null
+                    )
+                  }
+                  min="0"
+                  className="settings-age-input"
+                />
+              </div>
+              <div className="settings-spinner-buttons">
+                <button
+                  type="button"
+                  className="settings-spinner-btn settings-spinner-up"
+                  onClick={() => {
+                    const currentValue = settings.matching.min_hours_played || 0;
+                    handleInputChange("matching", "min_hours_played", currentValue + 1);
+                  }}
+                  aria-label="Increase min hours"
+                >
+                  <i className="fa-solid fa-chevron-up"></i>
+                </button>
+                <button
+                  type="button"
+                  className="settings-spinner-btn settings-spinner-down"
+                  onClick={() => {
+                    const currentValue = settings.matching.min_hours_played || 0;
+                    if (currentValue > 0) {
+                      handleInputChange("matching", "min_hours_played", currentValue - 1);
+                    }
+                  }}
+                  aria-label="Decrease min hours"
+                >
+                  <i className="fa-solid fa-chevron-down"></i>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
