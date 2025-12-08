@@ -490,3 +490,94 @@
     height: 24px;
   }
 }
+
+/* ===== BOOTSTRAP POPOVER STYLES ===== */
+.popover {
+  background: linear-gradient(145deg, #0a0f1c, #12182b) !important;
+  border: 2px solid #00f0ff !important;
+  border-radius: 12px !important;
+  box-shadow:
+    0 8px 30px rgba(0, 0, 0, 0.6),
+    0 0 20px rgba(0, 240, 255, 0.2),
+    inset 0 0 0 1px rgba(143, 0, 255, 0.3) !important;
+  padding: 0 !important;
+  max-width: 300px !important;
+  font-family: "Orbitron", "Segoe UI", sans-serif !important;
+}
+
+.popover-body {
+  background: transparent !important;
+  color: #fff !important;
+  padding: 14px 16px !important;
+  font-size: 0.9rem !important;
+  line-height: 1.6 !important;
+}
+
+.popover-hours {
+  color: #00f0ff !important;
+  font-weight: 700 !important;
+  font-size: 1.1rem !important;
+  text-shadow: 0 0 10px rgba(0, 240, 255, 0.6) !important;
+  letter-spacing: 0.5px !important;
+}
+
+.popover-header {
+  display: none !important;
+}
+
+/* Popover arrow - Bootstrap 5 structure */
+.popover-arrow {
+  display: block !important;
+}
+
+.popover-arrow::before {
+  border-color: transparent !important;
+}
+
+.popover-arrow::after {
+  border-color: transparent !important;
+}
+
+/* Bottom placement (most common for medals) */
+.popover[data-popper-placement^="bottom"] .popover-arrow::before {
+  border-bottom-color: #00f0ff !important;
+  top: -1px !important;
+}
+
+.popover[data-popper-placement^="bottom"] .popover-arrow::after {
+  border-bottom-color: #12182b !important;
+  top: 0 !important;
+}
+
+/* Top placement */
+.popover[data-popper-placement^="top"] .popover-arrow::before {
+  border-top-color: #00f0ff !important;
+  bottom: -1px !important;
+}
+
+.popover[data-popper-placement^="top"] .popover-arrow::after {
+  border-top-color: #12182b !important;
+  bottom: 0 !important;
+}
+
+/* Left placement */
+.popover[data-popper-placement^="left"] .popover-arrow::before {
+  border-left-color: #00f0ff !important;
+  right: -1px !important;
+}
+
+.popover[data-popper-placement^="left"] .popover-arrow::after {
+  border-left-color: #12182b !important;
+  right: 0 !important;
+}
+
+/* Right placement */
+.popover[data-popper-placement^="right"] .popover-arrow::before {
+  border-right-color: #00f0ff !important;
+  left: -1px !important;
+}
+
+.popover[data-popper-placement^="right"] .popover-arrow::after {
+  border-right-color: #12182b !important;
+  left: 0 !important;
+}

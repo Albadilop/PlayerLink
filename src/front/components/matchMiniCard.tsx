@@ -115,7 +115,8 @@ export const MatchMiniCard: React.FC<MatchMiniCardProps> = ({
                     data-bs-trigger="hover focus"
                     data-bs-container="body"
                     data-bs-placement="bottom"
-                    data-bs-content={`${game.gameTitle} — ${game.gameHoursPlayed}h`}
+                    data-bs-html="true"
+                    data-bs-content={`${game.gameTitle} — <span class="popover-hours">${game.gameHoursPlayed}h</span>`}
                   />
                 </div>
               ))}
