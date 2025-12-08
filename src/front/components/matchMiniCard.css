@@ -230,27 +230,6 @@
   position: relative;
   padding: 0.5rem;
   border-radius: 8px;
-  transition: all 0.3s ease;
-}
-
-.match-mini-game-item::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.1), transparent);
-  transition: left 0.5s ease;
-  border-radius: 8px;
-}
-
-.match-mini-game-item:hover {
-  background: rgba(0, 0, 0, 0.3);
-}
-
-.match-mini-game-item:hover::after {
-  left: 100%;
 }
 
 .match-mini-game-img {
@@ -260,12 +239,6 @@
   border-radius: 8px;
   border: 2px solid rgba(0, 240, 255, 0.3);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  transition: all 0.3s ease;
-}
-
-.match-mini-game-img:hover {
-  border-color: rgba(0, 240, 255, 0.5);
-  box-shadow: 0 4px 15px rgba(0, 240, 255, 0.15);
 }
 
 .match-mini-medal {
@@ -273,11 +246,6 @@
   height: 32px;
   object-fit: contain;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
-  transition: transform 0.3s ease;
-}
-
-.match-mini-medal:hover {
-  transform: scale(1.15) rotate(5deg);
 }
 
 /* No games state */
