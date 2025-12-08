@@ -48,7 +48,7 @@ export const YourMatches: React.FC = () => {
                 .map((el, index) => (
                   <div
                     key={el.user_id || el.match_id || `match-${index}`}
-                    className="col-lg-3 col-md-6 col-sm-12"
+                    className="col-xxl-3 col-xl-4 col-lg-4 col-md-6 col-sm-12"
                   >
                     <MatchMiniCard
                       id={el.user_id}
