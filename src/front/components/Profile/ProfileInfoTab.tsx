@@ -186,6 +186,7 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
                   options={genderOptions}
                   value={genderOptions.find((opt) => opt.value === profile.gender) || null}
                   onChange={(selected) => onInputChange("gender", selected?.value || "")}
+                  isSearchable={false}
                   menuPortalTarget={document.body}
                   styles={{
                     menuPortal: (base) => ({ ...base, zIndex: 9999 }),
@@ -243,7 +244,7 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
                         : state.isHovered
                           ? "inset 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 15px rgba(143, 0, 255, 0.3)"
                           : "inset 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 10px rgba(0, 240, 255, 0.2)",
-                      minHeight: "48px",
+                      minHeight: "40px",
                       cursor: "pointer",
                     }),
                     placeholder: (base) => ({
@@ -290,6 +291,7 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
                   options={zodiacOptions}
                   value={zodiacOptions.find((opt) => opt.value === profile.zodiac) || null}
                   onChange={(selected) => onInputChange("zodiac", selected?.value || "")}
+                  isSearchable={false}
                   menuPortalTarget={document.body}
                   styles={{
                     menuPortal: (base) => ({ ...base, zIndex: 9999 }),
@@ -347,7 +349,7 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
                         : state.isHovered
                           ? "inset 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 15px rgba(143, 0, 255, 0.3)"
                           : "inset 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 10px rgba(0, 240, 255, 0.2)",
-                      minHeight: "48px",
+                      minHeight: "40px",
                       cursor: "pointer",
                     }),
                     placeholder: (base) => ({
