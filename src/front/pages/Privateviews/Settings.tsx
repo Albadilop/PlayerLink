@@ -251,18 +251,29 @@ const SettingsView: React.FC = () => {
   const handleInputChange = (category: string, key: string, value: string | number | null) => {
     if (!settings) return;
 
-    // Validate age range when changing age preferences
-    if (category === "matching" && (key === "min_age_preference" || key === "max_age_preference")) {
-      const newMinAge =
-        key === "min_age_preference" ? (value as number) : settings.matching.min_age_preference;
-      const newMaxAge =
-        key === "max_age_preference" ? (value as number) : settings.matching.max_age_preference;
-
-      if (!validateAgeRange(newMinAge ?? null, newMaxAge ?? null)) {
-        return; // Don't update if validation fails
-      }
+    // Update local state immediately to allow user to type
+    const updatedSettings = { ...settings };
+    if (category === "matching") {
+      updatedSettings.matching = { ...settings.matching, [key]: value };
+      setSettings(updatedSettings);
     }
 
+    // Validate age range when changing age preferences (but don't block the update)
+    if (category === "matching" && (key === "min_age_preference" || key === "max_age_preference")) {
+      const newMinAge =
+        key === "min_age_preference"
+          ? (value as number)
+          : updatedSettings.matching.min_age_preference;
+      const newMaxAge =
+        key === "max_age_preference"
+          ? (value as number)
+          : updatedSettings.matching.max_age_preference;
+
+      // Validate but allow the update to proceed
+      validateAgeRange(newMinAge ?? null, newMaxAge ?? null);
+    }
+
+    // Update on server (this will update the state again when it completes)
     updateSettings({ [category]: { [key]: value } });
   };
 
