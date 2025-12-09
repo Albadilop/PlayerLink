@@ -260,7 +260,7 @@
     inset 0 0 20px rgba(127, 0, 255, 0.1) !important;
   margin-top: 0.5rem !important;
   overflow: hidden;
-  z-index: 9999 !important;
+  z-index: 10010 !important;
 }
 
 .info-field-select :global(.info-select__menu-list) {

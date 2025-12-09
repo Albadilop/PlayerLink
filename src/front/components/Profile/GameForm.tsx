@@ -172,7 +172,7 @@ export const GameForm: React.FC<GameFormProps> = ({
                   placeholder="Search for a game..."
                   menuPortalTarget={document.body}
                   styles={{
-                    menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                    menuPortal: (base) => ({ ...base, zIndex: 10010 }),
                     menu: (base) => ({
                       ...base,
                       background: "linear-gradient(145deg, #0e0e1a, #1a1a2f)",

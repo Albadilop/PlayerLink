@@ -362,7 +362,7 @@
   position: relative;
   display: inline-block;
   margin-left: 10px;
-  z-index: 10000;
+  z-index: 10007;
 }
 
 .medals-info-icon {
@@ -394,7 +394,7 @@
   background: linear-gradient(145deg, #0a0f1c, #12182b);
   padding: 18px;
   border-radius: 12px;
-  z-index: 99999;
+  z-index: 10008;
   width: 260px;
   color: #fff;
   font-size: 0.9rem;
@@ -450,7 +450,7 @@
   border-right: 10px solid transparent;
   border-top: 10px solid #12182b;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
-  z-index: 100000;
+  z-index: 10009;
 }
 
 .medal-info-tooltip-arrow::before {

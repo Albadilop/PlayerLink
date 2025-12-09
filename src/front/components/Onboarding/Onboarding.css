@@ -386,8 +386,10 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
+  z-index: 10006;
   animation: fadeIn 0.3s ease;
+  will-change: opacity;
+  backface-visibility: hidden;
 }
 
 @keyframes fadeIn {
@@ -408,6 +410,10 @@
   max-height: 90vh;
   overflow: hidden;
   animation: slideUp 0.3s ease;
+  position: relative;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 @keyframes slideUp {
@@ -452,6 +458,9 @@
 
 .modal-body {
   padding: 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
 }
 
 .modal-footer {
@@ -505,6 +514,16 @@
   color: #ffffff !important;
   overflow: hidden;
   animation: onboardingGameModalSlideIn 0.3s ease-out;
+  position: relative !important;
+  width: 100% !important;
+  max-width: 500px !important;
+  max-height: 90vh !important;
+  display: flex !important;
+  flex-direction: column !important;
+  margin: 0 auto !important;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  transform: translateZ(0);
 }
 
 @keyframes onboardingGameModalSlideIn {
@@ -602,6 +621,10 @@
 .onboarding-game-body {
   background: linear-gradient(180deg, #0a0f1c 0%, #12182b 100%) !important;
   padding: 2rem 1.5rem !important;
+  overflow-y: auto !important;
+  flex: 1 !important;
+  min-height: 0 !important;
+  max-height: calc(90vh - 200px) !important;
 }
 
 .onboarding-game-group {

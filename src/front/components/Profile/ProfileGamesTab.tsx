@@ -51,7 +51,7 @@ export const ProfileGamesTab: React.FC<ProfileGamesTabProps> = ({
     setGame((prev) => ({ ...prev, [field]: value }));
   }, []);
 
-  const handleAdd = async () => {
+  const handleAdd = React.useCallback(async () => {
     console.log("[ProfileGamesTab] handleAdd llamado", {
       game: game,
       gamesCount: games.length,
@@ -90,7 +90,7 @@ export const ProfileGamesTab: React.FC<ProfileGamesTabProps> = ({
     } catch (err) {
       console.error("[ProfileGamesTab] Error adding game:", err);
     }
-  };
+  }, [game, games, onAddGame]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>, gameId: number) => {
     e.preventDefault();
@@ -319,13 +319,22 @@ export const ProfileGamesTab: React.FC<ProfileGamesTabProps> = ({
       {showGameForm && (
         <div
           className="modal-overlay"
-          onClick={() => {
-            setShowGameForm(false);
-            setErrorRepeatedGame("");
-            setErrorHoursPlayed("");
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              e.preventDefault();
+              e.stopPropagation();
+              setShowGameForm(false);
+              setErrorRepeatedGame("");
+              setErrorHoursPlayed("");
+            }
           }}
         >
-          <div className="modal-content onboarding-game-modal" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="modal-content onboarding-game-modal"
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+          >
             <div className="modal-header onboarding-game-header">
               <div className="onboarding-game-title-wrapper">
                 <i className="fa-solid fa-gamepad onboarding-game-icon"></i>
@@ -361,7 +370,7 @@ export const ProfileGamesTab: React.FC<ProfileGamesTabProps> = ({
                     classNamePrefix="onboarding-select"
                     menuPortalTarget={document.body}
                     styles={{
-                      menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                      menuPortal: (base) => ({ ...base, zIndex: 10010 }),
                       menu: (base) => ({
                         ...base,
                         background: "linear-gradient(145deg, #0e0e1a, #1a1a2f)",
