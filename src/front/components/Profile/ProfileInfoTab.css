@@ -469,6 +469,8 @@
   box-shadow: 0 0 15px rgba(143, 0, 255, 0.3);
   position: relative;
   overflow: hidden;
+  white-space: nowrap;
+  min-width: fit-content;
 }
 
 .edit-btn::before {
