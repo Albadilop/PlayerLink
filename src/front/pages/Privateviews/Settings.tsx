@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import "./Settings.css";
 import userServices from "../../services/userServices";
 import settingsServices, {
@@ -67,6 +67,9 @@ const SettingsView: React.FC = () => {
   const [settingsError, setSettingsError] = useState<string>("");
   const [settingsSuccess, setSettingsSuccess] = useState<string>("");
   const [ageValidationError, setAgeValidationError] = useState<string>("");
+
+  // Debounce timer for saving age preferences
+  const saveAgeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Blocked users
   const [blockedUsers, setBlockedUsers] = useState<BlockedUser[]>([]);
@@ -189,6 +192,15 @@ const SettingsView: React.FC = () => {
     }
   }, [settings]);
 
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (saveAgeTimeoutRef.current) {
+        clearTimeout(saveAgeTimeoutRef.current);
+      }
+    };
+  }, []);
+
   const updateSettings = async (
     updates: Partial<{
       matching: Partial<MatchingPreferences>;
@@ -206,6 +218,7 @@ const SettingsView: React.FC = () => {
     try {
       const resp = await settingsServices.updateUserSettings(store.user.id, updates);
       if (resp.ok && resp.data) {
+        // Use the server response directly - it should contain all saved values
         setSettings(resp.data);
         setSettingsSuccess("Settings updated successfully");
         showToast("Settings updated successfully", "success");
@@ -271,9 +284,29 @@ const SettingsView: React.FC = () => {
 
       // Validate but allow the update to proceed
       validateAgeRange(newMinAge ?? null, newMaxAge ?? null);
-    }
 
-    // Update on server (this will update the state again when it completes)
+      // Clear existing timeout
+      if (saveAgeTimeoutRef.current) {
+        clearTimeout(saveAgeTimeoutRef.current);
+      }
+
+      // Debounce save to server (wait 500ms after user stops typing)
+      saveAgeTimeoutRef.current = setTimeout(() => {
+        updateSettings({ [category]: { [key]: value } });
+      }, 500);
+    } else {
+      // For non-age fields, save immediately
+      updateSettings({ [category]: { [key]: value } });
+    }
+  };
+
+  const handleAgeBlur = (category: string, key: string, value: string | number | null) => {
+    // Clear any pending timeout
+    if (saveAgeTimeoutRef.current) {
+      clearTimeout(saveAgeTimeoutRef.current);
+      saveAgeTimeoutRef.current = null;
+    }
+    // Save immediately when user leaves the field
     updateSettings({ [category]: { [key]: value } });
   };
 
@@ -577,6 +610,13 @@ const SettingsView: React.FC = () => {
                         e.target.value ? parseInt(e.target.value) : null
                       )
                     }
+                    onBlur={(e) =>
+                      handleAgeBlur(
+                        "matching",
+                        "min_age_preference",
+                        e.target.value ? parseInt(e.target.value) : null
+                      )
+                    }
                     min="18"
                     max="100"
                     className="settings-age-input"
@@ -589,7 +629,9 @@ const SettingsView: React.FC = () => {
                     onClick={() => {
                       const currentValue = settings.matching.min_age_preference || 18;
                       if (currentValue < 100) {
-                        handleInputChange("matching", "min_age_preference", currentValue + 1);
+                        const newValue = currentValue + 1;
+                        handleInputChange("matching", "min_age_preference", newValue);
+                        handleAgeBlur("matching", "min_age_preference", newValue);
                       }
                     }}
                     aria-label="Increase min age"
@@ -602,7 +644,9 @@ const SettingsView: React.FC = () => {
                     onClick={() => {
                       const currentValue = settings.matching.min_age_preference || 18;
                       if (currentValue > 18) {
-                        handleInputChange("matching", "min_age_preference", currentValue - 1);
+                        const newValue = currentValue - 1;
+                        handleInputChange("matching", "min_age_preference", newValue);
+                        handleAgeBlur("matching", "min_age_preference", newValue);
                       }
                     }}
                     aria-label="Decrease min age"
@@ -633,6 +677,13 @@ const SettingsView: React.FC = () => {
                         e.target.value ? parseInt(e.target.value) : null
                       )
                     }
+                    onBlur={(e) =>
+                      handleAgeBlur(
+                        "matching",
+                        "max_age_preference",
+                        e.target.value ? parseInt(e.target.value) : null
+                      )
+                    }
                     min="18"
                     max="100"
                     className="settings-age-input"
@@ -645,7 +696,9 @@ const SettingsView: React.FC = () => {
                     onClick={() => {
                       const currentValue = settings.matching.max_age_preference || 18;
                       if (currentValue < 100) {
-                        handleInputChange("matching", "max_age_preference", currentValue + 1);
+                        const newValue = currentValue + 1;
+                        handleInputChange("matching", "max_age_preference", newValue);
+                        handleAgeBlur("matching", "max_age_preference", newValue);
                       }
                     }}
                     aria-label="Increase max age"
@@ -658,7 +711,9 @@ const SettingsView: React.FC = () => {
                     onClick={() => {
                       const currentValue = settings.matching.max_age_preference || 18;
                       if (currentValue > 18) {
-                        handleInputChange("matching", "max_age_preference", currentValue - 1);
+                        const newValue = currentValue - 1;
+                        handleInputChange("matching", "max_age_preference", newValue);
+                        handleAgeBlur("matching", "max_age_preference", newValue);
                       }
                     }}
                     aria-label="Decrease max age"
@@ -959,7 +1014,7 @@ const SettingsView: React.FC = () => {
       {/* App Preferences */}
       <div className="settings-category">
         <h3>Application</h3>
-        <div className="settings-item">
+        <div className="settings-input-group">
           <label>Theme</label>
           <select
             value={theme}

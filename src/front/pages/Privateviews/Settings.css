@@ -407,15 +407,35 @@
     0 0 6px rgba(0, 240, 255, 0.4),
     inset 0 0 2px rgba(0, 240, 255, 0.05);
   transition: all 0.3s ease;
+  cursor: pointer;
 }
 
-.settings-input-group input:focus {
+.settings-input-group input:focus,
+.settings-input-group select:focus {
   outline: none;
   border-color: #00ffff;
   box-shadow:
     0 0 10px rgba(0, 240, 255, 0.6),
     inset 0 0 3px rgba(0, 240, 255, 0.1);
   background: rgba(0, 0, 0, 0.7);
+}
+
+.settings-input-group select option {
+  background: rgba(0, 0, 0, 0.95);
+  color: #fff;
+  padding: 10px;
+  font-weight: 600;
+  font-family: "Orbitron", "Segoe UI", sans-serif;
+}
+
+.settings-input-group select option:hover {
+  background: rgba(0, 240, 255, 0.2);
+  color: #00ffff;
+}
+
+.settings-input-group select option:checked {
+  background: rgba(0, 240, 255, 0.3);
+  color: #00ffff;
 }
 
 .settings-input-group label {
