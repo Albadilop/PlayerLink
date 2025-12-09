@@ -391,23 +391,17 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
           {(["discord", "steam_id"] as const).map((f, i) => (
             <div key={i} className="col-md-6">
               <div className="info-field-card">
-                <label className="info-field-label">
+                <label className="info-field-label ">
                   <i
                     className={f === "steam_id" ? "fa-brands fa-steam" : "fa-brands fa-discord"}
                   ></i>
                   {f === "steam_id" ? "Steam Friend ID" : "Discord"}
-                  <span className="tooltip-wrapper">
-                    <i className="fa-solid fa-circle-info discord-info-icon"></i>
-                    <span className="tooltip-text discord-info-tooltip-text">
+                  <span className="tooltip-wrapper ">
+                    <i className="fa-solid fa-circle-info discord-info-icon "></i>
+                    <span className="tooltip-text">
                       <strong>Connect with your matches</strong>
-                      <div>
-                        The Discord or Steam info
-                        <br />
-                        in your profile will be <br />
-                        used by your matches
-                        <br />
-                        to reach out to you.
-                      </div>
+                      The Discord or Steam info in your profile will be used by your matches to
+                      reach out to you.
                     </span>
                   </span>
                 </label>
