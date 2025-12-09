@@ -56,6 +56,19 @@
   text-align: center;
   text-shadow: 0 0 10px rgba(0, 240, 255, 0.6);
   font-family: "Orbitron", "Segoe UI", sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.preferences-counter {
+  font-size: 1.2rem;
+  color: #8f00ff;
+  font-weight: 600;
+  text-shadow: 0 0 8px rgba(143, 0, 255, 0.8);
+  font-family: "Orbitron", "Segoe UI", sans-serif;
 }
 
 .abcheckbox-grid {
