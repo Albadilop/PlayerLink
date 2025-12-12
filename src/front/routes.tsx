@@ -22,9 +22,9 @@ export const router = createBrowserRouter(
         <Route path="profile" element={<Profile />} />
         <Route path="search-a-mate" element={<SearchMate />} />
         <Route path="your-matches" element={<YourMatches />} />
+        <Route path="your-matches/matchDetails/:id" element={<MatchUserDetails />} />
         <Route path="find-games" element={<FindGames />} />
         <Route path="settings" element={<Settings />} />
-        <Route path="your-matches/matchDetails/:id" element={<MatchUserDetails />} />
       </Route>
       <Route path="/reset" element={<Reset />} />
     </Route>

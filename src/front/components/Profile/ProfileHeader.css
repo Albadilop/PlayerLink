@@ -300,6 +300,42 @@
   transform: scale(1.2);
 }
 
+/* ===== POPOVER STYLES ===== */
+.popover {
+  background: linear-gradient(145deg, #0a0f1c, #12182b) !important;
+  border: 2px solid #00f0ff !important;
+  border-radius: 10px !important;
+  box-shadow:
+    0 8px 30px rgba(0, 0, 0, 0.6),
+    0 0 20px rgba(0, 240, 255, 0.2),
+    inset 0 0 0 1px rgba(143, 0, 255, 0.3) !important;
+  color: #ffffff !important;
+  font-size: 0.9rem !important;
+  padding: 0.5rem 0.75rem !important;
+  max-width: 300px !important;
+}
+
+.popover-body {
+  color: #ffffff !important;
+  padding: 0 !important;
+}
+
+.popover-hours {
+  color: #00f0ff !important;
+  font-weight: 700 !important;
+  font-size: 1.1rem !important;
+  text-shadow: 0 0 10px rgba(0, 240, 255, 0.6) !important;
+  letter-spacing: 0.5px !important;
+}
+
+.popover-header {
+  display: none !important;
+}
+
+.popover-arrow {
+  display: none !important;
+}
+
 /* ===== RESPONSIVE ===== */
 @media (max-width: 992px) {
   .profile-header {
