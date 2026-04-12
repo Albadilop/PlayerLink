@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import userServices from "../services/userServices";
 import useGlobalReducer from "../hooks/useGlobalReducer";
@@ -8,14 +8,13 @@ import "./Profile/ProfileGamesTab.css";
 import reviewServices from "../services/reviewServices";
 import { selectMedal, selectPhoto, formatHours } from "../utils/profileHelpers";
 import { ProfileInfoTab } from "./Profile/ProfileInfoTab";
+import { ProfileGamesTab } from "./Profile/ProfileGamesTab";
 import { ProfileReviewsTab } from "./Profile/ProfileReviewsTab";
 import { parsePreferences } from "../utils/formatters";
 import { clampProfileLocation } from "../utils/profileValidation";
 import { REVIEW_FIELD_LIMITS } from "../constants";
 import { GameImage } from "./GameImage";
 import type { Game, Profile } from "../types";
-
-const GAMES_PER_PAGE = 5;
 
 interface CommentForm {
   stars: number;
@@ -79,93 +78,21 @@ export const MatchUserDetails: React.FC = () => {
   const [newComment, setNewComment] = useState<CommentForm>({ stars: 0, comment: "" });
   const [hoverRating, setHoverRating] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [showMedalInfo, setShowMedalInfo] = useState<string | null>(null);
 
-  // Obtener y ordenar juegos por horas (de mayor a menor)
-  const sortedGames = useMemo(() => {
-    const allGames = (store.itsMatchInfo?.profile?.games ?? []) as Game[];
-    return [...allGames].sort((a, b) => (b.gameHoursPlayed ?? 0) - (a.gameHoursPlayed ?? 0));
-  }, [store.itsMatchInfo?.profile?.games]);
+  const matchProfileGames = useMemo(
+    () => (store.itsMatchInfo?.profile?.games ?? []) as Game[],
+    [store.itsMatchInfo?.profile?.games]
+  );
 
-  const topThreeGames = sortedGames.slice(0, 3);
+  const topThreeGames = useMemo(() => {
+    return [...matchProfileGames]
+      .sort((a, b) => (b.gameHoursPlayed ?? 0) - (a.gameHoursPlayed ?? 0))
+      .slice(0, 3);
+  }, [matchProfileGames]);
 
-  // Calcular paginación para el tab de Games
-  const paginationData = useMemo(() => {
-    const totalPages = Math.ceil(sortedGames.length / GAMES_PER_PAGE);
-    const startIndex = (currentPage - 1) * GAMES_PER_PAGE;
-    const endIndex = startIndex + GAMES_PER_PAGE;
-    const currentGames = sortedGames.slice(startIndex, endIndex);
-
-    return {
-      currentGames,
-      totalPages,
-      startIndex,
-      endIndex,
-    };
-  }, [sortedGames, currentPage]);
-
-  // Resetear a página 1 cuando cambian los juegos
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [sortedGames.length]);
-
-  const handlePrevious = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-    }
-  };
-
-  const handleNext = () => {
-    if (currentPage < paginationData.totalPages) {
-      setCurrentPage(currentPage + 1);
-    }
-  };
-
-  const handlePageClick = (page: number) => {
-    setCurrentPage(page);
-  };
-
-  // Generar números de página a mostrar
-  const getPageNumbers = () => {
-    const totalPages = paginationData.totalPages;
-    const pages: (number | string)[] = [];
-
-    if (totalPages <= 7) {
-      // Si hay 7 o menos páginas, mostrar todas
-      for (let i = 1; i <= totalPages; i++) {
-        pages.push(i);
-      }
-    } else {
-      // Si hay más de 7 páginas, mostrar con elipsis
-      if (currentPage <= 3) {
-        // Al inicio
-        for (let i = 1; i <= 4; i++) {
-          pages.push(i);
-        }
-        pages.push("...");
-        pages.push(totalPages);
-      } else if (currentPage >= totalPages - 2) {
-        // Al final
-        pages.push(1);
-        pages.push("...");
-        for (let i = totalPages - 3; i <= totalPages; i++) {
-          pages.push(i);
-        }
-      } else {
-        // En el medio
-        pages.push(1);
-        pages.push("...");
-        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
-          pages.push(i);
-        }
-        pages.push("...");
-        pages.push(totalPages);
-      }
-    }
-
-    return pages;
-  };
+  const noopAddGame = useCallback(async () => {}, []);
+  const noopDeleteGame = useCallback(async () => {}, []);
+  const noopUpdateGame = useCallback(async () => {}, []);
 
   useEffect(() => {
     if (!store.user) {
@@ -422,208 +349,18 @@ export const MatchUserDetails: React.FC = () => {
           />
         )}
 
-        {/* Games Tab */}
+        {/* Games Tab — misma UI que en Profile (ProfileGamesTab en solo lectura) */}
         {activeTab === "Games" && (
-          <div className="container info-section">
-            <div className="row justify-content-between align-items-center mb-3">
-              <div className="col-auto">
-                <h3 className="m-0 d-flex align-items-center gap-2 flex-wrap">
-                  <span className="d-flex align-items-center gap-2">
-                    <i className="fa-solid fa-gamepad section-title-icon"></i>
-                    Games
-                  </span>
-                  <span className="medal-badges-container">
-                    <span
-                      className="medal-badge medal-badge-gold"
-                      onClick={() => setShowMedalInfo(showMedalInfo === "gold" ? null : "gold")}
-                      style={{ cursor: "pointer" }}
-                    >
-                      <i className="fa-solid fa-medal"></i>
-                      <span className="medal-badge-text">Gold</span>
-                    </span>
-                    <span
-                      className="medal-badge medal-badge-silver"
-                      onClick={() => setShowMedalInfo(showMedalInfo === "silver" ? null : "silver")}
-                      style={{ cursor: "pointer" }}
-                    >
-                      <i className="fa-solid fa-medal"></i>
-                      <span className="medal-badge-text">Silver</span>
-                    </span>
-                    <span
-                      className="medal-badge medal-badge-bronze"
-                      onClick={() => setShowMedalInfo(showMedalInfo === "bronze" ? null : "bronze")}
-                      style={{ cursor: "pointer" }}
-                    >
-                      <i className="fa-solid fa-medal"></i>
-                      <span className="medal-badge-text">Bronze</span>
-                    </span>
-                  </span>
-                </h3>
-              </div>
-            </div>
-
-            {/* Medal Info Modal */}
-            {showMedalInfo && (
-              <div className="modal-overlay" onClick={() => setShowMedalInfo(null)}>
-                <div
-                  className="modal-content medal-info-modal"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <div className="modal-header medal-info-header">
-                    <div className="medal-info-title-wrapper">
-                      <i
-                        className={`fa-solid fa-medal medal-info-icon ${
-                          showMedalInfo === "gold"
-                            ? "medal-info-gold"
-                            : showMedalInfo === "silver"
-                              ? "medal-info-silver"
-                              : "medal-info-bronze"
-                        }`}
-                      ></i>
-                      <h3 className="medal-info-title">
-                        {showMedalInfo === "gold"
-                          ? "Gold Medal"
-                          : showMedalInfo === "silver"
-                            ? "Silver Medal"
-                            : "Bronze Medal"}
-                      </h3>
-                    </div>
-                    <button
-                      type="button"
-                      className="modal-close medal-info-close"
-                      onClick={() => setShowMedalInfo(null)}
-                    >
-                      <i className="fa-solid fa-times" />
-                    </button>
-                  </div>
-                  <div className="modal-body medal-info-body">
-                    <div className="medal-info-content">
-                      <p className="medal-info-description">
-                        {showMedalInfo === "gold" ? (
-                          <>
-                            <strong>Gold Medal</strong> is awarded to players who have played{" "}
-                            <strong className="medal-info-hours">2500 hours or more</strong> in a
-                            single game.
-                          </>
-                        ) : showMedalInfo === "silver" ? (
-                          <>
-                            <strong>Silver Medal</strong> is awarded to players who have played
-                            between <strong className="medal-info-hours">500 and 2499 hours</strong>{" "}
-                            in a single game.
-                          </>
-                        ) : (
-                          <>
-                            <strong>Bronze Medal</strong> is awarded to players who have played
-                            between <strong className="medal-info-hours">0 and 499 hours</strong> in
-                            a single game.
-                          </>
-                        )}
-                      </p>
-                      <div className="medal-info-range">
-                        <span className="medal-info-label">Hours Range:</span>
-                        <span className="medal-info-value">
-                          {showMedalInfo === "gold"
-                            ? "2500+ hours"
-                            : showMedalInfo === "silver"
-                              ? "500 - 2499 hours"
-                              : "0 - 499 hours"}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <div className="games-content-area">
-              <div className="row gap-2 d-flex justify-content-center gamesbigbox px-2 pb-2 profile-tab-cards">
-                {sortedGames.length > 0 ? (
-                  <>
-                    {paginationData.currentGames.map((el, i) => (
-                      <div key={i} className="game-card">
-                        <div className="game-card-content">
-                          <div className="game-info">
-                            <div className="game-title-section">
-                              <GameImage
-                                gameTitle={el.gameTitle}
-                                gameImage={el.gameImage}
-                                className="game-image"
-                                alt={el.gameTitle}
-                                rawgApiKey={import.meta.env.VITE_RAWG_KEY || null}
-                              />
-                              <h5 className="game-title">{el.gameTitle}</h5>
-                            </div>
-                          </div>
-
-                          <div className="game-stats">
-                            <div className="hours-display">
-                              <img
-                                src={selectMedal(el.gameHoursPlayed)}
-                                alt="Medal"
-                                className="game-medal"
-                              />
-                              <span className="hours-text">{formatHours(el.gameHoursPlayed)}</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </>
-                ) : (
-                  <div className="empty-state">
-                    <div className="empty-state-icon">
-                      <i className="fa-solid fa-gamepad"></i>
-                    </div>
-                    <p className="empty-state-text">No games available yet</p>
-                  </div>
-                )}
-              </div>
-            </div>
-            {/* Controles de paginación - al final de la tarjeta */}
-            {sortedGames.length > 0 && paginationData.totalPages > 1 && (
-              <div className="pagination-container">
-                <button
-                  className="pagination-btn"
-                  onClick={handlePrevious}
-                  disabled={currentPage === 1}
-                  aria-label="Previous page"
-                >
-                  <i className="fa-solid fa-chevron-left"></i> Previous
-                </button>
-
-                <div className="pagination-numbers">
-                  {getPageNumbers().map((page, index) => {
-                    if (page === "...") {
-                      return (
-                        <span key={`ellipsis-${index}`} className="pagination-ellipsis">
-                          ...
-                        </span>
-                      );
-                    }
-                    return (
-                      <button
-                        key={page}
-                        className={`pagination-number ${currentPage === page ? "active" : ""}`}
-                        onClick={() => handlePageClick(page as number)}
-                        aria-label={`Go to page ${page}`}
-                      >
-                        {page}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                <button
-                  className="pagination-btn"
-                  onClick={handleNext}
-                  disabled={currentPage === paginationData.totalPages}
-                  aria-label="Next page"
-                >
-                  Next <i className="fa-solid fa-chevron-right"></i>
-                </button>
-              </div>
-            )}
-          </div>
+          <ProfileGamesTab
+            games={matchProfileGames}
+            availableGames={[]}
+            gameOptions={[]}
+            loading={false}
+            readOnly
+            onAddGame={noopAddGame}
+            onDeleteGame={noopDeleteGame}
+            onUpdateGame={noopUpdateGame}
+          />
         )}
 
         {/* Comments Tab */}

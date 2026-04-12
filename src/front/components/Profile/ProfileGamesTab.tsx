@@ -25,6 +25,8 @@ export interface ProfileGamesTabProps {
   availableGames: string[];
   gameOptions: SelectOption[];
   loading: boolean;
+  /** Solo lectura (p. ej. perfil de un match): mismas tarjetas y paginación, sin añadir/editar/borrar. */
+  readOnly?: boolean;
   onAddGame: (game: GameFormData) => Promise<void>;
   onDeleteGame: (gameId: number) => Promise<void>;
   onUpdateGame: (gameId: number, hours: number) => Promise<void>;
@@ -35,6 +37,7 @@ export const ProfileGamesTab: React.FC<ProfileGamesTabProps> = ({
   availableGames: _availableGames,
   gameOptions,
   loading: _loading,
+  readOnly = false,
   onAddGame,
   onDeleteGame,
   onUpdateGame,
@@ -284,11 +287,13 @@ export const ProfileGamesTab: React.FC<ProfileGamesTabProps> = ({
               </span>
             </h3>
           </div>
-          <div className="col-auto profile-tab-toolbar-actions">
-            <button type="button" className="btn-add-game" onClick={() => setShowGameForm(true)}>
-              ADD A NEW GAME
-            </button>
-          </div>
+          {!readOnly && (
+            <div className="col-auto profile-tab-toolbar-actions">
+              <button type="button" className="btn-add-game" onClick={() => setShowGameForm(true)}>
+                ADD A NEW GAME
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Medal Info Modal */}
@@ -362,21 +367,23 @@ export const ProfileGamesTab: React.FC<ProfileGamesTabProps> = ({
         )}
 
         {/* Game Form Modal */}
-        <AddGameModal
-          isOpen={showGameForm}
-          game={game}
-          gameOptions={gameOptions}
-          errorRepeatedGame={errorRepeatedGame}
-          errorHoursPlayed={errorHoursPlayed}
-          onGameChange={handleChange}
-          onHoursChange={(hours) => handleChange("hours_played", hours)}
-          onAdd={handleAdd}
-          onCancel={() => {
-            setShowGameForm(false);
-            setErrorRepeatedGame("");
-            setErrorHoursPlayed("");
-          }}
-        />
+        {!readOnly && (
+          <AddGameModal
+            isOpen={showGameForm}
+            game={game}
+            gameOptions={gameOptions}
+            errorRepeatedGame={errorRepeatedGame}
+            errorHoursPlayed={errorHoursPlayed}
+            onGameChange={handleChange}
+            onHoursChange={(hours) => handleChange("hours_played", hours)}
+            onAdd={handleAdd}
+            onCancel={() => {
+              setShowGameForm(false);
+              setErrorRepeatedGame("");
+              setErrorHoursPlayed("");
+            }}
+          />
+        )}
 
         <div className="games-content-area">
           <div className="row gap-2 d-flex justify-content-center gamesbigbox px-2 pb-2 profile-tab-cards">
@@ -399,7 +406,18 @@ export const ProfileGamesTab: React.FC<ProfileGamesTabProps> = ({
                       </div>
 
                       <div className="game-card-side">
-                        {idOfGameBeingEdited === el.id ? (
+                        {readOnly ? (
+                          <div className="game-stats">
+                            <div className="hours-display">
+                              <img
+                                src={selectMedal(el.gameHoursPlayed)}
+                                alt="Medal"
+                                className="game-medal"
+                              />
+                              <span className="hours-text">{formatHours(el.gameHoursPlayed)}</span>
+                            </div>
+                          </div>
+                        ) : idOfGameBeingEdited === el.id ? (
                           <form className="game-edit-form" onSubmit={(e) => handleSubmit(e, el.id)}>
                             <div className="edit-form-content">
                               {errorCeroHours && (
@@ -495,6 +513,13 @@ export const ProfileGamesTab: React.FC<ProfileGamesTabProps> = ({
                   </div>
                 ))}
               </>
+            ) : readOnly ? (
+              <div className="empty-state">
+                <div className="empty-state-icon">
+                  <i className="fa-solid fa-gamepad"></i>
+                </div>
+                <p className="empty-state-text">No games available yet</p>
+              </div>
             ) : (
               <div className="empty-state">
                 <div className="empty-state-icon">
@@ -561,7 +586,8 @@ export const ProfileGamesTab: React.FC<ProfileGamesTabProps> = ({
         )}
       </div>
 
-      {deleteConfirm &&
+      {!readOnly &&
+        deleteConfirm &&
         createPortal(
           <div className="modal-overlay" onClick={closeDeleteConfirm}>
             <div
