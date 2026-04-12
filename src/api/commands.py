@@ -14,6 +14,17 @@ def setup_commands(app):
     by typing: $ flask insert-test-users 5
     Note: 5 is the number of users to add
     """
+    @app.cli.command("show-db-url")
+    def show_db_url():
+        """Imprime la URL de BD (sin contraseña). Útil para comprobar que coincide con `flask db upgrade`."""
+        uri = app.config.get("SQLALCHEMY_DATABASE_URI") or ""
+        try:
+            from sqlalchemy.engine.url import make_url
+
+            print(make_url(uri).render_as_string(hide_password=True))
+        except Exception:
+            print(uri or "<sin URI>")
+
     @app.cli.command("insert-test-users") # name of our command
     @click.argument("count") # argument of out command
     def insert_test_users(count):
@@ -22,7 +33,6 @@ def setup_commands(app):
             user = User()
             user.email = "test_user" + str(x) + "@test.com"
             user.password = "123456"
-            user.is_active = True
             db.session.add(user)
             db.session.commit()
             print("User: ", user.email, " created.")

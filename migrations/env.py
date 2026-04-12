@@ -95,6 +95,11 @@ def run_migrations_online():
         conf_args["process_revision_directives"] = process_revision_directives
 
     connectable = get_engine()
+    try:
+        safe_url = connectable.url.render_as_string(hide_password=True)
+    except Exception:
+        safe_url = str(connectable.url)
+    logger.info("Alembic (online): migrando contra %s", safe_url)
 
     with connectable.connect() as connection:
         context.configure(

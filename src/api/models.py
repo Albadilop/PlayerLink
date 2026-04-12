@@ -12,6 +12,10 @@ class User(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     email: Mapped[str] = mapped_column(
         String(120), unique=True, nullable=False)
+    # Nuevo correo pendiente de confirmación por enlace (ver PUT /users_email).
+    pending_email: Mapped[Optional[str]] = mapped_column(String(120), nullable=True)
+    # UUID de auth.users (Supabase); ver migración f3_supabase_auth_id y export GDPR.
+    supabase_auth_id: Mapped[Optional[str]] = mapped_column(String(36), unique=True, nullable=True)
     password: Mapped[str] = mapped_column(String(250), nullable=False)
 
     # Relaciones
@@ -65,6 +69,8 @@ class User(db.Model):
         return {
             "id": self.id,
             "email": self.email,
+            "pending_email": self.pending_email,
+            "supabase_auth_id": self.supabase_auth_id,
             # No serializar password por seguridad
             "profile": self.profile.serialize() if self.profile else None
         }
@@ -265,7 +271,8 @@ class UserSettings(db.Model):
     """User settings and preferences"""
     __tablename__ = 'user_settings'
     id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey('users.id'), unique=True, nullable=False)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey('users.id', ondelete='CASCADE'), unique=True, nullable=False)
     
     # Matching Preferences
     min_age_preference: Mapped[int] = mapped_column(Integer, nullable=True)

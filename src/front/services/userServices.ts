@@ -15,8 +15,12 @@ interface UserServices {
   getUserInfoById: (user_id: number) => Promise<UserInfoResponse | Error>;
   changeUserPhoto: (user_id: number, photo: { photo: string }) => Promise<unknown>;
   uploadUserPhoto: (user_id: number, file: File) => Promise<{ photo: string }>;
-  changeUserEmail: (user_id: number, newEmail: string) => Promise<ApiResponse<unknown>>;
-  deleteAccount: (userId: number) => Promise<ApiResponse<unknown>>;
+  requestUserEmailChange: (
+    user_id: number,
+    payload: { email: string; currentPassword: string }
+  ) => Promise<ApiResponse<{ pending_email?: string; msg?: string }>>;
+  confirmEmailChange: (token: string) => Promise<ApiResponse<{ email?: string; msg?: string }>>;
+  deleteAccount: (userId: number, currentPassword: string) => Promise<ApiResponse<unknown>>;
   changeUserPassword: (
     user_id: number,
     newPassword: string,
@@ -206,8 +210,26 @@ const userServices: UserServices = {
     return { photo: data.photo };
   },
 
-  changeUserEmail: async (user_id: number, newEmail: string): Promise<ApiResponse<unknown>> => {
-    const response = await apiClient.put(`/api/users_email/${user_id}`, { email: newEmail }, true);
+  requestUserEmailChange: async (
+    user_id: number,
+    payload: { email: string; currentPassword: string }
+  ): Promise<ApiResponse<{ pending_email?: string; msg?: string }>> => {
+    const response = await apiClient.put(`/api/users_email/${user_id}`, payload, true);
+    return {
+      ok: response.ok,
+      data: response.data as { pending_email?: string; msg?: string } | null,
+      error: response.ok ? null : response.error || "Unknown error",
+    };
+  },
+
+  confirmEmailChange: async (
+    token: string
+  ): Promise<ApiResponse<{ email?: string; msg?: string }>> => {
+    const response = await apiClient.post<{ email?: string; msg?: string; success?: boolean }>(
+      "/api/users_email/confirm",
+      { token },
+      false
+    );
     return {
       ok: response.ok,
       data: response.data,
@@ -215,8 +237,10 @@ const userServices: UserServices = {
     };
   },
 
-  deleteAccount: async (userId: number): Promise<ApiResponse<unknown>> => {
-    const response = await apiClient.delete(`/api/users/${userId}`, true);
+  deleteAccount: async (userId: number, currentPassword: string): Promise<ApiResponse<unknown>> => {
+    const response = await apiClient.delete(`/api/users/${userId}`, true, {
+      currentPassword,
+    });
     return {
       ok: response.ok,
       data: response.data,

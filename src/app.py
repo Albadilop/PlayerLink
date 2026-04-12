@@ -1,8 +1,21 @@
 """
 This module takes care of starting the API Server, Loading the DB and Adding the endpoints
 """
+import logging
 import os
 from dotenv import load_dotenv
+
+_app_logger = logging.getLogger(__name__)
+
+
+def _redacted_database_uri(uri: str) -> str:
+    try:
+        from sqlalchemy.engine.url import make_url
+
+        return make_url(uri).render_as_string(hide_password=True)
+    except Exception:
+        return "<URL no interpretable>"
+
 
 # Cargar .env desde la raíz del repo (no depender del cwd de Flask / IDE).
 _project_root = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
@@ -74,13 +87,23 @@ limiter = Limiter(
 )
 
 
-# database condiguration
-db_url = os.getenv("DATABASE_URL")
-if db_url is not None:
+# database configuration (vacío o solo espacios = sin URL, mismo criterio que ausente)
+db_url = (os.getenv("DATABASE_URL") or "").strip() or None
+if db_url:
     app.config['SQLALCHEMY_DATABASE_URI'] = db_url.replace(
         "postgres://", "postgresql://")
 else:
     app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:////tmp/test.db"
+    _app_logger.warning(
+        "DATABASE_URL no está definida (o está vacía) tras cargar .env/.env.local; "
+        "se usa sqlite en /tmp/test.db. Para Postgres/Supabase define DATABASE_URL "
+        "en la raíz del proyecto y ejecuta `flask db upgrade` con el mismo FLASK_APP y .env."
+    )
+
+_app_logger.info(
+    "SQLAlchemy (sin contraseña): %s",
+    _redacted_database_uri(app.config["SQLALCHEMY_DATABASE_URI"]),
+)
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 MIGRATE = Migrate(app, db, compare_type=True)
@@ -135,9 +158,23 @@ def handle_invalid_usage(error):
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 465
 app.config['MAIL_USE_SSL'] = True
-app.config['MAIL_USERNAME'] = os.getenv("MAIL_USERNAME")
-app.config['MAIL_PASSWORD'] = os.getenv("MAIL_PASSWORD")
-app.config['MAIL_DEFAULT_SENDER'] = os.getenv("MAIL_USERNAME")
+# Usuario SMTP: MAIL_USERNAME; si solo definiste MAIL_DEFAULT_SENDER (mismo buzón), úsalo aquí también.
+_mail_user = (
+    (os.getenv("MAIL_USERNAME") or os.getenv("MAIL_DEFAULT_SENDER") or "").strip() or None
+)
+_mail_pass = (os.getenv("MAIL_PASSWORD") or "").strip() or None
+app.config['MAIL_USERNAME'] = _mail_user
+app.config['MAIL_PASSWORD'] = _mail_pass
+# Remitente "From": MAIL_DEFAULT_SENDER si existe; si no, la misma cuenta SMTP.
+_default_sender = (
+    (os.getenv("MAIL_DEFAULT_SENDER") or _mail_user or "").strip() or None
+)
+app.config['MAIL_DEFAULT_SENDER'] = _default_sender
+if not _mail_user or not _mail_pass:
+    _app_logger.warning(
+        "Flask-Mail: faltan credenciales SMTP (MAIL_USERNAME o MAIL_DEFAULT_SENDER + MAIL_PASSWORD). "
+        "Los correos no se enviarán. Gmail suele exigir contraseña de aplicación, no la contraseña de la cuenta."
+    )
 
 
 

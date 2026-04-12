@@ -218,10 +218,15 @@ class ApiClient {
     });
   }
 
-  async delete<T>(endpoint: string, requiresAuth: boolean = true): Promise<ApiResponse<T>> {
+  async delete<T>(
+    endpoint: string,
+    requiresAuth: boolean = true,
+    body?: unknown
+  ): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, {
       method: "DELETE",
       requiresAuth,
+      body,
     });
   }
 

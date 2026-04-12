@@ -18,6 +18,40 @@
   margin-bottom: 40px;
 }
 
+.settings-account-current-mail {
+  margin-bottom: 16px;
+  max-width: 520px;
+}
+
+.settings-account-current-mail__label {
+  display: block;
+  font-size: 0.85rem;
+  color: #94a3b8;
+  margin-bottom: 6px;
+}
+
+.settings-account-current-mail__value {
+  display: block;
+  font-size: 1rem;
+  color: #e2e8f0;
+  font-weight: 600;
+  word-break: break-all;
+}
+
+/* Preferences saved in DB but not wired to product behavior (see Settings analysis). */
+.settings-item.settings-item--incomplete > label,
+.settings-input-group.settings-input-group--incomplete > label {
+  color: #f87171 !important;
+}
+
+.settings-incomplete-note {
+  color: #f87171;
+  font-size: 0.82rem;
+  margin: 0 0 14px;
+  max-width: 720px;
+  line-height: 1.45;
+}
+
 .settings-btn {
   padding: 10px 20px;
   background: transparent;
@@ -244,10 +278,127 @@
   color: #ffa500;
 }
 
+/* Matching preferences: age min/max row (wraps/stack on narrow screens) */
+.settings-matching-age-range {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-wrap: wrap;
+  gap: 1rem;
+  width: 100%;
+}
+
+.settings-matching-age-field {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+  flex: 1 1 160px;
+  min-width: 0;
+}
+
+.settings-matching-hours-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+}
+
 @media (max-width: 600px) {
   .settings-section {
     flex-direction: column;
     gap: 10px;
+  }
+
+  .settings-container {
+    padding: 16px 12px;
+  }
+
+  .settings-category {
+    padding: 16px 12px;
+    overflow-x: hidden;
+  }
+
+  /* Stack label above control so matching (and other) rows fit on phone */
+  .settings-input-group {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .settings-input-group > label {
+    min-width: 0;
+  }
+
+  .settings-input-group .settings-btn {
+    width: 100%;
+    box-sizing: border-box;
+    white-space: normal;
+    line-height: 1.35;
+  }
+
+  .settings-input-group--matching-age .settings-matching-age-range {
+    flex-direction: column;
+    flex-wrap: nowrap;
+  }
+
+  .settings-matching-age-field {
+    flex: 1 1 auto;
+    width: 100%;
+  }
+
+  /* Application card: full-width theme control + stack toggle rows */
+  .settings-category--application .settings-input-group--application-theme > select {
+    align-self: stretch;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .settings-category--application .settings-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .settings-category--application .settings-item > label {
+    min-width: 0;
+  }
+
+  .settings-category--gaming .settings-input-group--gaming-sync > select {
+    align-self: stretch;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .settings-category--matching .settings-input-group > select {
+    align-self: stretch;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .settings-category--matching .settings-matching-hours-row {
+    align-self: stretch;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .settings-category--matching .settings-input-group--matching-age .settings-matching-age-range {
+    align-self: stretch;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .settings-category--matching .settings-input-group--matching-age > label {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: left;
   }
 
   .modal-box {
@@ -443,6 +594,66 @@
   color: white;
 }
 
+/* Application — Theme: misma alineación a la izquierda que Sounds / Animations */
+.settings-category--application .settings-input-group--application-theme {
+  align-items: flex-start;
+}
+
+.settings-category--application .settings-input-group--application-theme > label {
+  text-align: left;
+}
+
+.settings-category--application .settings-input-group--application-theme > select {
+  text-align: left;
+}
+
+/* Gaming — Sync Frequency: misma alineación que Theme / Application */
+.settings-category--gaming .settings-input-group--gaming-sync {
+  align-items: flex-start;
+}
+
+.settings-category--gaming .settings-input-group--gaming-sync > label {
+  text-align: left;
+}
+
+.settings-category--gaming .settings-input-group--gaming-sync > select {
+  text-align: left;
+}
+
+/* Matching — mismas filas que Theme / Sync (etiqueta a la izquierda, controles alineados) */
+.settings-category--matching .settings-input-group {
+  align-items: flex-start;
+}
+
+.settings-category--matching .settings-input-group > label {
+  text-align: left;
+}
+
+.settings-category--matching .settings-input-group--matching-age > label {
+  text-align: left;
+  align-self: flex-start;
+}
+
+.settings-category--matching .settings-input-group > select {
+  text-align: left;
+}
+
+.settings-category--matching .settings-input-group > .settings-btn {
+  text-align: left;
+}
+
+.settings-category--matching .settings-matching-hours-row .settings-age-input {
+  text-align: left;
+}
+
+.settings-category--matching .settings-matching-age-range .settings-age-input {
+  text-align: left;
+}
+
+.settings-category--matching .settings-matching-age-range label {
+  text-align: left;
+}
+
 .settings-age-input {
   width: 100%;
   padding: 8px !important;
@@ -453,11 +664,13 @@
 .settings-age-input::-webkit-inner-spin-button,
 .settings-age-input::-webkit-outer-spin-button {
   -webkit-appearance: none;
+  appearance: none;
   margin: 0;
 }
 
 .settings-age-input[type="number"] {
   -moz-appearance: textfield;
+  appearance: textfield;
 }
 
 .settings-spinner-buttons {

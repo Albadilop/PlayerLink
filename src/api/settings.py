@@ -1,10 +1,17 @@
 """
 User settings and preferences endpoints
 """
+import logging
+
 from flask import Blueprint, request, jsonify, Response
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from sqlalchemy import select
 from api.models import db, User, UserSettings, BlockedUser, Profile
+from api.supabase_admin import (
+    fetch_supabase_auth_export_for_uid,
+    find_supabase_auth_id_by_email,
+    is_supabase_admin_configured,
+)
 from api.validators import (
     require_user_exists,
     validate_json,
@@ -13,6 +20,8 @@ from api.validators import (
 )
 from api.base import BaseEndpoint
 from typing import Tuple
+
+logger = logging.getLogger(__name__)
 
 settings_bp = Blueprint('settings', __name__)
 base = BaseEndpoint()
@@ -262,7 +271,42 @@ def export_user_data(user_id: int, _user: User) -> Tuple[Response, int]:
         select(BlockedUser).where(BlockedUser.blocker_id == user_id)
     ).scalars().all()
     user_data["blocked_users"] = [block.serialize() for block in blocked]
-    
+
+    # Supabase Auth (auth.users) — requiere service_role y supabase_auth_id o búsqueda por email.
+    if is_supabase_admin_configured() and not _user.supabase_auth_id and (_user.email or "").strip():
+        sid = find_supabase_auth_id_by_email(_user.email)
+        if sid:
+            _user.supabase_auth_id = sid
+            try:
+                db.session.commit()
+            except Exception as e:
+                logger.warning("export_user_data: could not persist supabase_auth_id: %s", e)
+                db.session.rollback()
+
+    if is_supabase_admin_configured() and (_user.supabase_auth_id or "").strip():
+        auth_payload = fetch_supabase_auth_export_for_uid(_user.supabase_auth_id)
+        user_data["supabase_auth"] = auth_payload
+        if isinstance(auth_payload, dict) and auth_payload.get("error"):
+            user_data["supabase_auth_note"] = (
+                "Supabase Auth fetch failed; see supabase_auth.error. "
+                "App database export is still complete."
+            )
+        else:
+            user_data["supabase_auth_note"] = (
+                "Snapshot from Supabase Auth (auth.users) for this account when available."
+            )
+    else:
+        user_data["supabase_auth"] = None
+        if not is_supabase_admin_configured():
+            user_data["supabase_auth_note"] = (
+                "Supabase Auth not included: set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY on the server."
+            )
+        elif not (_user.supabase_auth_id or "").strip():
+            user_data["supabase_auth_note"] = (
+                "No Supabase Auth user linked (supabase_auth_id empty and no matching auth.users email "
+                "within lookup limits)."
+            )
+
     return jsonify(user_data), 200
 
 

@@ -24,6 +24,8 @@ interface EmailForm {
   actualEmail: string;
   email: string;
   confirmedEmail: string;
+  /** Contraseña de la cuenta (obligatoria para solicitar cambio de email). */
+  currentPassword: string;
 }
 
 interface PasswordForm {
@@ -46,6 +48,7 @@ const SettingsView: React.FC = () => {
     actualEmail: "",
     email: "",
     confirmedEmail: "",
+    currentPassword: "",
   });
   const [password, setPassword] = useState<PasswordForm>({
     actualPassword: "",
@@ -76,6 +79,9 @@ const SettingsView: React.FC = () => {
   const [loadingBlocked, setLoadingBlocked] = useState<boolean>(false);
   const [showUnblockModal, setShowUnblockModal] = useState<boolean>(false);
   const [userToUnblock, setUserToUnblock] = useState<number | null>(null);
+
+  const [deleteAccountPassword, setDeleteAccountPassword] = useState<string>("");
+  const [errorDeleteAccount, setErrorDeleteAccount] = useState<string>("");
 
   // App preferences (stored in localStorage)
   const { theme, setTheme } = useTheme();
@@ -322,25 +328,6 @@ const SettingsView: React.FC = () => {
     updateSettings({ matching: { gaming_preference: formatted || null } });
   };
 
-  // Function available for future use (e.g., blocking from user profile)
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleBlockUser = async (blockedId: number, reason?: string) => {
-    if (!store.user?.id) return;
-    try {
-      const resp = await settingsServices.blockUser(store.user.id, blockedId, reason);
-      if (resp.ok) {
-        loadBlockedUsers();
-        showToast("User blocked successfully", "success");
-        playSound("success");
-      } else {
-        showToast(resp.error || "Failed to block user", "error");
-        playSound("error");
-      }
-    } catch {
-      alert("Failed to block user");
-    }
-  };
-
   const handleUnblockClick = (blockedId: number) => {
     setUserToUnblock(blockedId);
     setShowUnblockModal(true);
@@ -390,8 +377,15 @@ const SettingsView: React.FC = () => {
       return;
     }
 
-    if (email.actualEmail !== (store.user?.email || "")) {
+    const currentNorm = (email.actualEmail || "").trim().toLowerCase();
+    const storedNorm = (store.user?.email || "").trim().toLowerCase();
+    if (currentNorm !== storedNorm) {
       setSameEmail("Your current email is incorrect");
+      return;
+    }
+
+    if (!email.currentPassword.trim()) {
+      setErrorEmailChange("Please enter your account password.");
       return;
     }
 
@@ -401,45 +395,83 @@ const SettingsView: React.FC = () => {
     }
 
     try {
-      const resp = await userServices.changeUserEmail(store.user.id, email.email);
+      const resp = await userServices.requestUserEmailChange(store.user.id, {
+        email: email.email.trim(),
+        currentPassword: email.currentPassword,
+      });
       if (!resp.ok) {
-        setErrorEmailChange("Something happened, looks like this email already exists");
+        const err = (resp.error || "").toLowerCase();
+        if (err.includes("contraseña") || err.includes("password")) {
+          setErrorEmailChange("Current password is incorrect.");
+        } else if (err.includes("already exists") || err.includes("duplicate")) {
+          setErrorEmailChange("That email is already in use.");
+        } else if (err.includes("smtp") || err.includes("confirmation email")) {
+          setErrorEmailChange(
+            "Could not send the confirmation email. Check server mail configuration."
+          );
+        } else if (err.includes("different from the current")) {
+          setErrorEmailChange("The new email must be different from your current one.");
+        } else {
+          setErrorEmailChange(resp.error || "Could not start email change. Please try again.");
+        }
         return;
       }
 
       setSameEmail("");
       setErrorEmailChange("");
-      setEmailChanged("Email updated successfully");
+      setEmailChanged(
+        "Confirmation link sent. Check your new inbox (and spam) to finish the change. You can stay logged in until you confirm."
+      );
+
+      const refreshed = await userServices.getUserInfo(0, true);
+      if (refreshed && !(refreshed instanceof Error) && refreshed.user) {
+        await dispatch({ type: "getUserInfo", payload: refreshed.user });
+      }
 
       setTimeout(() => {
         setShowEmailModal(false);
-        setEmail({ actualEmail: "", email: "", confirmedEmail: "" });
+        setEmail({
+          actualEmail: "",
+          email: "",
+          confirmedEmail: "",
+          currentPassword: "",
+        });
         setEmailChanged("");
-        dispatch({ type: "logout" });
-        navigate("/");
-      }, 3000);
+      }, 4000);
     } catch {
       setErrorEmailChange("Failed to change the email. Please try again");
     }
   };
 
   const deleteAccount = async (userId: string | number | undefined) => {
+    setErrorDeleteAccount("");
     if (!userId) return;
     const userIdNum = typeof userId === "string" ? parseInt(userId, 10) : userId;
     if (isNaN(userIdNum)) return;
 
-    const resp = await userServices.deleteAccount(userIdNum);
-    if (!resp.ok) {
-      alert(resp.error || "Failed to delete account");
+    if (!deleteAccountPassword.trim()) {
+      setErrorDeleteAccount("Please enter your account password to confirm.");
       return;
     }
 
-    alert("Account deleted successfully");
+    const resp = await userServices.deleteAccount(userIdNum, deleteAccountPassword);
+    if (!resp.ok) {
+      const err = (resp.error || "").toLowerCase();
+      if (resp.error?.includes("Contraseña") || err.includes("password")) {
+        setErrorDeleteAccount("Incorrect password.");
+      } else {
+        showToast(resp.error || "Failed to delete account", "error");
+      }
+      return;
+    }
+
+    showToast("Account deleted successfully", "success");
+    setDeleteAccountPassword("");
     setTimeout(() => {
       setShowDeleteModal(false);
       dispatch({ type: "logout" });
       navigate("/");
-    }, 3000);
+    }, 1500);
   };
 
   const submitPasswordChange = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -477,7 +509,9 @@ const SettingsView: React.FC = () => {
         return;
       }
 
-      setCorrectPassword("Password changed successfully");
+      setCorrectPassword(
+        "Password changed successfully. You will receive a confirmation email at your account address."
+      );
       setTimeout(() => {
         closeChangePasswordModal();
         dispatch({ type: "logout" });
@@ -490,9 +524,10 @@ const SettingsView: React.FC = () => {
 
   const closeChangeEmailModal = () => {
     setShowEmailModal(false);
-    setEmail({ actualEmail: "", email: "", confirmedEmail: "" });
+    setEmail({ actualEmail: "", email: "", confirmedEmail: "", currentPassword: "" });
     setSameEmail("");
     setEmailChanged("");
+    setErrorEmailChange("");
   };
 
   const closeChangePasswordModal = () => {
@@ -564,31 +599,57 @@ const SettingsView: React.FC = () => {
       {/* Account Section */}
       <div className="settings-category">
         <h3>Account</h3>
+        <div className="settings-account-current-mail">
+          <span className="settings-account-current-mail__label">Current email</span>
+          <span className="settings-account-current-mail__value">
+            {store.user?.email?.trim() ? store.user.email : "—"}
+          </span>
+        </div>
         <div className="settings-section">
-          <button className="settings-btn" onClick={() => setShowEmailModal(true)}>
+          <button
+            className="settings-btn"
+            onClick={() => {
+              setEmail((prev) => ({
+                ...prev,
+                actualEmail: store.user?.email ?? "",
+                currentPassword: "",
+              }));
+              setShowEmailModal(true);
+            }}
+          >
             Change Email
           </button>
           <button className="settings-btn" onClick={() => setShowPasswordModal(true)}>
             Change Password
           </button>
         </div>
+        {store.user?.pending_email ? (
+          <p style={{ color: "#94a3b8", fontSize: "0.9rem", marginTop: "12px", maxWidth: "520px" }}>
+            Pending confirmation for:{" "}
+            <strong style={{ color: "#00e5ff" }}>{store.user.pending_email}</strong>. Open the link
+            we sent to that address to complete the change.
+          </p>
+        ) : null}
       </div>
 
       {/* Matching Preferences */}
       {settings && (
-        <div className="settings-category">
+        <div className="settings-category settings-category--matching">
           <h3>Matching Preferences</h3>
-          <div className="settings-item">
-            <label>Enable Discovery</label>
+          <p className="settings-incomplete-note">
+            The red option below is saved but Explore still ignores it.
+          </p>
+          <div className="settings-item settings-item--incomplete">
+            <label title="Not applied to Explore / profiles_to_explore yet">Enable Discovery</label>
             <ToggleSwitch
               checked={settings.matching.discovery_enabled ?? true}
               onChange={(val) => handleToggle("matching", "discovery_enabled", val)}
             />
           </div>
-          <div className="settings-input-group">
+          <div className="settings-input-group settings-input-group--matching-age">
             <label>Age Range:</label>
-            <div style={{ flex: 1, display: "flex", gap: "1rem" }}>
-              <div style={{ display: "flex", alignItems: "flex-end", gap: "0.5rem", flex: 1 }}>
+            <div className="settings-matching-age-range">
+              <div className="settings-matching-age-field">
                 <div style={{ flex: 1 }}>
                   <label
                     style={{
@@ -655,7 +716,7 @@ const SettingsView: React.FC = () => {
                   </button>
                 </div>
               </div>
-              <div style={{ display: "flex", alignItems: "flex-end", gap: "0.5rem", flex: 1 }}>
+              <div className="settings-matching-age-field">
                 <div style={{ flex: 1 }}>
                   <label
                     style={{
@@ -776,7 +837,7 @@ const SettingsView: React.FC = () => {
           </div>
           <div className="settings-input-group">
             <label>Min Hours Played:</label>
-            <div style={{ display: "flex", alignItems: "flex-end", gap: "0.5rem", flex: 1 }}>
+            <div className="settings-matching-hours-row">
               <div style={{ flex: 1 }}>
                 <input
                   type="number"
@@ -883,42 +944,46 @@ const SettingsView: React.FC = () => {
       {settings && (
         <div className="settings-category">
           <h3>Notifications</h3>
-          <div className="settings-item">
+          <p className="settings-incomplete-note">
+            Email and server-side app toggles are stored but not connected to sending logic or push
+            across the app. Application → Sounds uses local preferences instead.
+          </p>
+          <div className="settings-item settings-item--incomplete">
             <label>Email: Match Notifications</label>
             <ToggleSwitch
               checked={settings.notifications.email_match_notifications ?? true}
               onChange={(val) => handleToggle("notifications", "email_match_notifications", val)}
             />
           </div>
-          <div className="settings-item">
+          <div className="settings-item settings-item--incomplete">
             <label>Email: Like Notifications</label>
             <ToggleSwitch
               checked={settings.notifications.email_like_notifications ?? true}
               onChange={(val) => handleToggle("notifications", "email_like_notifications", val)}
             />
           </div>
-          <div className="settings-item">
+          <div className="settings-item settings-item--incomplete">
             <label>Email: Review Notifications</label>
             <ToggleSwitch
               checked={settings.notifications.email_review_notifications ?? true}
               onChange={(val) => handleToggle("notifications", "email_review_notifications", val)}
             />
           </div>
-          <div className="settings-item">
+          <div className="settings-item settings-item--incomplete">
             <label>Email: Weekly Summary</label>
             <ToggleSwitch
               checked={settings.notifications.email_weekly_summary ?? false}
               onChange={(val) => handleToggle("notifications", "email_weekly_summary", val)}
             />
           </div>
-          <div className="settings-item">
+          <div className="settings-item settings-item--incomplete">
             <label>App: Sound Notifications</label>
             <ToggleSwitch
               checked={settings.notifications.app_sound_notifications ?? true}
               onChange={(val) => handleToggle("notifications", "app_sound_notifications", val)}
             />
           </div>
-          <div className="settings-item">
+          <div className="settings-item settings-item--incomplete">
             <label>App: Push Notifications</label>
             <ToggleSwitch
               checked={settings.notifications.app_push_notifications ?? true}
@@ -930,16 +995,19 @@ const SettingsView: React.FC = () => {
 
       {/* Gaming Preferences */}
       {settings && (
-        <div className="settings-category">
+        <div className="settings-category settings-category--gaming">
           <h3>Gaming</h3>
-          <div className="settings-item">
+          <p className="settings-incomplete-note">
+            No Steam sync job uses these flags yet; library visibility is not wired in the UI.
+          </p>
+          <div className="settings-item settings-item--incomplete">
             <label>Steam Sync Enabled</label>
             <ToggleSwitch
               checked={settings.gaming.steam_sync_enabled ?? false}
               onChange={(val) => handleToggle("gaming", "steam_sync_enabled", val)}
             />
           </div>
-          <div className="settings-input-group">
+          <div className="settings-input-group settings-input-group--gaming-sync settings-input-group--incomplete">
             <label>Sync Frequency:</label>
             <select
               value={settings.gaming.steam_sync_frequency || "manual"}
@@ -950,7 +1018,7 @@ const SettingsView: React.FC = () => {
               <option value="weekly">Weekly</option>
             </select>
           </div>
-          <div className="settings-item">
+          <div className="settings-item settings-item--incomplete">
             <label>Show Steam Library</label>
             <ToggleSwitch
               checked={settings.gaming.show_steam_library ?? true}
@@ -964,14 +1032,17 @@ const SettingsView: React.FC = () => {
       {settings && (
         <div className="settings-category">
           <h3>Social</h3>
-          <div className="settings-item">
+          <p className="settings-incomplete-note">
+            Chat does not read these flags yet; values are only stored in your account settings.
+          </p>
+          <div className="settings-item settings-item--incomplete">
             <label>Chat from Matches Only</label>
             <ToggleSwitch
               checked={settings.social.chat_from_matches_only ?? true}
               onChange={(val) => handleToggle("social", "chat_from_matches_only", val)}
             />
           </div>
-          <div className="settings-item">
+          <div className="settings-item settings-item--incomplete">
             <label>Read Receipts</label>
             <ToggleSwitch
               checked={settings.social.read_receipts_enabled ?? true}
@@ -984,6 +1055,10 @@ const SettingsView: React.FC = () => {
       {/* Blocked Users */}
       <div className="settings-category">
         <h3>Blocked Users</h3>
+        <p className="settings-incomplete-note">
+          You cannot add new blocks from this page (no block UI here). Block someone from their
+          profile; you can only unblock from this list.
+        </p>
         {loadingBlocked ? (
           <p>Loading blocked users...</p>
         ) : blockedUsers.length === 0 ? (
@@ -1012,9 +1087,9 @@ const SettingsView: React.FC = () => {
       </div>
 
       {/* App Preferences */}
-      <div className="settings-category">
+      <div className="settings-category settings-category--application">
         <h3>Application</h3>
-        <div className="settings-input-group">
+        <div className="settings-input-group settings-input-group--application-theme">
           <label>Theme</label>
           <select
             value={theme}
@@ -1057,14 +1132,29 @@ const SettingsView: React.FC = () => {
         <p style={{ fontSize: "0.9rem", marginTop: "10px", color: "#aaa" }}>
           Download all your data in JSON format (GDPR compliant)
         </p>
+        <p className="settings-incomplete-note" style={{ marginTop: "8px" }}>
+          The JSON always includes this app&apos;s database. When the server has Supabase Admin
+          configured, the export also adds <code>supabase_auth</code> (Auth snapshot) if your
+          account is linked or can be matched by email. Storage-only assets are not listed here.
+        </p>
       </div>
 
       {/* Delete Account */}
       <div className="settings-warning">
         <h3>Delete Account</h3>
-        <p>If you delete your account, all your data will be permanently erased after 30 days.</p>
+        <p>
+          If you delete your account, your profile and app data are removed immediately. This cannot
+          be undone.
+        </p>
         <div className="warning-buttons">
-          <button className="delete-btn" onClick={() => setShowDeleteModal(true)}>
+          <button
+            className="delete-btn"
+            onClick={() => {
+              setDeleteAccountPassword("");
+              setErrorDeleteAccount("");
+              setShowDeleteModal(true);
+            }}
+          >
             Delete Account
           </button>
         </div>
@@ -1096,6 +1186,15 @@ const SettingsView: React.FC = () => {
                 name="confirmedEmail"
                 value={email.confirmedEmail}
                 onChange={handleChange}
+              />
+              <input
+                type="password"
+                placeholder="Account password (required)"
+                name="currentPassword"
+                value={email.currentPassword}
+                onChange={handleChange}
+                autoComplete="current-password"
+                style={{ marginTop: "10px" }}
               />
               {sameEmail && <h6 className="text-danger mt-1">{sameEmail}</h6>}
               {emailChanged && <h6 className="text-success mt-1">{emailChanged}</h6>}
@@ -1187,10 +1286,29 @@ const SettingsView: React.FC = () => {
           <div className="modal-box small">
             <h3>Are you sure?</h3>
             <p>
-              This action cannot be undone. All your data will be permanently deleted after 30 days.
+              This action cannot be undone. Your account and associated data will be deleted
+              immediately.
             </p>
+            <input
+              type="password"
+              placeholder="Account password (required)"
+              value={deleteAccountPassword}
+              onChange={(e) => setDeleteAccountPassword(e.target.value)}
+              autoComplete="current-password"
+              style={{ width: "100%", marginTop: "12px", padding: "8px", boxSizing: "border-box" }}
+            />
+            {errorDeleteAccount && <h6 className="text-danger mt-2">{errorDeleteAccount}</h6>}
             <div className="modal-actions">
-              <button onClick={() => setShowDeleteModal(false)}>Cancel</button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setDeleteAccountPassword("");
+                  setErrorDeleteAccount("");
+                }}
+              >
+                Cancel
+              </button>
               <button className="confirm-btn" onClick={() => deleteAccount(store.user?.id)}>
                 Delete Account
               </button>
