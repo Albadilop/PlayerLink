@@ -1,11 +1,19 @@
 import { normalizeUrl } from "../utils/urlHelper";
 import { API_CONFIG } from "../constants";
 
-// Get BASE_URL from environment or use default
-let BASE_URL = import.meta.env.VITE_BACKEND_URL || API_CONFIG.DEFAULT_BACKEND_URL;
-// Remove trailing slash if present
-BASE_URL = BASE_URL.replace(/\/+$/, "");
-console.log("🔧 API Client initialized with BASE_URL:", BASE_URL);
+// En dev, si el API es local (localhost / 127.0.0.1), usar URL vacía + proxy de Vite → /api → Flask (sin CORS).
+const rawBackend = (import.meta.env.VITE_BACKEND_URL ?? "").replace(/\/+$/, "").trim();
+const isLocalDevApi =
+  import.meta.env.DEV &&
+  rawBackend.length > 0 &&
+  /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(rawBackend);
+let BASE_URL = isLocalDevApi
+  ? ""
+  : rawBackend || (import.meta.env.DEV ? "" : API_CONFIG.DEFAULT_BACKEND_URL);
+console.log(
+  "🔧 API Client initialized with BASE_URL:",
+  BASE_URL || "(same-origin /api via Vite proxy)"
+);
 
 export interface ApiClientConfig {
   method?: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
@@ -99,8 +107,9 @@ class ApiClient {
         method: config.method || "GET",
         headers: headers,
         body: config.body ? JSON.stringify(config.body) : undefined,
-        mode: "cors", // Explicitly set CORS mode
-        credentials: "same-origin", // Use same-origin for better compatibility
+        mode: "cors",
+        // Front (p.ej. :5173) y API (:3001) son distintos orígenes: no cookies; el token va en Authorization.
+        credentials: "omit",
         cache: "no-cache", // Always fetch fresh data
         redirect: "follow", // Follow redirects
       };

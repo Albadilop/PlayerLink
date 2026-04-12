@@ -4,8 +4,10 @@ This module takes care of starting the API Server, Loading the DB and Adding the
 import os
 from dotenv import load_dotenv
 
-# Load environment variables from .env file
-load_dotenv()
+# Cargar .env desde la raíz del repo (no depender del cwd de Flask / IDE).
+_project_root = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+load_dotenv(os.path.join(_project_root, ".env"))
+load_dotenv(os.path.join(_project_root, ".env.local"), override=True)
 
 from flask import Flask, request, jsonify, url_for, send_from_directory
 from flask_migrate import Migrate
@@ -31,10 +33,12 @@ app = Flask(__name__)
 app.url_map.strict_slashes = False
 
 # Configure CORS globally for all routes
-# Allow both localhost and 127.0.0.1 for development (including port 5174 as fallback)
+# Allow both localhost and 127.0.0.1 for development (including port 5174 as fallback).
+# CORS_ORIGINS en .env se une a esta lista (no la sustituye), para no bloquear 127.0.0.1 si solo pusiste localhost.
 default_origins = 'http://localhost:5173,http://localhost:5174,http://localhost:3000,http://127.0.0.1:5173,http://127.0.0.1:5174,http://127.0.0.1:3000'
-allowed_origins = os.getenv('CORS_ORIGINS', default_origins).split(',')
-allowed_origins = [origin.strip() for origin in allowed_origins]  # Remove whitespace
+_default_list = [o.strip() for o in default_origins.split(',') if o.strip()]
+_env_extra = [o.strip() for o in (os.getenv('CORS_ORIGINS') or '').split(',') if o.strip()]
+allowed_origins = list(dict.fromkeys(_default_list + _env_extra))
 
 # Configure CORS with more permissive settings for development
 # Use a simpler, more direct configuration that applies to all routes
@@ -59,10 +63,13 @@ jwt = JWTManager(app)
 # Flask-CORS will handle OPTIONS automatically, so we don't need to intercept them
 
 # Setup rate limiting
+# En desarrollo, los límites globales (50/h) sumaban con todas las rutas y agotaban la cuota
+# rápido (onboarding con autoguardado, reintentos de login, etc.) → 429 en /api/private.
+# Los @limit por ruta (login, etc.) siguen activos; solo quitamos el tope global en dev.
 limiter = Limiter(
     app=app,
     key_func=get_remote_address,
-    default_limits=["200 per day", "50 per hour"],
+    default_limits=[] if ENV == "development" else ["200 per day", "50 per hour"],
     storage_uri="memory://"
 )
 

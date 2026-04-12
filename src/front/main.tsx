@@ -24,7 +24,8 @@ initializeTheme();
 
 // eslint-disable-next-line react-refresh/only-export-components
 const Main: React.FC = () => {
-  if (!import.meta.env.VITE_BACKEND_URL || import.meta.env.VITE_BACKEND_URL === "") {
+  const viteBackend = (import.meta.env.VITE_BACKEND_URL ?? "").trim();
+  if (viteBackend === "" && !import.meta.env.DEV) {
     return (
       <React.StrictMode>
         <BackendURL />

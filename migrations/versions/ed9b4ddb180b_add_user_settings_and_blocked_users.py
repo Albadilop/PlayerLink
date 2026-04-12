@@ -5,7 +5,7 @@ This migration adds two new tables:
 - blocked_users: Manages blocked user relationships
 
 Revision ID: ed9b4ddb180b
-Revises: 75c453134870
+Revises: 1765069941
 Create Date: 2025-12-06 16:13:31.436368
 
 """
@@ -15,7 +15,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = 'ed9b4ddb180b'
-down_revision = '75c453134870'
+down_revision = '1765069941'
 branch_labels = None
 depends_on = None
 

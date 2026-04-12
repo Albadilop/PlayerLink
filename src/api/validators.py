@@ -7,6 +7,7 @@ from typing import Optional, Tuple, Callable, Any
 from functools import wraps
 from flask import jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
+from sqlalchemy.exc import OperationalError
 from api.models import db, User, Profile
 
 # Intentar importar Pillow para validación de imágenes
@@ -136,6 +137,34 @@ def handle_errors(f: Callable) -> Callable:
             return jsonify({'error': str(e)}), 400
         except KeyError as e:
             return jsonify({'error': f'Missing required field: {str(e)}'}), 400
+        except OperationalError as e:
+            import logging
+
+            logging.error(f'Database error in {f.__name__}: {str(e)}', exc_info=True)
+            msg = str(e).lower()
+            err_text = (
+                'No se pudo conectar con la base de datos. '
+                'Comprueba DATABASE_URL y que el proyecto Supabase siga activo.'
+            )
+            if any(
+                x in msg
+                for x in (
+                    'timeout',
+                    'timed out',
+                    'could not translate host name',
+                    'connection refused',
+                    'network is unreachable',
+                    'no route to host',
+                )
+            ):
+                err_text += (
+                    ' Si usas Supabase desde Windows o una red sin IPv6 fiable, no uses la URI '
+                    '«Direct connection» a db.*.supabase.co: sustituye DATABASE_URL por la cadena '
+                    '«Session pooler» del panel (arriba: Connect → pestaña Session / ORM).'
+                )
+            if 'password authentication failed' in msg or 'sasl authentication' in msg:
+                err_text += ' Revisa usuario y contraseña de la base en el panel (Database).'
+            return jsonify({'error': err_text}), 503
         except Exception as e:
             # Log the error in production
             import logging

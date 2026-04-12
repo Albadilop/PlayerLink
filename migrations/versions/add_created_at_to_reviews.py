@@ -1,7 +1,7 @@
 """Add created_at to reviews
 
 Revision ID: add_created_at_reviews
-Revises: 1765069941
+Revises: ed9b4ddb180b
 Create Date: 2025-01-07 12:00:00.000000
 
 """
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = 'add_created_at_reviews'
-down_revision = '1765069941'
+down_revision = 'ed9b4ddb180b'
 branch_labels = None
 depends_on = None
 

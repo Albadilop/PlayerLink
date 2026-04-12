@@ -239,6 +239,16 @@
   box-shadow: 0 0 10px rgba(255, 107, 107, 0.3);
 }
 
+/* Age en onboarding: mismas flechas que hours en el modal */
+.form-group .onboarding-age-with-spinner {
+  width: 100%;
+}
+
+.form-group .onboarding-age-with-spinner .onboarding-game-input.error {
+  border-color: #ff6b6b !important;
+  box-shadow: 0 0 10px rgba(255, 107, 107, 0.3) !important;
+}
+
 .field-error {
   display: block;
   color: #ff6b6b;

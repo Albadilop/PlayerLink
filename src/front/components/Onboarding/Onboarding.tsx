@@ -47,18 +47,25 @@ export const Onboarding: React.FC = () => {
     location: store.user?.profile?.location?.trim() || "",
   });
 
-  // Update form state when profile changes
+  // Hidratar desde el store una sola vez por par (user id, profile id). Tras el autoguardado,
+  // getUserInfo sustituye `profile` en el store y, si re-sincronizábamos en cada cambio, se
+  // machacaba el texto en curso (parecía que la página se refrescaba al escribir nombre/nick).
+  const hydratedFormKeyRef = React.useRef<string | null>(null);
   useEffect(() => {
-    if (store.user?.profile) {
-      setFormState({
-        name: store.user.profile.name?.trim() || "",
-        nick_name: store.user.profile.nick_name?.trim() || "",
-        age: store.user.profile.age || 0,
-        gender: store.user.profile.gender?.trim() || DEFAULT_VALUES.GENDER_UNDEFINED,
-        location: store.user.profile.location?.trim() || "",
-      });
-    }
-  }, [store.user?.profile]);
+    const uid = store.user?.id;
+    const profile = store.user?.profile;
+    if (uid == null || profile == null) return;
+    const key = `${uid}:${profile.id}`;
+    if (hydratedFormKeyRef.current === key) return;
+    setFormState({
+      name: profile.name?.trim() || "",
+      nick_name: profile.nick_name?.trim() || "",
+      age: profile.age || 0,
+      gender: profile.gender?.trim() || DEFAULT_VALUES.GENDER_UNDEFINED,
+      location: profile.location?.trim() || "",
+    });
+    hydratedFormKeyRef.current = key;
+  }, [store.user?.id, store.user?.profile]);
 
   // Handle navigation to profile when user clicks continue
   const handleContinueToProfile = () => {
@@ -493,15 +500,44 @@ export const Onboarding: React.FC = () => {
                 <label className={displayMissingFields.includes("age") ? "required" : ""}>
                   Age
                 </label>
-                <input
-                  type="number"
-                  value={formState.age || ""}
-                  onChange={(e) => handleInputChange("age", Number(e.target.value))}
-                  placeholder="18+"
-                  min={18}
-                  max={120}
-                  className={displayMissingFields.includes("age") ? "error" : ""}
-                />
+                <div className="onboarding-game-input-container onboarding-age-with-spinner">
+                  <input
+                    type="number"
+                    className={`onboarding-game-input hours-input${displayMissingFields.includes("age") ? " error" : ""}`}
+                    value={formState.age || ""}
+                    onChange={(e) => handleInputChange("age", Number(e.target.value))}
+                    placeholder="18+"
+                    min={18}
+                    max={120}
+                  />
+                  <div className="hours-spinner-buttons">
+                    <button
+                      type="button"
+                      className="hours-spinner-btn hours-spinner-up"
+                      disabled={(formState.age || 0) >= 120}
+                      onClick={() => {
+                        const v = Number(formState.age) || 0;
+                        const next = v < 18 ? 18 : Math.min(120, v + 1);
+                        handleInputChange("age", next);
+                      }}
+                      aria-label="Increase age"
+                    >
+                      <i className="fa-solid fa-chevron-up" />
+                    </button>
+                    <button
+                      type="button"
+                      className="hours-spinner-btn hours-spinner-down"
+                      disabled={!formState.age || formState.age <= 18}
+                      onClick={() => {
+                        const v = Number(formState.age) || 0;
+                        if (v > 18) handleInputChange("age", v - 1);
+                      }}
+                      aria-label="Decrease age"
+                    >
+                      <i className="fa-solid fa-chevron-down" />
+                    </button>
+                  </div>
+                </div>
                 {displayMissingFields.includes("age") && (
                   <span className="field-error">You must be 18 or older</span>
                 )}
