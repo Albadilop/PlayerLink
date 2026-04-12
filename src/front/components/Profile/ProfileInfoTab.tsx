@@ -541,8 +541,9 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
             {isEditing ? "Save Changes" : "Edit Profile"}
           </button>
           {isEditing && onCancel && (
-            <button className="cancel-btn" onClick={onCancel}>
-              <i className="fa-solid fa-times"></i> Cancel
+            <button type="button" className="cancel-btn" onClick={onCancel}>
+              <i className="fa-solid fa-times" aria-hidden />
+              <span className="cancel-btn-label">Cancel</span>
             </button>
           )}
         </div>

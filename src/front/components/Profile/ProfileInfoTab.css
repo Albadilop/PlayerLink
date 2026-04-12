@@ -2,14 +2,15 @@
 .info-section {
   position: relative;
   padding: 1.5rem;
-  background: linear-gradient(145deg, #0a0f1c 0%, #12182b 50%, #1a1a2f 100%);
+  /* Base más sólida + gradiente un poco más denso (menos sensación de transparencia) */
+  background-color: #070a11;
   border-radius: 20px;
   border: 2px solid transparent;
   overflow: hidden;
 
   /* Borde con gradiente */
   background-image:
-    linear-gradient(145deg, #0a0f1c, #12182b, #1a1a2f),
+    linear-gradient(145deg, #070a11, #0e1524, #14182a),
     linear-gradient(135deg, #00f0ff, #8f00ff, #00f0ff);
   background-origin: border-box;
   background-clip: padding-box, border-box;
@@ -98,7 +99,7 @@
 /* ===== FIELD CARDS ===== */
 .info-field-card {
   position: relative;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.55);
   border: 1px solid rgba(0, 240, 255, 0.2);
   border-radius: 12px;
   padding: 0.6rem;
@@ -121,7 +122,7 @@
 }
 
 .info-field-card:hover {
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.65);
   border-color: rgba(0, 240, 255, 0.4);
   box-shadow: 0 4px 15px rgba(0, 240, 255, 0.15);
   transform: translateY(-2px);
@@ -536,6 +537,7 @@
 
 .info-section-actions {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
   gap: 0.75rem;
@@ -544,13 +546,21 @@
   border-top: 1px solid rgba(0, 240, 255, 0.2);
 }
 
+/* overflow:hidden en los botones hace que min-width:auto sea 0 en flex → texto recortado */
+.info-section-actions .edit-btn,
+.info-section-actions .cancel-btn {
+  flex-shrink: 0;
+  min-width: min-content;
+}
+
 .cancel-btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
   background: transparent;
   border: 2px solid rgba(255, 77, 77, 0.5);
-  color: #ff4d4d;
+  color: #ff6b6b;
   padding: 0.65rem 1.5rem;
   border-radius: 10px;
   cursor: pointer;
@@ -561,6 +571,7 @@
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
+  isolation: isolate;
 }
 
 .cancel-btn::before {
@@ -572,10 +583,17 @@
   height: 100%;
   background: rgba(255, 77, 77, 0.1);
   transition: left 0.5s ease;
+  z-index: -1; /* detrás del texto y del icono */
+  pointer-events: none;
 }
 
 .cancel-btn i {
   font-size: 0.85rem;
+  position: relative;
+  z-index: 1;
+}
+
+.cancel-btn .cancel-btn-label {
   position: relative;
   z-index: 1;
 }
@@ -784,5 +802,18 @@
   .preferences-tags-container {
     gap: 0.4rem;
     margin-top: 0.4rem;
+  }
+}
+
+@media (max-width: 520px) {
+  .info-section-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .info-section-actions .edit-btn,
+  .info-section-actions .cancel-btn {
+    width: 100%;
+    justify-content: center;
   }
 }
