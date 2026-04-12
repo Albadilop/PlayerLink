@@ -27,6 +27,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
 }) => {
   const bioTextRef = useRef<HTMLParagraphElement>(null);
   const bioContainerRef = useRef<HTMLDivElement>(null);
+  const bioIsEmpty = !(bio ?? "").trim();
 
   // Resetear tamaño de fuente cuando cambia la bio
   useEffect(() => {
@@ -65,8 +66,12 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
             onChange={(e) => onBioChange?.(e.target.value)}
             placeholder="Write something about yourself..."
           />
+        ) : bioIsEmpty ? (
+          <p ref={bioTextRef} className="profile-bio-empty">
+            No bio yet — add a few lines so other players know who you are.
+          </p>
         ) : (
-          <p ref={bioTextRef}>{bio || "No bio yet"}</p>
+          <p ref={bioTextRef}>{bio}</p>
         )}
       </div>
 

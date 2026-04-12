@@ -168,6 +168,18 @@
   white-space: normal;
 }
 
+.profile-bio-empty {
+  margin: 0;
+  color: rgba(160, 175, 200, 0.9);
+  font-size: 0.9rem;
+  line-height: 1.45;
+  text-align: center;
+  font-style: italic;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
+}
+
 .profile-bio-textarea {
   width: 100%;
   height: 100%; /* Usar toda la altura disponible del contenedor */

@@ -1,6 +1,6 @@
 import React from "react";
 import Select from "react-select";
-import { GENDER_OPTIONS } from "../../constants";
+import { DEFAULT_VALUES, GENDER_OPTIONS } from "../../constants";
 import { formatPreferences, parsePreferences } from "../../utils/formatters";
 import { GamingPreferencesModal } from "../ProfileModals/GamingPreferencesModal";
 import { LanguageModal } from "../ProfileModals/LanguageModal";
@@ -64,6 +64,33 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
   onSave,
   onCancel,
 }) => {
+  const t = (v: string | undefined | null) => (v ?? "").trim();
+
+  const emptyName = t(profile.name).length < 1;
+  const emptyNick = t(profile.nick_name).length < 1;
+  const emptyAge = !profile.age || profile.age < 1;
+  const gTrim = t(profile.gender);
+  const emptyGender =
+    gTrim.length < 1 ||
+    gTrim.toLowerCase() === "undefined" ||
+    gTrim.toLowerCase() === DEFAULT_VALUES.GENDER_UNDEFINED.toLowerCase() ||
+    gTrim === DEFAULT_VALUES.GENDER;
+  const emptyZodiac = t(profile.zodiac).length < 1;
+  const emptyDiscord = t(profile.discord).length < 1;
+  const emptySteam = t(profile.steam_id).length < 1;
+  const emptyPreferences = isEditing
+    ? selectedGamingPreferences.length === 0
+    : !t(profile.preferences) || parsePreferences(profile.preferences).length === 0;
+  const emptyLanguages = isEditing
+    ? selectedLanguages.length === 0
+    : !t(profile.languages) || parsePreferences(profile.languages).length === 0;
+
+  const freeze = (isEmpty: boolean) => (isEmpty ? " info-field-card--frozen" : "");
+
+  /** Modo lectura: sin placeholder dentro del recuadro si no hay dato. */
+  const displayValue = (text: string) =>
+    t(text) ? <div className="info-field-value">{text.trim()}</div> : null;
+
   const genders = [...GENDER_OPTIONS];
 
   // Convertir opciones a formato React Select
@@ -86,7 +113,7 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
       <div className="info-section-group">
         <div className="row g-3">
           <div className="col-md-6">
-            <div className="info-field-card">
+            <div className={`info-field-card${freeze(emptyName)}`}>
               <label className="info-field-label">
                 <i className="fa-solid fa-id-card"></i> Name
               </label>
@@ -99,12 +126,12 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
                   className="info-field-input"
                 />
               ) : (
-                <div className="info-field-value">{profile.name || "—"}</div>
+                displayValue(profile.name)
               )}
             </div>
           </div>
           <div className="col-md-6">
-            <div className="info-field-card">
+            <div className={`info-field-card${freeze(emptyNick)}`}>
               <label className="info-field-label">
                 <i className="fa-solid fa-signature"></i> Nickname
               </label>
@@ -117,7 +144,7 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
                   className="info-field-input"
                 />
               ) : (
-                <div className="info-field-value">{profile.nick_name || "—"}</div>
+                displayValue(profile.nick_name)
               )}
             </div>
           </div>
@@ -128,7 +155,7 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
       <div className="info-section-group">
         <div className="row g-3">
           <div className="col-md-2">
-            <div className="info-field-card age-input-wrapper">
+            <div className={`info-field-card age-input-wrapper${freeze(emptyAge)}`}>
               <label className="info-field-label">
                 <i className="fa-solid fa-cake-candles"></i> Age
               </label>
@@ -169,13 +196,13 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
                     </button>
                   </div>
                 </div>
-              ) : (
-                <div className="info-field-value">{profile.age || "—"}</div>
-              )}
+              ) : !emptyAge ? (
+                <div className="info-field-value">{profile.age}</div>
+              ) : null}
             </div>
           </div>
           <div className="col-md-4">
-            <div className="info-field-card">
+            <div className={`info-field-card${freeze(emptyGender)}`}>
               <label className="info-field-label">
                 <i className="fa-solid fa-venus-mars"></i> Gender
               </label>
@@ -274,13 +301,13 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
                     }),
                   }}
                 />
-              ) : (
-                <div className="info-field-value">{profile.gender || "—"}</div>
-              )}
+              ) : !emptyGender ? (
+                <div className="info-field-value">{profile.gender}</div>
+              ) : null}
             </div>
           </div>
           <div className="col-md-6">
-            <div className="info-field-card">
+            <div className={`info-field-card${freeze(emptyZodiac)}`}>
               <label className="info-field-label">
                 <i className="fa-solid fa-star-and-crescent"></i> Zodiac
               </label>
@@ -380,7 +407,7 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
                   }}
                 />
               ) : (
-                <div className="info-field-value">{profile.zodiac || "—"}</div>
+                displayValue(profile.zodiac)
               )}
             </div>
           </div>
@@ -392,7 +419,9 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
         <div className="row g-3">
           {(["discord", "steam_id"] as const).map((f, i) => (
             <div key={i} className="col-md-6">
-              <div className="info-field-card">
+              <div
+                className={`info-field-card${freeze(f === "discord" ? emptyDiscord : emptySteam)}`}
+              >
                 <label className="info-field-label ">
                   <i
                     className={f === "steam_id" ? "fa-brands fa-steam" : "fa-brands fa-discord"}
@@ -416,7 +445,7 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
                     className="info-field-input"
                   />
                 ) : (
-                  <div className="info-field-value">{profile[f] || "—"}</div>
+                  displayValue(profile[f])
                 )}
               </div>
             </div>
@@ -428,7 +457,7 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
       <div className="info-section-group">
         <div className="row g-3">
           <div className="col-md-6">
-            <div className="info-field-card gaming-prefs-box">
+            <div className={`info-field-card gaming-prefs-box${freeze(emptyPreferences)}`}>
               <label className="info-field-label">
                 <i className="fa-solid fa-gamepad"></i> Gaming Preferences
               </label>
@@ -449,9 +478,7 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
                           </span>
                         ))}
                       </div>
-                    ) : (
-                      <div className="info-field-value">No preferences selected yet.</div>
-                    )}
+                    ) : null}
                   </div>
 
                   {showGamingPreferencesModal && (
@@ -473,15 +500,13 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
                         </span>
                       ))}
                     </div>
-                  ) : (
-                    <div className="info-field-value">No preferences selected yet.</div>
-                  )}
+                  ) : null}
                 </>
               )}
             </div>
           </div>
           <div className="col-md-6">
-            <div className="info-field-card">
+            <div className={`info-field-card${freeze(emptyLanguages)}`}>
               <label className="info-field-label">
                 <i className="fa-solid fa-language"></i> Languages
               </label>
@@ -499,9 +524,7 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
                           </span>
                         ))}
                       </div>
-                    ) : (
-                      <div className="info-field-value">No languages selected.</div>
-                    )}
+                    ) : null}
                   </div>
 
                   {showLanguageModal && (
@@ -523,9 +546,7 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
                         </span>
                       ))}
                     </div>
-                  ) : (
-                    <div className="info-field-value">No languages selected.</div>
-                  )}
+                  ) : null}
                 </>
               )}
             </div>
