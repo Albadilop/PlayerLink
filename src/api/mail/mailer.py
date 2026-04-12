@@ -137,3 +137,77 @@ def send_password_changed_notification(address: str) -> dict:
     except Exception as e:
         logger.warning("send_password_changed_notification failed: %s", e)
         return {"success": False, "msg": str(e)}
+
+
+def send_email_change_confirmation(address: str, token: str) -> dict:
+    """Enlace de confirmación al nuevo buzón antes de aplicar el cambio."""
+    try:
+        front = (os.getenv("FRONTEND_URL") or "").strip().rstrip("/")
+        if front:
+            confirm_url = f"{front}/confirm-email-change?{urlencode({'token': token})}"
+        else:
+            confirm_url = "#"
+        href = escape(confirm_url, quote=True)
+        text = escape(confirm_url)
+
+        body = f"""
+              <p style="margin:0 0 16px;color:{_COLOR_TEXT};">Hello,</p>
+              <p style="margin:0 0 20px;">You requested to use this address for your <strong style="color:{_COLOR_TEXT};">PlayerLink</strong> account. Confirm the change with the button below.</p>
+              <table role="presentation" cellspacing="0" cellpadding="0" style="margin:24px 0;">
+                <tr>
+                  <td style="border-radius:10px;background:{_COLOR_BTN_BG};border:2px solid {_COLOR_BORDER};">
+                    <a href="{href}" style="display:inline-block;padding:14px 28px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:15px;font-weight:600;color:{_COLOR_BTN_TEXT};text-decoration:none;border-radius:8px;">Confirm email</a>
+                  </td>
+                </tr>
+              </table>
+              <p style="margin:0 0 12px;font-size:13px;">If the button does not work, copy and paste this link:</p>
+              <p style="margin:0;word-break:break-all;font-size:12px;color:{_COLOR_BORDER};">{text}</p>
+              <p style="margin:24px 0 0;">If you did not request this, you can ignore this message.</p>
+"""
+        msg = Message(
+            "PlayerLink — Confirm your new email",
+            recipients=[address],
+            sender=_mail_sender(),
+            html=_playerlink_email_document("Confirm new email", body),
+        )
+        mail.send(msg)
+        return {"success": True, "msg": "sent"}
+    except Exception as e:
+        logger.warning("send_email_change_confirmation failed: %s", e)
+        return {"success": False, "msg": str(e)}
+
+
+def send_email_changed_alert(old_address: str, new_address: str) -> dict:
+    """Aviso al correo antiguo tras completar el cambio (mitiga takeover)."""
+    try:
+        new_esc = escape(new_address)
+        front = (os.getenv("FRONTEND_URL") or "").strip().rstrip("/")
+        home_url = f"{front}/" if front else "#"
+        home_href = escape(home_url, quote=True)
+
+        body = f"""
+              <p style="margin:0 0 16px;color:{_COLOR_TEXT};">Hello,</p>
+              <p style="margin:0 0 16px;">The sign-in email for your <strong style="color:{_COLOR_TEXT};">PlayerLink</strong> account was changed to:</p>
+              <p style="margin:0 0 20px;font-size:16px;color:{_COLOR_BORDER};word-break:break-all;">{new_esc}</p>
+              <p style="margin:0 0 24px;padding:14px 16px;border-radius:10px;border:1px solid rgba(248,113,113,0.45);background:rgba(248,113,113,0.08);color:#fecaca;font-size:14px;">
+                If you <strong>did not</strong> make this change, reset your password and contact support immediately.
+              </p>
+              <table role="presentation" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td style="border-radius:10px;background:{_COLOR_BTN_BG};border:2px solid {_COLOR_BORDER};">
+                    <a href="{home_href}" style="display:inline-block;padding:12px 24px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:14px;font-weight:600;color:{_COLOR_BTN_TEXT};text-decoration:none;">Open PlayerLink</a>
+                  </td>
+                </tr>
+              </table>
+"""
+        msg = Message(
+            "PlayerLink — Your account email was changed",
+            recipients=[old_address],
+            sender=_mail_sender(),
+            html=_playerlink_email_document("Email address changed", body),
+        )
+        mail.send(msg)
+        return {"success": True, "msg": "sent"}
+    except Exception as e:
+        logger.warning("send_email_changed_alert failed: %s", e)
+        return {"success": False, "msg": str(e)}

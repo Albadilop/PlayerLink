@@ -29,6 +29,8 @@ export interface Profile {
 export interface User {
   id: number;
   email: string;
+  /** Correo nuevo pendiente de confirmación por enlace (GET /api/private). */
+  pending_email?: string | null;
   profile: Profile | null;
 }
 

@@ -12,6 +12,8 @@ class User(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     email: Mapped[str] = mapped_column(
         String(120), unique=True, nullable=False)
+    # Nuevo correo pendiente de confirmación por enlace (ver PUT /users_email).
+    pending_email: Mapped[Optional[str]] = mapped_column(String(120), nullable=True)
     password: Mapped[str] = mapped_column(String(250), nullable=False)
 
     # Relaciones
@@ -65,6 +67,7 @@ class User(db.Model):
         return {
             "id": self.id,
             "email": self.email,
+            "pending_email": self.pending_email,
             # No serializar password por seguridad
             "profile": self.profile.serialize() if self.profile else None
         }

@@ -24,6 +24,8 @@ interface EmailForm {
   actualEmail: string;
   email: string;
   confirmedEmail: string;
+  /** Contraseña de la cuenta (obligatoria para solicitar cambio de email). */
+  currentPassword: string;
 }
 
 interface PasswordForm {
@@ -46,6 +48,7 @@ const SettingsView: React.FC = () => {
     actualEmail: "",
     email: "",
     confirmedEmail: "",
+    currentPassword: "",
   });
   const [password, setPassword] = useState<PasswordForm>({
     actualPassword: "",
@@ -322,25 +325,6 @@ const SettingsView: React.FC = () => {
     updateSettings({ matching: { gaming_preference: formatted || null } });
   };
 
-  // Function available for future use (e.g., blocking from user profile)
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleBlockUser = async (blockedId: number, reason?: string) => {
-    if (!store.user?.id) return;
-    try {
-      const resp = await settingsServices.blockUser(store.user.id, blockedId, reason);
-      if (resp.ok) {
-        loadBlockedUsers();
-        showToast("User blocked successfully", "success");
-        playSound("success");
-      } else {
-        showToast(resp.error || "Failed to block user", "error");
-        playSound("error");
-      }
-    } catch {
-      alert("Failed to block user");
-    }
-  };
-
   const handleUnblockClick = (blockedId: number) => {
     setUserToUnblock(blockedId);
     setShowUnblockModal(true);
@@ -390,8 +374,15 @@ const SettingsView: React.FC = () => {
       return;
     }
 
-    if (email.actualEmail !== (store.user?.email || "")) {
+    const currentNorm = (email.actualEmail || "").trim().toLowerCase();
+    const storedNorm = (store.user?.email || "").trim().toLowerCase();
+    if (currentNorm !== storedNorm) {
       setSameEmail("Your current email is incorrect");
+      return;
+    }
+
+    if (!email.currentPassword.trim()) {
+      setErrorEmailChange("Please enter your account password.");
       return;
     }
 
@@ -401,23 +392,49 @@ const SettingsView: React.FC = () => {
     }
 
     try {
-      const resp = await userServices.changeUserEmail(store.user.id, email.email);
+      const resp = await userServices.requestUserEmailChange(store.user.id, {
+        email: email.email.trim(),
+        currentPassword: email.currentPassword,
+      });
       if (!resp.ok) {
-        setErrorEmailChange("Something happened, looks like this email already exists");
+        const err = (resp.error || "").toLowerCase();
+        if (err.includes("contraseña") || err.includes("password")) {
+          setErrorEmailChange("Current password is incorrect.");
+        } else if (err.includes("already exists") || err.includes("duplicate")) {
+          setErrorEmailChange("That email is already in use.");
+        } else if (err.includes("smtp") || err.includes("confirmation email")) {
+          setErrorEmailChange(
+            "Could not send the confirmation email. Check server mail configuration."
+          );
+        } else if (err.includes("different from the current")) {
+          setErrorEmailChange("The new email must be different from your current one.");
+        } else {
+          setErrorEmailChange(resp.error || "Could not start email change. Please try again.");
+        }
         return;
       }
 
       setSameEmail("");
       setErrorEmailChange("");
-      setEmailChanged("Email updated successfully");
+      setEmailChanged(
+        "Confirmation link sent. Check your new inbox (and spam) to finish the change. You can stay logged in until you confirm."
+      );
+
+      const refreshed = await userServices.getUserInfo(0, true);
+      if (refreshed && !(refreshed instanceof Error) && refreshed.user) {
+        await dispatch({ type: "getUserInfo", payload: refreshed.user });
+      }
 
       setTimeout(() => {
         setShowEmailModal(false);
-        setEmail({ actualEmail: "", email: "", confirmedEmail: "" });
+        setEmail({
+          actualEmail: "",
+          email: "",
+          confirmedEmail: "",
+          currentPassword: "",
+        });
         setEmailChanged("");
-        dispatch({ type: "logout" });
-        navigate("/");
-      }, 3000);
+      }, 4000);
     } catch {
       setErrorEmailChange("Failed to change the email. Please try again");
     }
@@ -492,9 +509,10 @@ const SettingsView: React.FC = () => {
 
   const closeChangeEmailModal = () => {
     setShowEmailModal(false);
-    setEmail({ actualEmail: "", email: "", confirmedEmail: "" });
+    setEmail({ actualEmail: "", email: "", confirmedEmail: "", currentPassword: "" });
     setSameEmail("");
     setEmailChanged("");
+    setErrorEmailChange("");
   };
 
   const closeChangePasswordModal = () => {
@@ -566,14 +584,37 @@ const SettingsView: React.FC = () => {
       {/* Account Section */}
       <div className="settings-category">
         <h3>Account</h3>
+        <div className="settings-account-current-mail">
+          <span className="settings-account-current-mail__label">Current email</span>
+          <span className="settings-account-current-mail__value">
+            {store.user?.email?.trim() ? store.user.email : "—"}
+          </span>
+        </div>
         <div className="settings-section">
-          <button className="settings-btn" onClick={() => setShowEmailModal(true)}>
+          <button
+            className="settings-btn"
+            onClick={() => {
+              setEmail((prev) => ({
+                ...prev,
+                actualEmail: store.user?.email ?? "",
+                currentPassword: "",
+              }));
+              setShowEmailModal(true);
+            }}
+          >
             Change Email
           </button>
           <button className="settings-btn" onClick={() => setShowPasswordModal(true)}>
             Change Password
           </button>
         </div>
+        {store.user?.pending_email ? (
+          <p style={{ color: "#94a3b8", fontSize: "0.9rem", marginTop: "12px", maxWidth: "520px" }}>
+            Pending confirmation for:{" "}
+            <strong style={{ color: "#00e5ff" }}>{store.user.pending_email}</strong>. Open the link
+            we sent to that address to complete the change.
+          </p>
+        ) : null}
       </div>
 
       {/* Matching Preferences */}
@@ -1098,6 +1139,15 @@ const SettingsView: React.FC = () => {
                 name="confirmedEmail"
                 value={email.confirmedEmail}
                 onChange={handleChange}
+              />
+              <input
+                type="password"
+                placeholder="Account password (required)"
+                name="currentPassword"
+                value={email.currentPassword}
+                onChange={handleChange}
+                autoComplete="current-password"
+                style={{ marginTop: "10px" }}
               />
               {sameEmail && <h6 className="text-danger mt-1">{sameEmail}</h6>}
               {emailChanged && <h6 className="text-success mt-1">{emailChanged}</h6>}

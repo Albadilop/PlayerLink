@@ -18,6 +18,26 @@
   margin-bottom: 40px;
 }
 
+.settings-account-current-mail {
+  margin-bottom: 16px;
+  max-width: 520px;
+}
+
+.settings-account-current-mail__label {
+  display: block;
+  font-size: 0.85rem;
+  color: #94a3b8;
+  margin-bottom: 6px;
+}
+
+.settings-account-current-mail__value {
+  display: block;
+  font-size: 1rem;
+  color: #e2e8f0;
+  font-weight: 600;
+  word-break: break-all;
+}
+
 .settings-btn {
   padding: 10px 20px;
   background: transparent;

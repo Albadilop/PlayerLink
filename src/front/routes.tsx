@@ -10,6 +10,7 @@ import { FindGames } from "./pages/Privateviews/Find-games";
 import Settings from "./pages/Privateviews/Settings";
 import { MatchUserDetails } from "./components/matchUserDetails";
 import { Reset } from "./pages/Reset";
+import { ConfirmEmailChange } from "./pages/ConfirmEmailChange";
 import { Onboarding } from "./components/Onboarding/Onboarding";
 
 export const router = createBrowserRouter(
@@ -27,6 +28,7 @@ export const router = createBrowserRouter(
         <Route path="settings" element={<Settings />} />
       </Route>
       <Route path="/reset" element={<Reset />} />
+      <Route path="/confirm-email-change" element={<ConfirmEmailChange />} />
     </Route>
   ),
   {

@@ -82,7 +82,8 @@ def register(_data: dict) -> Tuple[Response, int] | Response:
 @validate_json(['email', 'password'])
 def login(_data: dict) -> Tuple[Response, int] | Response:
     """Login user and return JWT token"""
-    stmt = select(User).where(User.email == _data['email'])
+    email_norm = (_data.get('email') or '').strip().lower()
+    stmt = select(User).where(func.lower(User.email) == email_norm)
     user = db.session.execute(stmt).scalar_one_or_none()
 
     # Use generic error message to prevent email enumeration
