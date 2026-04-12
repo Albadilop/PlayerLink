@@ -636,8 +636,11 @@ const SettingsView: React.FC = () => {
       {settings && (
         <div className="settings-category settings-category--matching">
           <h3>Matching Preferences</h3>
-          <div className="settings-item">
-            <label>Enable Discovery</label>
+          <p className="settings-incomplete-note">
+            The red option below is saved but Explore still ignores it.
+          </p>
+          <div className="settings-item settings-item--incomplete">
+            <label title="Not applied to Explore / profiles_to_explore yet">Enable Discovery</label>
             <ToggleSwitch
               checked={settings.matching.discovery_enabled ?? true}
               onChange={(val) => handleToggle("matching", "discovery_enabled", val)}
@@ -941,42 +944,46 @@ const SettingsView: React.FC = () => {
       {settings && (
         <div className="settings-category">
           <h3>Notifications</h3>
-          <div className="settings-item">
+          <p className="settings-incomplete-note">
+            Email and server-side app toggles are stored but not connected to sending logic or push
+            across the app. Application → Sounds uses local preferences instead.
+          </p>
+          <div className="settings-item settings-item--incomplete">
             <label>Email: Match Notifications</label>
             <ToggleSwitch
               checked={settings.notifications.email_match_notifications ?? true}
               onChange={(val) => handleToggle("notifications", "email_match_notifications", val)}
             />
           </div>
-          <div className="settings-item">
+          <div className="settings-item settings-item--incomplete">
             <label>Email: Like Notifications</label>
             <ToggleSwitch
               checked={settings.notifications.email_like_notifications ?? true}
               onChange={(val) => handleToggle("notifications", "email_like_notifications", val)}
             />
           </div>
-          <div className="settings-item">
+          <div className="settings-item settings-item--incomplete">
             <label>Email: Review Notifications</label>
             <ToggleSwitch
               checked={settings.notifications.email_review_notifications ?? true}
               onChange={(val) => handleToggle("notifications", "email_review_notifications", val)}
             />
           </div>
-          <div className="settings-item">
+          <div className="settings-item settings-item--incomplete">
             <label>Email: Weekly Summary</label>
             <ToggleSwitch
               checked={settings.notifications.email_weekly_summary ?? false}
               onChange={(val) => handleToggle("notifications", "email_weekly_summary", val)}
             />
           </div>
-          <div className="settings-item">
+          <div className="settings-item settings-item--incomplete">
             <label>App: Sound Notifications</label>
             <ToggleSwitch
               checked={settings.notifications.app_sound_notifications ?? true}
               onChange={(val) => handleToggle("notifications", "app_sound_notifications", val)}
             />
           </div>
-          <div className="settings-item">
+          <div className="settings-item settings-item--incomplete">
             <label>App: Push Notifications</label>
             <ToggleSwitch
               checked={settings.notifications.app_push_notifications ?? true}
@@ -990,14 +997,17 @@ const SettingsView: React.FC = () => {
       {settings && (
         <div className="settings-category settings-category--gaming">
           <h3>Gaming</h3>
-          <div className="settings-item">
+          <p className="settings-incomplete-note">
+            No Steam sync job uses these flags yet; library visibility is not wired in the UI.
+          </p>
+          <div className="settings-item settings-item--incomplete">
             <label>Steam Sync Enabled</label>
             <ToggleSwitch
               checked={settings.gaming.steam_sync_enabled ?? false}
               onChange={(val) => handleToggle("gaming", "steam_sync_enabled", val)}
             />
           </div>
-          <div className="settings-input-group settings-input-group--gaming-sync">
+          <div className="settings-input-group settings-input-group--gaming-sync settings-input-group--incomplete">
             <label>Sync Frequency:</label>
             <select
               value={settings.gaming.steam_sync_frequency || "manual"}
@@ -1008,7 +1018,7 @@ const SettingsView: React.FC = () => {
               <option value="weekly">Weekly</option>
             </select>
           </div>
-          <div className="settings-item">
+          <div className="settings-item settings-item--incomplete">
             <label>Show Steam Library</label>
             <ToggleSwitch
               checked={settings.gaming.show_steam_library ?? true}
@@ -1022,14 +1032,17 @@ const SettingsView: React.FC = () => {
       {settings && (
         <div className="settings-category">
           <h3>Social</h3>
-          <div className="settings-item">
+          <p className="settings-incomplete-note">
+            Chat does not read these flags yet; values are only stored in your account settings.
+          </p>
+          <div className="settings-item settings-item--incomplete">
             <label>Chat from Matches Only</label>
             <ToggleSwitch
               checked={settings.social.chat_from_matches_only ?? true}
               onChange={(val) => handleToggle("social", "chat_from_matches_only", val)}
             />
           </div>
-          <div className="settings-item">
+          <div className="settings-item settings-item--incomplete">
             <label>Read Receipts</label>
             <ToggleSwitch
               checked={settings.social.read_receipts_enabled ?? true}
@@ -1042,6 +1055,10 @@ const SettingsView: React.FC = () => {
       {/* Blocked Users */}
       <div className="settings-category">
         <h3>Blocked Users</h3>
+        <p className="settings-incomplete-note">
+          You cannot add new blocks from this page (no block UI here). Block someone from their
+          profile; you can only unblock from this list.
+        </p>
         {loadingBlocked ? (
           <p>Loading blocked users...</p>
         ) : blockedUsers.length === 0 ? (
@@ -1114,6 +1131,10 @@ const SettingsView: React.FC = () => {
         </button>
         <p style={{ fontSize: "0.9rem", marginTop: "10px", color: "#aaa" }}>
           Download all your data in JSON format (GDPR compliant)
+        </p>
+        <p className="settings-incomplete-note" style={{ marginTop: "8px" }}>
+          Export covers this app&apos;s database only; data held only in external auth (e.g.
+          Supabase) may not be included.
         </p>
       </div>
 

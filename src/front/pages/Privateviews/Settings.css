@@ -38,6 +38,20 @@
   word-break: break-all;
 }
 
+/* Preferences saved in DB but not wired to product behavior (see Settings analysis). */
+.settings-item.settings-item--incomplete > label,
+.settings-input-group.settings-input-group--incomplete > label {
+  color: #f87171 !important;
+}
+
+.settings-incomplete-note {
+  color: #f87171;
+  font-size: 0.82rem;
+  margin: 0 0 14px;
+  max-width: 720px;
+  line-height: 1.45;
+}
+
 .settings-btn {
   padding: 10px 20px;
   background: transparent;
