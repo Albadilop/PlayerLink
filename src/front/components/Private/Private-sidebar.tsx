@@ -25,7 +25,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePath: _activePath }) => 
     { to: "/private/profile", icon: "fa-solid fa-user", label: "Profile" },
     { to: "/private/search-a-mate", icon: "fa-solid fa-magnifying-glass", label: "Search a Mate" },
     { to: "/private/your-matches", icon: "fa-solid fa-heart", label: "Your Matches" },
-    { to: "/private/find-games", icon: "fa-solid fa-gamepad", label: "Find Games" },
+    { to: "/private/find-games", icon: "fa-solid fa-gamepad", label: "PlayerLink AI" },
     { to: "/private/settings", icon: "fa-solid fa-gear", label: "Settings" },
   ];
 
