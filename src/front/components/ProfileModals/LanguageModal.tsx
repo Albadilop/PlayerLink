@@ -52,7 +52,10 @@ export const LanguageModal: React.FC<LanguageModalProps> = ({
   const modalContent = (
     <div className="abmodal">
       <div className="abmodal-content">
-        <h3>Select up to 5 Languages</h3>
+        <h3>
+          Select up to 5 Languages
+          <span className="preferences-counter">({selected.length}/5)</span>
+        </h3>
         <div className="abcheckbox-grid">
           {languages.map((language) => (
             <label key={language} className="abcheckbox-label">

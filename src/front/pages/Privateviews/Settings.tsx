@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import "./Settings.css";
 import userServices from "../../services/userServices";
 import settingsServices, {
@@ -67,6 +67,9 @@ const SettingsView: React.FC = () => {
   const [settingsError, setSettingsError] = useState<string>("");
   const [settingsSuccess, setSettingsSuccess] = useState<string>("");
   const [ageValidationError, setAgeValidationError] = useState<string>("");
+
+  // Debounce timer for saving age preferences
+  const saveAgeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Blocked users
   const [blockedUsers, setBlockedUsers] = useState<BlockedUser[]>([]);
@@ -189,6 +192,15 @@ const SettingsView: React.FC = () => {
     }
   }, [settings]);
 
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (saveAgeTimeoutRef.current) {
+        clearTimeout(saveAgeTimeoutRef.current);
+      }
+    };
+  }, []);
+
   const updateSettings = async (
     updates: Partial<{
       matching: Partial<MatchingPreferences>;
@@ -206,6 +218,7 @@ const SettingsView: React.FC = () => {
     try {
       const resp = await settingsServices.updateUserSettings(store.user.id, updates);
       if (resp.ok && resp.data) {
+        // Use the server response directly - it should contain all saved values
         setSettings(resp.data);
         setSettingsSuccess("Settings updated successfully");
         showToast("Settings updated successfully", "success");
@@ -251,18 +264,49 @@ const SettingsView: React.FC = () => {
   const handleInputChange = (category: string, key: string, value: string | number | null) => {
     if (!settings) return;
 
-    // Validate age range when changing age preferences
-    if (category === "matching" && (key === "min_age_preference" || key === "max_age_preference")) {
-      const newMinAge =
-        key === "min_age_preference" ? (value as number) : settings.matching.min_age_preference;
-      const newMaxAge =
-        key === "max_age_preference" ? (value as number) : settings.matching.max_age_preference;
-
-      if (!validateAgeRange(newMinAge ?? null, newMaxAge ?? null)) {
-        return; // Don't update if validation fails
-      }
+    // Update local state immediately to allow user to type
+    const updatedSettings = { ...settings };
+    if (category === "matching") {
+      updatedSettings.matching = { ...settings.matching, [key]: value };
+      setSettings(updatedSettings);
     }
 
+    // Validate age range when changing age preferences (but don't block the update)
+    if (category === "matching" && (key === "min_age_preference" || key === "max_age_preference")) {
+      const newMinAge =
+        key === "min_age_preference"
+          ? (value as number)
+          : updatedSettings.matching.min_age_preference;
+      const newMaxAge =
+        key === "max_age_preference"
+          ? (value as number)
+          : updatedSettings.matching.max_age_preference;
+
+      // Validate but allow the update to proceed
+      validateAgeRange(newMinAge ?? null, newMaxAge ?? null);
+
+      // Clear existing timeout
+      if (saveAgeTimeoutRef.current) {
+        clearTimeout(saveAgeTimeoutRef.current);
+      }
+
+      // Debounce save to server (wait 500ms after user stops typing)
+      saveAgeTimeoutRef.current = setTimeout(() => {
+        updateSettings({ [category]: { [key]: value } });
+      }, 500);
+    } else {
+      // For non-age fields, save immediately
+      updateSettings({ [category]: { [key]: value } });
+    }
+  };
+
+  const handleAgeBlur = (category: string, key: string, value: string | number | null) => {
+    // Clear any pending timeout
+    if (saveAgeTimeoutRef.current) {
+      clearTimeout(saveAgeTimeoutRef.current);
+      saveAgeTimeoutRef.current = null;
+    }
+    // Save immediately when user leaves the field
     updateSettings({ [category]: { [key]: value } });
   };
 
@@ -502,12 +546,20 @@ const SettingsView: React.FC = () => {
 
   return (
     <div className="settings-container">
-      <h2 className="settings-title">Settings</h2>
+      <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "20px" }}>
+        <h2 className="settings-title" style={{ marginBottom: 0 }}>
+          Settings
+        </h2>
+        {settingsSuccess && (
+          <div className="text-success" style={{ margin: 0, fontSize: "1rem" }}>
+            {settingsSuccess}
+          </div>
+        )}
+      </div>
 
       {settingsError && !settingsError.includes("Could not connect") && (
         <div className="text-danger mb-2">{settingsError}</div>
       )}
-      {settingsSuccess && <div className="text-success mb-2">{settingsSuccess}</div>}
 
       {/* Account Section */}
       <div className="settings-category">
@@ -534,36 +586,143 @@ const SettingsView: React.FC = () => {
             />
           </div>
           <div className="settings-input-group">
-            <label>Min Age:</label>
-            <input
-              type="number"
-              value={settings.matching.min_age_preference || ""}
-              onChange={(e) =>
-                handleInputChange(
-                  "matching",
-                  "min_age_preference",
-                  e.target.value ? parseInt(e.target.value) : null
-                )
-              }
-              min="18"
-              max="100"
-            />
-          </div>
-          <div className="settings-input-group">
-            <label>Max Age:</label>
-            <input
-              type="number"
-              value={settings.matching.max_age_preference || ""}
-              onChange={(e) =>
-                handleInputChange(
-                  "matching",
-                  "max_age_preference",
-                  e.target.value ? parseInt(e.target.value) : null
-                )
-              }
-              min="18"
-              max="100"
-            />
+            <label>Age Range:</label>
+            <div style={{ flex: 1, display: "flex", gap: "1rem" }}>
+              <div style={{ display: "flex", alignItems: "flex-end", gap: "0.5rem", flex: 1 }}>
+                <div style={{ flex: 1 }}>
+                  <label
+                    style={{
+                      fontSize: "0.85rem",
+                      color: "#aaa",
+                      marginBottom: "0.25rem",
+                      display: "block",
+                    }}
+                  >
+                    Min Age
+                  </label>
+                  <input
+                    type="number"
+                    value={settings.matching.min_age_preference || ""}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "matching",
+                        "min_age_preference",
+                        e.target.value ? parseInt(e.target.value) : null
+                      )
+                    }
+                    onBlur={(e) =>
+                      handleAgeBlur(
+                        "matching",
+                        "min_age_preference",
+                        e.target.value ? parseInt(e.target.value) : null
+                      )
+                    }
+                    min="18"
+                    max="100"
+                    className="settings-age-input"
+                  />
+                </div>
+                <div className="settings-spinner-buttons">
+                  <button
+                    type="button"
+                    className="settings-spinner-btn settings-spinner-up"
+                    onClick={() => {
+                      const currentValue = settings.matching.min_age_preference || 18;
+                      if (currentValue < 100) {
+                        const newValue = currentValue + 1;
+                        handleInputChange("matching", "min_age_preference", newValue);
+                        handleAgeBlur("matching", "min_age_preference", newValue);
+                      }
+                    }}
+                    aria-label="Increase min age"
+                  >
+                    <i className="fa-solid fa-chevron-up"></i>
+                  </button>
+                  <button
+                    type="button"
+                    className="settings-spinner-btn settings-spinner-down"
+                    onClick={() => {
+                      const currentValue = settings.matching.min_age_preference || 18;
+                      if (currentValue > 18) {
+                        const newValue = currentValue - 1;
+                        handleInputChange("matching", "min_age_preference", newValue);
+                        handleAgeBlur("matching", "min_age_preference", newValue);
+                      }
+                    }}
+                    aria-label="Decrease min age"
+                  >
+                    <i className="fa-solid fa-chevron-down"></i>
+                  </button>
+                </div>
+              </div>
+              <div style={{ display: "flex", alignItems: "flex-end", gap: "0.5rem", flex: 1 }}>
+                <div style={{ flex: 1 }}>
+                  <label
+                    style={{
+                      fontSize: "0.85rem",
+                      color: "#aaa",
+                      marginBottom: "0.25rem",
+                      display: "block",
+                    }}
+                  >
+                    Max Age
+                  </label>
+                  <input
+                    type="number"
+                    value={settings.matching.max_age_preference || ""}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "matching",
+                        "max_age_preference",
+                        e.target.value ? parseInt(e.target.value) : null
+                      )
+                    }
+                    onBlur={(e) =>
+                      handleAgeBlur(
+                        "matching",
+                        "max_age_preference",
+                        e.target.value ? parseInt(e.target.value) : null
+                      )
+                    }
+                    min="18"
+                    max="100"
+                    className="settings-age-input"
+                  />
+                </div>
+                <div className="settings-spinner-buttons">
+                  <button
+                    type="button"
+                    className="settings-spinner-btn settings-spinner-up"
+                    onClick={() => {
+                      const currentValue = settings.matching.max_age_preference || 18;
+                      if (currentValue < 100) {
+                        const newValue = currentValue + 1;
+                        handleInputChange("matching", "max_age_preference", newValue);
+                        handleAgeBlur("matching", "max_age_preference", newValue);
+                      }
+                    }}
+                    aria-label="Increase max age"
+                  >
+                    <i className="fa-solid fa-chevron-up"></i>
+                  </button>
+                  <button
+                    type="button"
+                    className="settings-spinner-btn settings-spinner-down"
+                    onClick={() => {
+                      const currentValue = settings.matching.max_age_preference || 18;
+                      if (currentValue > 18) {
+                        const newValue = currentValue - 1;
+                        handleInputChange("matching", "max_age_preference", newValue);
+                        handleAgeBlur("matching", "max_age_preference", newValue);
+                      }
+                    }}
+                    aria-label="Decrease max age"
+                  >
+                    <i className="fa-solid fa-chevron-down"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
           {ageValidationError && (
             <div className="text-danger" style={{ fontSize: "0.9rem", marginTop: "5px" }}>
@@ -617,18 +776,49 @@ const SettingsView: React.FC = () => {
           </div>
           <div className="settings-input-group">
             <label>Min Hours Played:</label>
-            <input
-              type="number"
-              value={settings.matching.min_hours_played || ""}
-              onChange={(e) =>
-                handleInputChange(
-                  "matching",
-                  "min_hours_played",
-                  e.target.value ? parseInt(e.target.value) : null
-                )
-              }
-              min="0"
-            />
+            <div style={{ display: "flex", alignItems: "flex-end", gap: "0.5rem", flex: 1 }}>
+              <div style={{ flex: 1 }}>
+                <input
+                  type="number"
+                  value={settings.matching.min_hours_played || ""}
+                  onChange={(e) =>
+                    handleInputChange(
+                      "matching",
+                      "min_hours_played",
+                      e.target.value ? parseInt(e.target.value) : null
+                    )
+                  }
+                  min="0"
+                  className="settings-age-input"
+                />
+              </div>
+              <div className="settings-spinner-buttons">
+                <button
+                  type="button"
+                  className="settings-spinner-btn settings-spinner-up"
+                  onClick={() => {
+                    const currentValue = settings.matching.min_hours_played || 0;
+                    handleInputChange("matching", "min_hours_played", currentValue + 1);
+                  }}
+                  aria-label="Increase min hours"
+                >
+                  <i className="fa-solid fa-chevron-up"></i>
+                </button>
+                <button
+                  type="button"
+                  className="settings-spinner-btn settings-spinner-down"
+                  onClick={() => {
+                    const currentValue = settings.matching.min_hours_played || 0;
+                    if (currentValue > 0) {
+                      handleInputChange("matching", "min_hours_played", currentValue - 1);
+                    }
+                  }}
+                  aria-label="Decrease min hours"
+                >
+                  <i className="fa-solid fa-chevron-down"></i>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -824,7 +1014,7 @@ const SettingsView: React.FC = () => {
       {/* App Preferences */}
       <div className="settings-category">
         <h3>Application</h3>
-        <div className="settings-item">
+        <div className="settings-input-group">
           <label>Theme</label>
           <select
             value={theme}

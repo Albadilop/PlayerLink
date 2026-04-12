@@ -362,7 +362,7 @@
   position: relative;
   display: inline-block;
   margin-left: 10px;
-  z-index: 10000;
+  z-index: 10007;
 }
 
 .medals-info-icon {
@@ -394,7 +394,7 @@
   background: linear-gradient(145deg, #0a0f1c, #12182b);
   padding: 18px;
   border-radius: 12px;
-  z-index: 99999;
+  z-index: 10008;
   width: 260px;
   color: #fff;
   font-size: 0.9rem;
@@ -450,7 +450,7 @@
   border-right: 10px solid transparent;
   border-top: 10px solid #12182b;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
-  z-index: 100000;
+  z-index: 10009;
 }
 
 .medal-info-tooltip-arrow::before {
@@ -615,9 +615,52 @@
 }
 
 /* Medal Info Modal */
-.medal-info-modal {
-  max-width: 500px;
-  width: 90%;
+.modal-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  background: rgba(0, 0, 0, 0.85) !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  z-index: 10004 !important;
+  padding: 20px !important;
+  overflow: auto !important;
+}
+
+.modal-content.medal-info-modal {
+  position: relative !important;
+  background: linear-gradient(145deg, #0e0e1a, #1a1a2f) !important;
+  border: 2px solid #7f00ff !important;
+  border-radius: 15px !important;
+  box-shadow:
+    0 10px 30px rgba(127, 0, 255, 0.4),
+    0 0 20px rgba(0, 240, 255, 0.2),
+    inset 0 0 20px rgba(127, 0, 255, 0.1) !important;
+  margin: 0 auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  max-width: 500px !important;
+  width: 90% !important;
+  max-height: 90vh !important;
+  overflow: hidden !important;
+  left: 0 !important;
+  right: 0 !important;
+  top: 0 !important;
+  bottom: 0 !important;
+  transform: none !important;
+  align-self: center !important;
+}
+
+.modal-header {
+  flex-shrink: 0;
+}
+
+.modal-body {
+  flex: 1;
+  overflow-y: auto;
 }
 
 .medal-info-header {
@@ -730,9 +773,11 @@
 }
 
 @media (max-width: 768px) {
-  .medal-info-modal {
-    width: 95%;
-    max-width: none;
+  .modal-content.medal-info-modal {
+    width: 95% !important;
+    max-width: none !important;
+    margin: 0 auto !important;
+    align-self: center !important;
   }
 
   .medal-info-header {

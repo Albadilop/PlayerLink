@@ -230,27 +230,6 @@
   position: relative;
   padding: 0.5rem;
   border-radius: 8px;
-  transition: all 0.3s ease;
-}
-
-.match-mini-game-item::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.1), transparent);
-  transition: left 0.5s ease;
-  border-radius: 8px;
-}
-
-.match-mini-game-item:hover {
-  background: rgba(0, 0, 0, 0.3);
-}
-
-.match-mini-game-item:hover::after {
-  left: 100%;
 }
 
 .match-mini-game-img {
@@ -260,12 +239,6 @@
   border-radius: 8px;
   border: 2px solid rgba(0, 240, 255, 0.3);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  transition: all 0.3s ease;
-}
-
-.match-mini-game-img:hover {
-  border-color: rgba(0, 240, 255, 0.5);
-  box-shadow: 0 4px 15px rgba(0, 240, 255, 0.15);
 }
 
 .match-mini-medal {
@@ -273,11 +246,6 @@
   height: 32px;
   object-fit: contain;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
-  transition: transform 0.3s ease;
-}
-
-.match-mini-medal:hover {
-  transform: scale(1.15) rotate(5deg);
 }
 
 /* No games state */
@@ -329,10 +297,151 @@
 }
 
 /* ===== RESPONSIVE ===== */
-@media (max-width: 576px) {
+
+/* Extra large screens (≥1400px) - 4 cards per row */
+@media (min-width: 1400px) {
   .match-mini-card {
+    height: 380px;
+    padding: 1.3rem;
+  }
+
+  .match-mini-avatar-wrapper {
+    width: 60px;
+    height: 60px;
+  }
+
+  .match-mini-nickname {
+    font-size: 1.2rem;
+  }
+
+  .match-mini-games {
+    padding: 0.8rem;
+    overflow: hidden;
+  }
+
+  .match-mini-games-grid {
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    max-width: 100%;
+  }
+
+  .match-mini-game-item {
+    padding: 0.4rem;
+    flex-shrink: 0;
+  }
+
+  .match-mini-game-img {
+    width: 55px;
+    height: 32px;
+  }
+
+  .match-mini-medal {
+    width: 30px;
+    height: 30px;
+  }
+
+  .match-mini-location {
+    padding: 0.6rem 0;
+  }
+}
+
+/* Laptop size (1200px - 1399px) - 3 cards per row */
+@media (min-width: 1200px) and (max-width: 1399px) {
+  .match-mini-card {
+    height: 360px;
+    padding: 1.2rem;
+  }
+
+  .match-mini-avatar-wrapper {
+    width: 58px;
+    height: 58px;
+  }
+
+  .match-mini-nickname {
+    font-size: 1.15rem;
+  }
+
+  .match-mini-games {
+    padding: 0.7rem;
+    overflow: hidden;
+  }
+
+  .match-mini-games-grid {
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    max-width: 100%;
+  }
+
+  .match-mini-game-item {
+    padding: 0.4rem;
+    flex-shrink: 0;
+  }
+
+  .match-mini-game-img {
+    width: 50px;
+    height: 30px;
+  }
+
+  .match-mini-medal {
+    width: 28px;
+    height: 28px;
+  }
+
+  .match-mini-location {
+    padding: 0.6rem 0;
+  }
+}
+
+/* Laptops and tablets landscape (1024px - 1199px) */
+@media (min-width: 992px) and (max-width: 1199px) {
+  .match-mini-card {
+    height: 340px;
+    padding: 1.1rem;
+  }
+
+  .match-mini-avatar-wrapper {
+    width: 55px;
+    height: 55px;
+  }
+
+  .match-mini-nickname {
+    font-size: 1.1rem;
+  }
+
+  .match-mini-game-img {
+    width: 58px;
+    height: 34px;
+  }
+}
+
+/* Tablets (768px - 991px) */
+@media (min-width: 768px) and (max-width: 991px) {
+  .match-mini-card {
+    height: 330px;
     padding: 1rem;
-    height: 300px;
+  }
+
+  .match-mini-avatar-wrapper {
+    width: 55px;
+    height: 55px;
+  }
+
+  .match-mini-nickname {
+    font-size: 1.1rem;
+  }
+
+  .match-mini-game-img {
+    width: 56px;
+    height: 33px;
+  }
+}
+
+/* Mobile (max-width: 767px) */
+@media (max-width: 767px) {
+  .match-mini-card {
+    height: auto;
+    min-height: 300px;
+    padding: 1rem;
   }
 
   .match-mini-avatar-wrapper {
@@ -350,6 +459,129 @@
   }
 
   .match-mini-medal {
-    width: 24px;
+    width: 28px;
+    height: 28px;
   }
+}
+
+/* Small mobile (max-width: 576px) */
+@media (max-width: 576px) {
+  .match-mini-card {
+    padding: 0.9rem;
+    min-height: 280px;
+  }
+
+  .match-mini-avatar-wrapper {
+    width: 48px;
+    height: 48px;
+  }
+
+  .match-mini-nickname {
+    font-size: 0.95rem;
+  }
+
+  .match-mini-game-img {
+    width: 50px;
+    height: 30px;
+  }
+
+  .match-mini-medal {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+/* ===== BOOTSTRAP POPOVER STYLES ===== */
+.popover {
+  background: linear-gradient(145deg, #0a0f1c, #12182b) !important;
+  border: 2px solid #00f0ff !important;
+  border-radius: 12px !important;
+  box-shadow:
+    0 8px 30px rgba(0, 0, 0, 0.6),
+    0 0 20px rgba(0, 240, 255, 0.2),
+    inset 0 0 0 1px rgba(143, 0, 255, 0.3) !important;
+  padding: 0 !important;
+  max-width: 300px !important;
+  font-family: "Orbitron", "Segoe UI", sans-serif !important;
+  transition:
+    opacity 0.15s ease,
+    visibility 0.15s ease !important;
+  z-index: 1060 !important;
+}
+
+.popover-body {
+  background: transparent !important;
+  color: #fff !important;
+  padding: 14px 16px !important;
+  font-size: 0.9rem !important;
+  line-height: 1.6 !important;
+}
+
+.popover-hours {
+  color: #00f0ff !important;
+  font-weight: 700 !important;
+  font-size: 1.1rem !important;
+  text-shadow: 0 0 10px rgba(0, 240, 255, 0.6) !important;
+  letter-spacing: 0.5px !important;
+}
+
+.popover-header {
+  display: none !important;
+}
+
+/* Popover arrow - Bootstrap 5 structure */
+.popover-arrow {
+  display: block !important;
+}
+
+.popover-arrow::before {
+  border-color: transparent !important;
+}
+
+.popover-arrow::after {
+  border-color: transparent !important;
+}
+
+/* Bottom placement (most common for medals) */
+.popover[data-popper-placement^="bottom"] .popover-arrow::before {
+  border-bottom-color: #00f0ff !important;
+  top: -1px !important;
+}
+
+.popover[data-popper-placement^="bottom"] .popover-arrow::after {
+  border-bottom-color: #12182b !important;
+  top: 0 !important;
+}
+
+/* Top placement */
+.popover[data-popper-placement^="top"] .popover-arrow::before {
+  border-top-color: #00f0ff !important;
+  bottom: -1px !important;
+}
+
+.popover[data-popper-placement^="top"] .popover-arrow::after {
+  border-top-color: #12182b !important;
+  bottom: 0 !important;
+}
+
+/* Left placement */
+.popover[data-popper-placement^="left"] .popover-arrow::before {
+  border-left-color: #00f0ff !important;
+  right: -1px !important;
+}
+
+.popover[data-popper-placement^="left"] .popover-arrow::after {
+  border-left-color: #12182b !important;
+  right: 0 !important;
+}
+
+/* Right placement */
+.popover[data-popper-placement^="right"] .popover-arrow::before {
+  border-right-color: #00f0ff !important;
+  left: -1px !important;
+}
+
+.popover[data-popper-placement^="right"] .popover-arrow::after {
+  border-right-color: #12182b !important;
+  left: 0 !important;
 }

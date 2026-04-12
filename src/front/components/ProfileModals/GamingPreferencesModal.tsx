@@ -56,7 +56,10 @@ export const GamingPreferencesModal: React.FC<GamingPreferencesModalProps> = ({
   const modalContent = (
     <div className="abmodal">
       <div className="abmodal-content">
-        <h3>Select up to 5 Gaming Preferences</h3>
+        <h3>
+          Select up to 5 Gaming Preferences
+          <span className="text-medium preferences-counter">({selected.length}/5)</span>
+        </h3>
         <div className="abcheckbox-grid">
           {options.map((option) => (
             <label key={option} className="abcheckbox-label">

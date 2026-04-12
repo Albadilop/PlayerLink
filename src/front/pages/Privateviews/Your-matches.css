@@ -161,6 +161,21 @@
 }
 
 /* Responsive */
+@media (min-width: 992px) and (max-width: 1199px) {
+  /* Laptop adjustments */
+  .container-fluid {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+@media (max-width: 991px) {
+  .container-fluid {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
 @media (max-width: 768px) {
   .no-matches-empty-state {
     padding: 2rem 1.5rem;
@@ -193,5 +208,10 @@
 
   .loading-matches-text {
     font-size: 1.25rem;
+  }
+
+  .container-fluid {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
   }
 }

@@ -318,7 +318,8 @@ export const MatchUserDetails: React.FC = () => {
                     data-bs-trigger="hover focus"
                     data-bs-container="body"
                     data-bs-placement="right"
-                    data-bs-content={`${game.gameTitle} — ${formatHours(game.gameHoursPlayed)}`}
+                    data-bs-html="true"
+                    data-bs-content={`${game.gameTitle} — <span class="popover-hours">${formatHours(game.gameHoursPlayed)}</span>`}
                   />
                 </div>
               ))}

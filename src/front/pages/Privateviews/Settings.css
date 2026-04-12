@@ -74,65 +74,174 @@
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.8);
+  width: 100vw;
+  height: 100vh;
+  background: rgba(10, 10, 30, 0.85);
   display: flex;
-  justify-content: center;
   align-items: center;
-  z-index: 999;
+  justify-content: center;
+  z-index: 10002;
+  padding: 20px;
+  overflow: auto;
 }
 
 .modal-box {
-  background: #111d3d;
-  padding: 25px;
-  border: 2px solid cyan;
-  border-radius: 10px;
-  width: 90%;
+  background: linear-gradient(145deg, #0a0f1c, #12182b);
+  padding: 30px;
+  border: 2px solid transparent;
+  border-radius: 20px;
+  width: 100%;
   max-width: 500px;
-  color: white;
+  color: #fff;
   text-align: center;
+  box-shadow:
+    0 8px 30px rgba(0, 0, 0, 0.6),
+    0 0 20px rgba(0, 240, 255, 0.2),
+    inset 0 0 0 1px rgba(143, 0, 255, 0.3);
+  animation: settings-modal-glow 2.5s infinite alternate;
+  background-image:
+    linear-gradient(145deg, #0a0f1c, #12182b), linear-gradient(135deg, #00f0ff, #8f00ff);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+}
+
+@keyframes settings-modal-glow {
+  0% {
+    box-shadow:
+      0 8px 30px rgba(0, 0, 0, 0.6),
+      0 0 20px rgba(0, 240, 255, 0.2),
+      inset 0 0 0 1px rgba(143, 0, 255, 0.3);
+  }
+  100% {
+    box-shadow:
+      0 8px 30px rgba(0, 0, 0, 0.6),
+      0 0 30px rgba(0, 240, 255, 0.4),
+      inset 0 0 0 1px rgba(143, 0, 255, 0.5);
+  }
 }
 
 .modal-box.small {
-  max-width: 300px;
+  max-width: 400px;
+}
+
+.modal-box h3 {
+  font-size: 1.6rem;
+  color: #00f0ff;
+  margin-bottom: 20px;
+  text-align: center;
+  text-shadow: 0 0 10px rgba(0, 240, 255, 0.6);
+  font-family: "Orbitron", "Segoe UI", sans-serif;
 }
 
 .modal-box input,
 .modal-box textarea {
   width: 100%;
-  margin: 10px 0;
-  padding: 10px;
-  background: #222;
-  border: 2px solid cyan;
-  color: white;
-  border-radius: 8px;
+  margin: 12px 0;
+  padding: 12px 16px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 2px solid #00f0ff;
+  border-radius: 10px;
+  color: #fff;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  box-shadow:
+    0 0 8px rgba(0, 240, 255, 0.3),
+    inset 0 0 4px rgba(0, 240, 255, 0.05);
+  font-family: "Orbitron", "Segoe UI", sans-serif;
+}
+
+.modal-box input:focus,
+.modal-box textarea:focus {
+  outline: none;
+  border-color: #00ffff;
+  box-shadow:
+    0 0 12px rgba(0, 240, 255, 0.5),
+    inset 0 0 6px rgba(0, 240, 255, 0.1);
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.modal-box input::placeholder,
+.modal-box textarea::placeholder {
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .modal-actions {
   display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  margin-top: 15px;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
 }
 
 .modal-actions button {
-  padding: 8px 16px;
-  border-radius: 8px;
-  border: none;
+  padding: 12px 24px;
+  border-radius: 10px;
+  border: 2px solid;
   cursor: pointer;
-  flex: 1;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  font-family: "Orbitron", "Segoe UI", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .modal-actions button.confirm-btn {
-  background: cyan;
-  color: black;
+  background: linear-gradient(145deg, #7f00ff, #5a00b3);
+  border-color: #00f0ff;
+  color: #fff;
+  box-shadow:
+    0 0 10px rgba(0, 240, 255, 0.3),
+    inset 0 0 4px rgba(127, 0, 255, 0.2);
+}
+
+.modal-actions button.confirm-btn:hover {
+  background: linear-gradient(145deg, #5a00b3, #7f00ff);
+  border-color: #00ffff;
+  box-shadow:
+    0 0 15px rgba(0, 240, 255, 0.5),
+    inset 0 0 6px rgba(127, 0, 255, 0.3);
+  transform: scale(1.05);
 }
 
 .modal-actions button:not(.confirm-btn) {
   background: transparent;
-  border: 2px solid red;
-  color: red;
+  border-color: rgba(255, 77, 77, 0.5);
+  color: #ff4d4d;
+}
+
+.modal-actions button:not(.confirm-btn):hover {
+  background: rgba(255, 77, 77, 0.1);
+  border-color: #ff4d4d;
+  box-shadow: 0 0 10px rgba(255, 77, 77, 0.3);
+  transform: scale(1.05);
+}
+
+.modal-box .text-danger,
+.modal-box .text-success,
+.modal-box .text-warning {
+  margin-top: 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.modal-box .text-danger {
+  background: rgba(255, 77, 77, 0.1);
+  border: 1px solid rgba(255, 77, 77, 0.3);
+  color: #ff4d4d;
+}
+
+.modal-box .text-success {
+  background: rgba(0, 255, 0, 0.1);
+  border: 1px solid rgba(0, 255, 0, 0.3);
+  color: #00ff00;
+}
+
+.modal-box .text-warning {
+  background: rgba(255, 165, 0, 0.1);
+  border: 1px solid rgba(255, 165, 0, 0.3);
+  color: #ffa500;
 }
 
 @media (max-width: 600px) {
@@ -156,22 +265,51 @@
 }
 .settings-change-password-input {
   width: 100% !important;
-  padding-right: 2.5rem; /* espacio para el icono */
-  height: 47px;
-  border-radius: 4px;
-  border: 1px solid #ced4da;
-  box-sizing: border-box;
-  font-size: 1rem;
+  padding-right: 2.5rem !important;
+  padding: 12px 16px !important;
+  background: rgba(0, 0, 0, 0.4) !important;
+  border: 2px solid #00f0ff !important;
+  border-radius: 10px !important;
+  color: #fff !important;
+  font-size: 1rem !important;
+  box-sizing: border-box !important;
+  transition: all 0.3s ease !important;
+  box-shadow:
+    0 0 8px rgba(0, 240, 255, 0.3),
+    inset 0 0 4px rgba(0, 240, 255, 0.05) !important;
+  font-family: "Orbitron", "Segoe UI", sans-serif !important;
 }
+
+.settings-change-password-input:focus {
+  outline: none !important;
+  border-color: #00ffff !important;
+  box-shadow:
+    0 0 12px rgba(0, 240, 255, 0.5),
+    inset 0 0 6px rgba(0, 240, 255, 0.1) !important;
+  background: rgba(0, 0, 0, 0.5) !important;
+}
+
+.settings-change-password-input::placeholder {
+  color: rgba(255, 255, 255, 0.4) !important;
+}
+
 .setting-change-password-eye-icon {
   position: absolute;
   top: 50%;
   right: 0.75rem;
   transform: translateY(-50%);
   cursor: pointer;
-  color: #495057;
+  color: #00f0ff;
   font-size: 1.2rem;
   user-select: none;
+  transition: all 0.3s ease;
+  z-index: 1;
+}
+
+.setting-change-password-eye-icon:hover {
+  color: #00ffff;
+  text-shadow: 0 0 8px rgba(0, 240, 255, 0.6);
+  transform: translateY(-50%) scale(1.1);
 }
 
 .settings-category {
@@ -260,15 +398,122 @@
 .settings-input-group select {
   flex: 1;
   padding: 8px;
-  background: #222;
-  border: 2px solid cyan;
-  border-radius: 8px;
-  color: white;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid #00f0ff;
+  border-radius: 6px;
+  color: #fff;
+  font-weight: 600;
+  box-shadow:
+    0 0 6px rgba(0, 240, 255, 0.4),
+    inset 0 0 2px rgba(0, 240, 255, 0.05);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.settings-input-group input:focus,
+.settings-input-group select:focus {
+  outline: none;
+  border-color: #00ffff;
+  box-shadow:
+    0 0 10px rgba(0, 240, 255, 0.6),
+    inset 0 0 3px rgba(0, 240, 255, 0.1);
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.settings-input-group select option {
+  background: rgba(0, 0, 0, 0.95);
+  color: #fff;
+  padding: 10px;
+  font-weight: 600;
+  font-family: "Orbitron", "Segoe UI", sans-serif;
+}
+
+.settings-input-group select option:hover {
+  background: rgba(0, 240, 255, 0.2);
+  color: #00ffff;
+}
+
+.settings-input-group select option:checked {
+  background: rgba(0, 240, 255, 0.3);
+  color: #00ffff;
 }
 
 .settings-input-group label {
   min-width: 120px;
   color: white;
+}
+
+.settings-age-input {
+  width: 100%;
+  padding: 8px !important;
+  box-sizing: border-box;
+}
+
+/* Ocultar las flechas nativas del input number */
+.settings-age-input::-webkit-inner-spin-button,
+.settings-age-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.settings-age-input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+.settings-spinner-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  margin-bottom: 0;
+}
+
+.settings-spinner-btn {
+  width: 24px;
+  height: 24px;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid #00f0ff;
+  border-radius: 4px;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  padding: 0;
+  box-shadow:
+    0 0 6px rgba(0, 240, 255, 0.5),
+    inset 0 0 2px rgba(0, 240, 255, 0.1);
+}
+
+.settings-spinner-btn:hover {
+  background: rgba(0, 0, 0, 0.8);
+  border-color: #00ffff;
+  box-shadow:
+    0 0 10px rgba(0, 240, 255, 0.7),
+    inset 0 0 3px rgba(0, 240, 255, 0.2);
+  transform: scale(1.05);
+}
+
+.settings-spinner-btn:active {
+  background: rgba(0, 0, 0, 0.9);
+  border-color: #00ffff;
+  box-shadow:
+    0 0 12px rgba(0, 240, 255, 0.9),
+    inset 0 0 4px rgba(0, 240, 255, 0.3);
+  transform: scale(0.95);
+}
+
+.settings-spinner-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  border-color: rgba(0, 240, 255, 0.3);
+}
+
+.settings-spinner-btn i {
+  font-size: 0.7rem;
+  color: #fff;
+  text-shadow: 0 0 3px rgba(255, 255, 255, 0.5);
+  font-weight: 600;
 }
 
 .blocked-user-item {
