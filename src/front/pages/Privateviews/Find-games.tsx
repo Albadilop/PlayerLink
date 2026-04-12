@@ -10,16 +10,60 @@ interface Message {
   text: string;
 }
 
+type WelcomeUser = { profile: { nick_name?: string | null; name?: string | null } | null } | null;
+
+function displayNameFromUser(user: WelcomeUser): string {
+  return user?.profile?.nick_name?.trim() || user?.profile?.name?.trim() || "";
+}
+
+function welcomeClassicForUser(user: WelcomeUser): string {
+  const who = displayNameFromUser(user);
+  return who !== ""
+    ? `Hi ${who}! I'm PlayerLink AI. I'm here to recommend new games and answer any other game-related questions. How can I help you today?`
+    : `Hi! I'm PlayerLink AI. I'm here to recommend new games and answer any other game-related questions. How can I help you today?`;
+}
+
+function welcomeShortForUser(user: WelcomeUser): string {
+  const who = displayNameFromUser(user);
+  const tail =
+    "I'm PlayerLink AI — ask for game ideas, profile suggestions, or quick gaming tips. What do you need?";
+  return who !== "" ? `Hi ${who}! ${tail}` : `Hi! ${tail}`;
+}
+
+const CLASSIC_SNIPPET = "recommend new games";
+const SHORT_SNIPPET = "ask for game ideas, profile suggestions";
+
+/** Qué saludo se mostró la última vez en este navegador (`classic` | `short` | ausente = primera vez). */
+const WELCOME_LAST_KEY = "playerlink-ai-welcome-last";
+
+/**
+ * Una sola burbuja de bienvenida por apertura del chat.
+ * Alterna: 1ª visita → clásico con nombre; al volver a entrar en la ruta → corto; luego otra vez clásico…
+ */
+function soleWelcomeForVisit(user: WelcomeUser): Message[] {
+  if (typeof window === "undefined") {
+    return [{ sender: "bot", text: welcomeClassicForUser(user) }];
+  }
+  const last = localStorage.getItem(WELCOME_LAST_KEY);
+  let msg: Message;
+  if (last === "short") {
+    msg = { sender: "bot", text: welcomeClassicForUser(user) };
+    localStorage.setItem(WELCOME_LAST_KEY, "classic");
+  } else if (last === "classic") {
+    msg = { sender: "bot", text: welcomeShortForUser(user) };
+    localStorage.setItem(WELCOME_LAST_KEY, "short");
+  } else {
+    msg = { sender: "bot", text: welcomeClassicForUser(user) };
+    localStorage.setItem(WELCOME_LAST_KEY, "classic");
+  }
+  return [msg];
+}
+
 export const FindGames: React.FC = () => {
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
   const { store } = useGlobalReducer();
   const navigate = useNavigate();
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      sender: "bot",
-      text: "Hi! I'm PlayerLink AI. I'm here to recommend new games and answer any other game-related questions. How can I help you today?",
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>(() => soleWelcomeForVisit(store.user));
   const [inputValue, setInputValue] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const chatScrollRef = useRef<HTMLDivElement>(null);
@@ -29,6 +73,24 @@ export const FindGames: React.FC = () => {
       navigate("/");
     }
   }, [navigate, store.user]);
+
+  /** Si el perfil llega después del primer paint y solo está un saludo, actualiza el texto con el nombre. */
+  useEffect(() => {
+    setMessages((prev) => {
+      if (prev.length !== 1) return prev;
+      const first = prev[0];
+      if (!first || first.sender !== "bot") return prev;
+      if (first.text.includes(CLASSIC_SNIPPET)) {
+        const next = { sender: "bot" as const, text: welcomeClassicForUser(store.user) };
+        return first.text === next.text ? prev : [next];
+      }
+      if (first.text.includes(SHORT_SNIPPET)) {
+        const next = { sender: "bot" as const, text: welcomeShortForUser(store.user) };
+        return first.text === next.text ? prev : [next];
+      }
+      return prev;
+    });
+  }, [store.user, store.user?.profile?.nick_name, store.user?.profile?.name]);
 
   useEffect(() => {
     const ref = chatScrollRef.current;
@@ -82,11 +144,6 @@ export const FindGames: React.FC = () => {
     <div className="container py-4 position-relative">
       <div className="row justify-content-center">
         <div className="chat-container">
-          {/* Header */}
-          <div className="bg-gradient-header text-center">
-            <h1>PlayerLink&apos;s AI Chat</h1>
-          </div>
-
           {/* Área de mensajes */}
           <div ref={chatScrollRef} className="chat-messages-area">
             {messages.map((msg, idx) => (
@@ -133,7 +190,7 @@ export const FindGames: React.FC = () => {
                 disabled={isLoading}
               />
               <button
-                className="btn botonenviar"
+                className="btn botonenviar ms-3"
                 type="submit"
                 disabled={isLoading || !inputValue.trim()}
               >

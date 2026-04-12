@@ -1,6 +1,7 @@
 import React from "react";
 import { createPortal } from "react-dom";
 import "./ProfileModals.css";
+import { MAX_PROFILE_LANGUAGES } from "../../utils/profileLanguages";
 
 const languages = [
   "English",
@@ -37,7 +38,7 @@ export const LanguageModal: React.FC<LanguageModalProps> = ({
     setSelected((prev) => {
       if (prev.includes(language)) {
         return prev.filter((item) => item !== language);
-      } else if (prev.length < 5) {
+      } else if (prev.length < MAX_PROFILE_LANGUAGES) {
         return [...prev, language];
       }
       return prev;
@@ -53,8 +54,10 @@ export const LanguageModal: React.FC<LanguageModalProps> = ({
     <div className="abmodal">
       <div className="abmodal-content">
         <h3>
-          Select up to 5 Languages
-          <span className="preferences-counter">({selected.length}/5)</span>
+          Select up to 4 Languages
+          <span className="preferences-counter">
+            ({selected.length}/{MAX_PROFILE_LANGUAGES})
+          </span>
         </h3>
         <div className="abcheckbox-grid">
           {languages.map((language) => (

@@ -10,6 +10,8 @@ import { selectMedal, selectPhoto, formatHours } from "../utils/profileHelpers";
 import { ProfileInfoTab } from "./Profile/ProfileInfoTab";
 import { ProfileReviewsTab } from "./Profile/ProfileReviewsTab";
 import { parsePreferences } from "../utils/formatters";
+import { clampProfileLocation } from "../utils/profileValidation";
+import { REVIEW_FIELD_LIMITS } from "../constants";
 import { GameImage } from "./GameImage";
 import type { Game, Profile } from "../types";
 
@@ -34,13 +36,40 @@ declare global {
   }
 }
 
-// renderStars removido - ahora se usa ProfileReviewsTab que tiene su propia función
-
 const tabIcons: Record<string, string> = {
   info: "fa-solid fa-user",
   Games: "fa-solid fa-gamepad",
   comments: "fa-solid fa-comments",
 };
+
+function renderMatchAverageStars(avg: number): React.ReactNode {
+  const rowClass = "match-header-stars-row";
+  if (!Number.isFinite(avg) || avg <= 0) {
+    return (
+      <div className={rowClass} aria-hidden>
+        {[0, 1, 2, 3, 4].map((i) => (
+          <i key={i} className="fa-regular fa-star match-header-star match-header-star--empty" />
+        ))}
+      </div>
+    );
+  }
+  const clamped = Math.min(5, Math.max(0, avg));
+  return (
+    <div className={rowClass} aria-hidden>
+      {[0, 1, 2, 3, 4].map((i) => {
+        if (clamped >= i + 1) {
+          return <i key={i} className="fa-solid fa-star match-header-star" />;
+        }
+        if (clamped >= i + 0.5) {
+          return <i key={i} className="fa-solid fa-star-half-stroke match-header-star" />;
+        }
+        return (
+          <i key={i} className="fa-regular fa-star match-header-star match-header-star--empty" />
+        );
+      })}
+    </div>
+  );
+}
 
 export const MatchUserDetails: React.FC = () => {
   const navigate = useNavigate();
@@ -207,7 +236,7 @@ export const MatchUserDetails: React.FC = () => {
       nick_name: p.nick_name?.trim() || "",
       age: p.age || 0,
       gender: p.gender?.trim() || " ",
-      location: p.location?.trim() || " ",
+      location: clampProfileLocation(p.location?.trim() || " "),
       zodiac: p.zodiac?.trim() || " ",
       discord: p.discord?.trim() || " ",
       steam_id: p.steam?.trim() || " ",
@@ -225,6 +254,18 @@ export const MatchUserDetails: React.FC = () => {
     [profile.preferences]
   );
   const selectedLanguages = useMemo(() => parsePreferences(profile.languages), [profile.languages]);
+
+  const matchReceivedReviews = useMemo(() => {
+    const raw = store.matchReviewsReceived?.reviews_received;
+    return Array.isArray(raw) ? raw : [];
+  }, [store.matchReviewsReceived]);
+
+  const { averageRating, reviewCount } = useMemo(() => {
+    const list = matchReceivedReviews;
+    if (list.length === 0) return { averageRating: 0, reviewCount: 0 };
+    const sum = list.reduce((acc, r) => acc + (r.stars || 0), 0);
+    return { averageRating: sum / list.length, reviewCount: list.length };
+  }, [matchReceivedReviews]);
 
   const handleSaveComment = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -281,10 +322,28 @@ export const MatchUserDetails: React.FC = () => {
         </div>
 
         <h2 className="match-nickname">{profile.nick_name || "Player"}</h2>
-        <p className="match-location">
+        <p className="match-location mb-2">
           <i className="fa-solid fa-location-dot" />
           {profile.location}
         </p>
+
+        <div
+          className="match-header-rating"
+          aria-label={
+            reviewCount === 0
+              ? "No reviews yet"
+              : `Average rating ${averageRating.toFixed(1)} of 5, ${reviewCount} reviews`
+          }
+        >
+          {renderMatchAverageStars(averageRating)}
+          {reviewCount > 0 ? (
+            <span className="match-header-rating-meta">
+              <span className="match-header-rating-count"></span>
+            </span>
+          ) : (
+            <span className="match-header-rating-empty">No reviews yet</span>
+          )}
+        </div>
 
         {/* Bio */}
         <div className="match-bio">
@@ -628,12 +687,46 @@ export const MatchUserDetails: React.FC = () => {
                         id="newComment"
                         className="onboarding-game-textarea"
                         rows={4}
+                        maxLength={REVIEW_FIELD_LIMITS.COMMENT_MAX}
                         value={newComment.comment}
-                        onChange={(e) =>
-                          setNewComment((prev) => ({ ...prev, comment: e.target.value }))
-                        }
+                        onChange={(e) => {
+                          const raw = e.target.value;
+                          const max = REVIEW_FIELD_LIMITS.COMMENT_MAX;
+                          setNewComment((prev) => ({
+                            ...prev,
+                            comment: raw.length > max ? raw.slice(0, max) : raw,
+                          }));
+                        }}
                         placeholder="Write your comment here..."
+                        aria-describedby="newComment-length-hint"
                       />
+                      <div id="newComment-length-hint" className="match-comment-length-meta">
+                        <span
+                          className={`match-comment-length-count${
+                            newComment.comment.length >= REVIEW_FIELD_LIMITS.COMMENT_MAX
+                              ? " match-comment-length-count--limit"
+                              : newComment.comment.length >= REVIEW_FIELD_LIMITS.COMMENT_MAX - 10
+                                ? " match-comment-length-count--near"
+                                : ""
+                          }`}
+                        >
+                          {newComment.comment.length} / {REVIEW_FIELD_LIMITS.COMMENT_MAX}
+                        </span>
+                        {newComment.comment.length >= REVIEW_FIELD_LIMITS.COMMENT_MAX && (
+                          <p className="match-comment-length-warning" role="alert">
+                            Has alcanzado el máximo de {REVIEW_FIELD_LIMITS.COMMENT_MAX} caracteres.
+                            Acorta el comentario si quieres cambiar el texto.
+                          </p>
+                        )}
+                        {newComment.comment.length >= REVIEW_FIELD_LIMITS.COMMENT_MAX - 10 &&
+                          newComment.comment.length < REVIEW_FIELD_LIMITS.COMMENT_MAX && (
+                            <p className="match-comment-length-notice">
+                              El comentario no puede superar {REVIEW_FIELD_LIMITS.COMMENT_MAX}{" "}
+                              caracteres; te quedan{" "}
+                              {REVIEW_FIELD_LIMITS.COMMENT_MAX - newComment.comment.length}.
+                            </p>
+                          )}
+                      </div>
                     </div>
                   </div>
                   <div className="modal-footer onboarding-game-footer">

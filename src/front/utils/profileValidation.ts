@@ -1,4 +1,10 @@
 import type { Profile } from "../types";
+import { PROFILE_FIELD_LIMITS } from "../constants";
+
+/** Truncate location to the max length stored in the database. */
+export function clampProfileLocation(value: string): string {
+  return value.slice(0, PROFILE_FIELD_LIMITS.LOCATION_MAX);
+}
 
 export interface ProfileValidationResult {
   isComplete: boolean;

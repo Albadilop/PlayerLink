@@ -79,7 +79,8 @@
   font-size: 1rem;
 }
 
-.cancel-btn {
+/* Scoped: avoid clashing with Profile Info tab .cancel-btn */
+.avatar-modal .cancel-btn {
   width: 100%;
   padding: 10px;
   background: transparent;
@@ -90,7 +91,7 @@
   transition: all 0.3s;
 }
 
-.cancel-btn:hover {
+.avatar-modal .cancel-btn:hover {
   background: #7f00ff;
   color: #fff;
 }

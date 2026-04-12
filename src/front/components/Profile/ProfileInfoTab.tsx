@@ -1,6 +1,6 @@
 import React from "react";
 import Select from "react-select";
-import { DEFAULT_VALUES, GENDER_OPTIONS } from "../../constants";
+import { DEFAULT_VALUES, GENDER_OPTIONS, PROFILE_FIELD_LIMITS } from "../../constants";
 import { formatPreferences, parsePreferences } from "../../utils/formatters";
 import { GamingPreferencesModal } from "../ProfileModals/GamingPreferencesModal";
 import { LanguageModal } from "../ProfileModals/LanguageModal";
@@ -26,8 +26,8 @@ export interface ProfileInfoTabProps {
   showGamingPreferencesModal: boolean;
   showLanguageModal: boolean;
   onInputChange: (field: string, value: string | number) => void;
-  onGamingPreferencesChange: (preferences: string[]) => void;
-  onLanguagesChange: (languages: string[]) => void;
+  onGamingPreferencesChange: React.Dispatch<React.SetStateAction<string[]>>;
+  onLanguagesChange: React.Dispatch<React.SetStateAction<string[]>>;
   onShowGamingPreferencesModal: (show: boolean) => void;
   onShowLanguageModal: (show: boolean) => void;
   onSave?: () => void;
@@ -76,6 +76,7 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
     gTrim.toLowerCase() === DEFAULT_VALUES.GENDER_UNDEFINED.toLowerCase() ||
     gTrim === DEFAULT_VALUES.GENDER;
   const emptyZodiac = t(profile.zodiac).length < 1;
+  const emptyLocation = t(profile.location).length < 2;
   const emptyDiscord = t(profile.discord).length < 1;
   const emptySteam = t(profile.steam_id).length < 1;
   const emptyPreferences = isEditing
@@ -118,11 +119,25 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
             </span>
           </h3>
         </div>
+        {onSave && (
+          <div className="col-auto profile-tab-toolbar-actions info-section-actions info-section-actions--toolbar">
+            <button className="edit-btn" type="button" onClick={onSave}>
+              <i className={isEditing ? "fa-solid fa-save" : "fa-solid fa-edit"}></i>
+              {isEditing ? "Save Changes" : "Edit Profile"}
+            </button>
+            {isEditing && onCancel && (
+              <button type="button" className="cancel-btn" onClick={onCancel}>
+                <i className="fa-solid fa-times" aria-hidden />
+                <span className="cancel-btn-label">Cancel</span>
+              </button>
+            )}
+          </div>
+        )}
       </div>
       {/* Personal Information Section */}
       <div className="info-section-group">
         <div className="row g-3">
-          <div className="col-md-6">
+          <div className="col-12 col-md-4">
             <div className={`info-field-card${freeze(emptyName)}`}>
               <label className="info-field-label">
                 <i className="fa-solid fa-id-card"></i> Name
@@ -140,7 +155,7 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
               )}
             </div>
           </div>
-          <div className="col-md-6">
+          <div className="col-12 col-md-4">
             <div className={`info-field-card${freeze(emptyNick)}`}>
               <label className="info-field-label">
                 <i className="fa-solid fa-signature"></i> Nickname
@@ -155,6 +170,25 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
                 />
               ) : (
                 displayValue(profile.nick_name)
+              )}
+            </div>
+          </div>
+          <div className="col-12 col-md-4">
+            <div className={`info-field-card${freeze(emptyLocation)}`}>
+              <label className="info-field-label">
+                <i className="fa-solid fa-location-dot" /> Location
+              </label>
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={profile.location}
+                  onChange={(e) => onInputChange("location", e.target.value)}
+                  maxLength={PROFILE_FIELD_LIMITS.LOCATION_MAX}
+                  className="info-field-input"
+                  placeholder="City or country"
+                />
+              ) : (
+                displayValue(profile.location)
               )}
             </div>
           </div>
@@ -272,13 +306,13 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
                       border: "2px solid",
                       borderColor: state.isFocused
                         ? "#00f0ff"
-                        : state.isHovered
+                        : (state as { isHovered?: boolean }).isHovered
                           ? "#8f00ff"
                           : "rgba(0, 240, 255, 0.3)",
                       borderRadius: "10px",
                       boxShadow: state.isFocused
                         ? "inset 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 15px rgba(0, 240, 255, 0.3), 0 0 25px rgba(0, 240, 255, 0.2), inset 0 0 10px rgba(0, 240, 255, 0.05)"
-                        : state.isHovered
+                        : (state as { isHovered?: boolean }).isHovered
                           ? "inset 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 15px rgba(143, 0, 255, 0.3)"
                           : "inset 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 10px rgba(0, 240, 255, 0.2)",
                       minHeight: "40px",
@@ -377,13 +411,13 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
                       border: "2px solid",
                       borderColor: state.isFocused
                         ? "#00f0ff"
-                        : state.isHovered
+                        : (state as { isHovered?: boolean }).isHovered
                           ? "#8f00ff"
                           : "rgba(0, 240, 255, 0.3)",
                       borderRadius: "10px",
                       boxShadow: state.isFocused
                         ? "inset 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 15px rgba(0, 240, 255, 0.3), 0 0 25px rgba(0, 240, 255, 0.2), inset 0 0 10px rgba(0, 240, 255, 0.05)"
-                        : state.isHovered
+                        : (state as { isHovered?: boolean }).isHovered
                           ? "inset 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 15px rgba(143, 0, 255, 0.3)"
                           : "inset 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 10px rgba(0, 240, 255, 0.2)",
                       minHeight: "40px",
@@ -569,22 +603,6 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
           </div>
         </div>
       </div>
-
-      {/* Edit Button */}
-      {onSave && (
-        <div className="info-section-actions">
-          <button className="edit-btn" onClick={onSave}>
-            <i className={isEditing ? "fa-solid fa-save" : "fa-solid fa-edit"}></i>
-            {isEditing ? "Save Changes" : "Edit Profile"}
-          </button>
-          {isEditing && onCancel && (
-            <button type="button" className="cancel-btn" onClick={onCancel}>
-              <i className="fa-solid fa-times" aria-hidden />
-              <span className="cancel-btn-label">Cancel</span>
-            </button>
-          )}
-        </div>
-      )}
     </div>
   );
 };

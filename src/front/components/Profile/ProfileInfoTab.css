@@ -6,9 +6,33 @@
 
 /* Tipografía del título = .profile-tab-toolbar .profile-tab-title en Profile.css */
 
-/* Solo pestaña Info: menos aire entre cabecera "Info" y la primera fila (Name/Nickname); el resto del form mantiene gap */
+/* Pestaña Info: tarjeta más espaciada (padding, huecos y campos) */
+.info-section.profile-info-tab-root {
+  padding: 2rem 2.25rem;
+  gap: 1.5rem;
+}
+
 .info-section.profile-info-tab-root > .profile-tab-toolbar + .info-section-group {
-  margin-top: -0.5rem;
+  margin-top: 0.35rem;
+}
+
+.info-section.profile-info-tab-root .info-section-group {
+  gap: 0.95rem;
+}
+
+.info-section.profile-info-tab-root .info-field-card {
+  padding: 0.9rem 1.05rem;
+  border-radius: 14px;
+}
+
+.info-section.profile-info-tab-root .row.g-3 {
+  --bs-gutter-x: 1.25rem;
+  --bs-gutter-y: 1.25rem;
+}
+
+/* Misma fila que el título: Save/Cancel no deben pasar a dos líneas por flex-wrap del toolbar global */
+.info-section.profile-info-tab-root .profile-tab-toolbar .profile-tab-toolbar-actions {
+  flex-wrap: nowrap;
 }
 
 /* ===== INFO SECTION BASE ===== */
@@ -604,21 +628,29 @@
   left: 100%;
 }
 
+/* Edit / Save / Cancel: barra superior junto a "Info" (misma fila que Games) */
 .info-section-actions {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: flex-end;
   align-items: center;
   gap: 0.75rem;
-  margin-top: auto;
-  padding-top: 0.5rem;
-  border-top: 1px solid rgba(0, 240, 255, 0.2);
+}
+
+.info-section-actions--toolbar {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
 }
 
 /* overflow:hidden en los botones hace que min-width:auto sea 0 en flex → texto recortado */
 .info-section-actions .edit-btn,
 .info-section-actions .cancel-btn {
+  flex: 0 0 auto;
   flex-shrink: 0;
+  width: auto;
+  max-width: none;
   min-width: min-content;
 }
 
@@ -884,6 +916,24 @@
     gap: 1rem;
   }
 
+  .info-section.profile-info-tab-root {
+    padding: 1.35rem 1.2rem;
+    gap: 1.25rem;
+  }
+
+  .info-section.profile-info-tab-root .info-section-group {
+    gap: 0.85rem;
+  }
+
+  .info-section.profile-info-tab-root .info-field-card {
+    padding: 0.8rem 0.95rem;
+  }
+
+  .info-section.profile-info-tab-root .row.g-3 {
+    --bs-gutter-x: 1rem;
+    --bs-gutter-y: 1rem;
+  }
+
   .info-section-title {
     font-size: 0.95rem;
   }
@@ -929,13 +979,15 @@
 
 @media (max-width: 520px) {
   .info-section-actions {
-    flex-direction: column;
-    align-items: stretch;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+    align-items: center;
   }
 
   .info-section-actions .edit-btn,
   .info-section-actions .cancel-btn {
-    width: 100%;
-    justify-content: center;
+    width: auto;
+    flex: 0 0 auto;
   }
 }

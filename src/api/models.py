@@ -87,7 +87,7 @@ class Profile(db.Model):
         String(40), nullable=True)
     preferences: Mapped[str] = mapped_column(String(200), nullable=True)
     zodiac: Mapped[str] = mapped_column(String(20), nullable=True)
-    location: Mapped[str] = mapped_column(String(50), nullable=True)
+    location: Mapped[str] = mapped_column(String(24), nullable=True)
     nick_name: Mapped[str] = mapped_column(
         String(21), nullable=True)
     bio: Mapped[str] = mapped_column(String(500),nullable=True)

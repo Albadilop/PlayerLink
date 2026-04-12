@@ -1,6 +1,5 @@
 import "./SearchMatchCard.css";
-import React, { useEffect, useState } from "react";
-import searchMatchServices from "../../services/searchMatchServices";
+import React, { useState } from "react";
 import { getPhotoAsset, defaultPhoto } from "../../constants/photoAssets";
 import type { Profile } from "../../types";
 
@@ -12,24 +11,10 @@ interface SearchMatchCardProps {
 
 export const SearchMatchCard: React.FC<SearchMatchCardProps> = ({ profile, onLike, onDislike }) => {
   const [animationClass, setAnimationClass] = useState<string>("");
-  const [avgStars, setAvgStars] = useState<number>(0);
 
   const selectPhoto = (): string => {
-    return getPhotoAsset(profile.photo) || defaultPhoto;
+    return getPhotoAsset(profile.photo ?? "") || defaultPhoto;
   };
-
-  useEffect(() => {
-    if (!profile?.id) return;
-    const getAvgStars = async () => {
-      try {
-        const average = await searchMatchServices.getStarsByUser(profile.id);
-        setAvgStars(Number(average));
-      } catch (err) {
-        console.error(err);
-      }
-    };
-    getAvgStars();
-  }, [profile]);
 
   const handleLike = () => {
     setAnimationClass("slide-out-right");
@@ -87,39 +72,18 @@ export const SearchMatchCard: React.FC<SearchMatchCardProps> = ({ profile, onLik
         </div>
 
         {/* Nickname */}
-        <h1 className="text-center search-match-name">{profile?.nick_name || "Unknown Player"}</h1>
+        <h1 className="text-center search-match-name">
+          {profile?.nick_name || "Unknown Player"}
 
-        {/* Stars Rating */}
-        <div className="search-match-stars-container">
-          {[...Array(5)].map((_, i) => (
-            <i
-              key={i}
-              className={`fa-star search-match-stars ${
-                i < Math.round(avgStars) ? "fa-solid" : "fa-regular"
-              }`}
-            />
-          ))}
-        </div>
-
-        {/* Quick Info Badges */}
-        <div className="search-match-quick-info">
           {profile?.location && (
-            <span className="search-match-badge">
+            <span className="search-match-badge search-match-badge--location ms-3">
               <i className="fa-solid fa-location-dot icon-location" />
               {profile.location}
             </span>
           )}
-          {formattedLanguages && (
-            <span className="search-match-badge">
-              <i className="fa-solid fa-language icon-language" />
-              {formattedLanguages}
-            </span>
-          )}
-        </div>
+        </h1>
 
-        <hr className="search-match-line" />
-
-        {/* Games Section */}
+        {/* Top Games — primero (después del nick) */}
         <div className="search-match-info-section">
           <div className="search-match-section-header">
             <i className="fa-solid fa-gamepad icon-games" />
@@ -140,6 +104,19 @@ export const SearchMatchCard: React.FC<SearchMatchCardProps> = ({ profile, onLik
           )}
         </div>
 
+        {/* Quick Info Badges */}
+        <div className="search-match-quick-info">
+          {formattedLanguages && (
+            <span className="search-match-badge search-match-badge--languages">
+              <span className="d-flex align-items-center">
+                <i className="me-2 fa-solid fa-language icon-language" />
+
+                {formattedLanguages}
+              </span>
+            </span>
+          )}
+        </div>
+
         {/* Preferences Section */}
         {formattedPreferences && (
           <div className="search-match-info-section">
@@ -150,8 +127,6 @@ export const SearchMatchCard: React.FC<SearchMatchCardProps> = ({ profile, onLik
             <p className="preferences-text">{formattedPreferences}</p>
           </div>
         )}
-
-        <hr className="search-match-last-line" />
 
         {/* Action Buttons */}
         <div className="search-match-buttons">

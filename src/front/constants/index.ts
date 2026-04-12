@@ -21,6 +21,16 @@ export const DEFAULT_VALUES = {
 // Gender Options
 export const GENDER_OPTIONS = ["Male", "Female", "Undefined"] as const;
 
+/** Max lengths aligned with API / DB (`profiles.location`). */
+export const PROFILE_FIELD_LIMITS = {
+  LOCATION_MAX: 24,
+} as const;
+
+/** Aligned with API / DB (`reviews.comment`, String length). */
+export const REVIEW_FIELD_LIMITS = {
+  COMMENT_MAX: 100,
+} as const;
+
 // Timeouts (in milliseconds)
 export const TIMEOUTS = {
   TOAST_DURATION: 3000,

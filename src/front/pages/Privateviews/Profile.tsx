@@ -7,12 +7,13 @@ import "../../pages/Privateviews/Profile.css";
 // Hooks y servicios
 import useGlobalReducer from "../../hooks/useGlobalReducer";
 import { useProfileCompletion } from "../../hooks/useProfileCompletion";
-import { getFieldLabel } from "../../utils/profileValidation";
+import { getFieldLabel, clampProfileLocation } from "../../utils/profileValidation";
 import userServices from "../../services/userServices";
 import reviewServices from "../../services/reviewServices";
 import gameServices from "../../services/gameServices";
 import apiClient from "../../services/apiClient";
 import { parsePreferences } from "../../utils/formatters";
+import { clampProfileLanguages } from "../../utils/profileLanguages";
 
 // Constants and assets
 import { DEFAULT_VALUES, PHOTO_MAP } from "../../constants";
@@ -95,7 +96,7 @@ const Profile: React.FC = () => {
   );
   const [showLanguageModal, setShowLanguageModal] = useState<boolean>(false);
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>(
-    parsePreferences(profile.languages)
+    clampProfileLanguages(parsePreferences(profile.languages))
   );
 
   // Usar useMemo para asegurar que se recalcule cuando cambie el store
@@ -154,7 +155,7 @@ const Profile: React.FC = () => {
         nick_name: profileData.nick_name || "",
         age: profileData.age || 0,
         gender: profileData.gender || DEFAULT_VALUES.GENDER_UNDEFINED,
-        location: profileData.location || " ",
+        location: clampProfileLocation(profileData.location || " "),
         zodiac: profileData.zodiac || " ",
         discord: profileData.discord || " ",
         steam_id: profileData.steam || " ",
@@ -165,7 +166,7 @@ const Profile: React.FC = () => {
       });
 
       setSelectedGamingPreferences(parsePreferences(profileData.preferences));
-      setSelectedLanguages(parsePreferences(profileData.language));
+      setSelectedLanguages(clampProfileLanguages(parsePreferences(profileData.language)));
     } catch (error) {
       console.error("Error en loadProfile:", error);
     }
@@ -369,7 +370,7 @@ const Profile: React.FC = () => {
         nick_name: profileData.nick_name || "",
         age: profileData.age || 0,
         gender: profileData.gender || DEFAULT_VALUES.GENDER_UNDEFINED,
-        location: profileData.location || " ",
+        location: clampProfileLocation(profileData.location || " "),
         zodiac: profileData.zodiac || " ",
         discord: profileData.discord || " ",
         steam_id: profileData.steam || " ",
@@ -379,7 +380,7 @@ const Profile: React.FC = () => {
         photo: profileData.photo || DEFAULT_VALUES.PROFILE_PHOTO,
       });
       setSelectedGamingPreferences(parsePreferences(profileData.preferences));
-      setSelectedLanguages(parsePreferences(profileData.language));
+      setSelectedLanguages(clampProfileLanguages(parsePreferences(profileData.language)));
     }
   }, [store.user?.profile]);
 
@@ -526,7 +527,7 @@ const Profile: React.FC = () => {
         nick_name: profileData.nick_name || "",
         age: profileData.age || 0,
         gender: profileData.gender || DEFAULT_VALUES.GENDER_UNDEFINED,
-        location: profileData.location || " ",
+        location: clampProfileLocation(profileData.location || " "),
         zodiac: profileData.zodiac || " ",
         discord: profileData.discord || " ",
         steam_id: profileData.steam || " ",
@@ -536,12 +537,16 @@ const Profile: React.FC = () => {
         photo: profileData.photo || DEFAULT_VALUES.PROFILE_PHOTO,
       });
       setSelectedGamingPreferences(parsePreferences(profileData.preferences));
-      setSelectedLanguages(parsePreferences(profileData.language));
+      setSelectedLanguages(clampProfileLanguages(parsePreferences(profileData.language)));
     }
     setIsEditing(false);
   };
 
   const handleInputChange = (field: keyof ProfileState, value: string | number) => {
+    if (field === "location" && typeof value === "string") {
+      setProfile((prev) => ({ ...prev, location: clampProfileLocation(value) }));
+      return;
+    }
     setProfile((prev) => ({ ...prev, [field]: value }));
   };
 

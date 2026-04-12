@@ -13,6 +13,7 @@ import settingsServices, {
 import useGlobalReducer from "../../hooks/useGlobalReducer";
 import { useNavigate } from "react-router-dom";
 import { LanguageModal } from "../../components/ProfileModals/LanguageModal";
+import { clampProfileLanguages } from "../../utils/profileLanguages";
 import { GamingPreferencesModal } from "../../components/ProfileModals/GamingPreferencesModal";
 import { parsePreferences, formatPreferences } from "../../utils/formatters";
 import { useTheme } from "../../hooks/useTheme";
@@ -193,7 +194,9 @@ const SettingsView: React.FC = () => {
   // Sync language and gaming preferences with settings
   useEffect(() => {
     if (settings) {
-      setSelectedLanguages(parsePreferences(settings.matching.language_preference || null));
+      setSelectedLanguages(
+        clampProfileLanguages(parsePreferences(settings.matching.language_preference || null))
+      );
       setSelectedGamingPreferences(parsePreferences(settings.matching.gaming_preference || null));
     }
   }, [settings]);

@@ -286,7 +286,7 @@ export const ProfileGamesTab: React.FC<ProfileGamesTabProps> = ({
           </div>
           <div className="col-auto profile-tab-toolbar-actions">
             <button type="button" className="btn-add-game" onClick={() => setShowGameForm(true)}>
-              Add a new game
+              ADD A NEW GAME
             </button>
           </div>
         </div>

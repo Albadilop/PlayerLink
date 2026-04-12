@@ -205,12 +205,14 @@ export const ProfileReviewsTab: React.FC<ProfileReviewsTabProps> = ({
       {safeReviews && safeReviews.length > 0 && paginationData.totalPages > 1 && (
         <div className="pagination-container">
           <button
-            className="pagination-btn"
+            type="button"
+            className="pagination-btn pagination-btn--prev"
             onClick={handlePrevious}
             disabled={currentPage === 1}
             aria-label="Página anterior"
           >
-            <i className="fa-solid fa-chevron-left"></i> Previous
+            <i className="fa-solid fa-chevron-left" aria-hidden />
+            <span>Prev</span>
           </button>
 
           <div className="pagination-numbers">
@@ -236,12 +238,14 @@ export const ProfileReviewsTab: React.FC<ProfileReviewsTabProps> = ({
           </div>
 
           <button
-            className="pagination-btn"
+            type="button"
+            className="pagination-btn pagination-btn--next"
             onClick={handleNext}
             disabled={currentPage === paginationData.totalPages}
             aria-label="Página siguiente"
           >
-            Next <i className="fa-solid fa-chevron-right"></i>
+            <span>Next</span>
+            <i className="fa-solid fa-chevron-right" aria-hidden />
           </button>
         </div>
       )}
