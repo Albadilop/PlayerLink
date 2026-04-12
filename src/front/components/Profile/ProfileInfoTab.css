@@ -1,3 +1,16 @@
+/* Cabecera Info: mismo icono que el tab lateral (fa-user) + estilo que Games/Comments */
+.info-section .profile-tab-toolbar .section-title-icon {
+  color: #00f0ff;
+  font-size: 1.2rem;
+}
+
+/* Tipografía del título = .profile-tab-toolbar .profile-tab-title en Profile.css */
+
+/* Solo pestaña Info: menos aire entre cabecera "Info" y la primera fila (Name/Nickname); el resto del form mantiene gap */
+.info-section.profile-info-tab-root > .profile-tab-toolbar + .info-section-group {
+  margin-top: -0.5rem;
+}
+
 /* ===== INFO SECTION BASE ===== */
 .info-section {
   position: relative;
@@ -742,18 +755,56 @@
   z-index: 99999;
 }
 
+.discord-info-tooltip-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0.2rem 0.35rem;
+  min-width: 2rem;
+  min-height: 2rem;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  line-height: 1;
+  font: inherit;
+  color: inherit;
+}
+
+.discord-info-tooltip-trigger:focus {
+  outline: none;
+}
+
+.discord-info-tooltip-trigger:focus-visible {
+  outline: 2px solid rgba(0, 240, 255, 0.7);
+  outline-offset: 2px;
+}
+
 .discord-info-icon {
   color: #8f00ff;
-  cursor: pointer;
+  pointer-events: none;
   font-size: 0.85rem;
   transition: all 0.3s ease;
   filter: drop-shadow(0 0 3px rgba(143, 0, 255, 0.5));
 }
 
-.discord-info-icon:hover {
+.discord-info-tooltip-trigger:hover .discord-info-icon,
+.discord-info-tooltip-trigger:focus-visible .discord-info-icon {
   color: #00f0ff;
   filter: drop-shadow(0 0 5px rgba(0, 240, 255, 0.8));
-  transform: scale(1.2);
+  transform: scale(1.15);
+}
+
+/* Al abrir el tooltip, la tarjeta y el label suben en el stacking para que el globo quede por encima */
+.info-field-card:has(.tooltip-wrapper:hover),
+.info-field-card:has(.tooltip-wrapper:focus-within) {
+  z-index: 12;
+}
+
+.info-field-label:has(.tooltip-wrapper:hover),
+.info-field-label:has(.tooltip-wrapper:focus-within) {
+  z-index: 15;
 }
 
 .tooltip-text {
@@ -768,11 +819,13 @@
   border: 2px solid #00f0ff;
   padding: 16px 18px;
   border-radius: 10px;
-  z-index: 99999 !important;
+  z-index: 100010 !important;
   bottom: calc(100% + 10px);
+  top: auto;
   left: 50%;
-  transform: translateX(-50%);
-  width: 300px;
+  transform: translateX(-50%) translateY(0);
+  width: min(300px, calc(100vw - 1.5rem));
+  max-width: calc(100vw - 1.5rem);
   min-height: auto;
   color: #ffffff;
   font-size: 0.8rem;
@@ -782,7 +835,10 @@
     0 0 80px rgba(0, 0, 0, 1),
     inset 0 0 30px rgba(0, 240, 255, 0.15),
     inset 0 0 100px rgba(10, 15, 28, 0.8);
-  transition: all 0.3s ease;
+  transition:
+    opacity 0.25s ease,
+    visibility 0.25s ease,
+    transform 0.25s ease;
   pointer-events: none;
   box-sizing: border-box;
   word-wrap: break-word;
@@ -814,10 +870,11 @@
   line-height: 1.7;
 }
 
-.tooltip-wrapper:hover .tooltip-text {
+.tooltip-wrapper:hover .tooltip-text,
+.tooltip-wrapper:focus-within .tooltip-text {
   visibility: visible;
   opacity: 1;
-  transform: translateX(-50%);
+  transform: translateX(-50%) translateY(0);
 }
 
 /* ===== RESPONSIVE ===== */
@@ -858,6 +915,15 @@
   .preferences-tags-container {
     gap: 0.4rem;
     margin-top: 0.4rem;
+  }
+
+  /* Tooltip sigue por encima del icono; un poco más compacto en móvil */
+  .info-field-label .tooltip-text {
+    bottom: calc(100% + 8px);
+    padding: 12px 14px;
+    font-size: 0.78rem;
+    width: min(280px, calc(100vw - 1.25rem));
+    max-width: calc(100vw - 1.25rem);
   }
 }
 

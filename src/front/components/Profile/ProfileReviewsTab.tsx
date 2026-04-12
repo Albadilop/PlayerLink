@@ -115,9 +115,14 @@ export const ProfileReviewsTab: React.FC<ProfileReviewsTabProps> = ({
 
   return (
     <div className="info-section container">
-      <div className="row justify-content-between align-items-center mb-3">
+      <div className="row justify-content-between align-items-center mb-3 profile-tab-toolbar">
         <div className="col-auto">
-          <h3 className="m-0">Comments</h3>
+          <h3 className="m-0 d-flex align-items-center gap-2 flex-wrap profile-tab-title">
+            <span className="d-flex align-items-center gap-2">
+              <i className="fa-solid fa-comments section-title-icon" aria-hidden />
+              Comments
+            </span>
+          </h3>
         </div>
         {showLeaveCommentButton && (
           <div className="col-auto">
@@ -133,7 +138,7 @@ export const ProfileReviewsTab: React.FC<ProfileReviewsTabProps> = ({
         )}
       </div>
       <div className="reviews-content-area">
-        <div className="row">
+        <div className="reviews-cards-stack profile-tab-cards">
           {safeReviews && safeReviews.length > 0 ? (
             <>
               {paginationData.currentReviews.map((review) => {
@@ -160,8 +165,8 @@ export const ProfileReviewsTab: React.FC<ProfileReviewsTabProps> = ({
                 };
 
                 return (
-                  <div key={review.id} className="col-12 review-card">
-                    <div className="review-container">
+                  <div key={review.id} className="review-tile-card">
+                    <div className="review-tile-body">
                       <div className="review-header">
                         <div className="review-header-left">
                           <span className="review-author">{review.author_nickname}</span>
@@ -174,10 +179,13 @@ export const ProfileReviewsTab: React.FC<ProfileReviewsTabProps> = ({
                         </div>
                         <div className="review-stars">{renderStars(review.stars)}</div>
                       </div>
-                      <p className="m-0 border-0 review-box">
-                        <i className="fa-solid fa-comment"></i>
-                        <span>{review.comment}</span>
-                      </p>
+                      <div className="review-comment-line">
+                        <i
+                          className="fa-solid fa-comment-dots review-comment-line-icon"
+                          aria-hidden
+                        />
+                        <span className="review-comment-line-text">{review.comment}</span>
+                      </div>
                     </div>
                   </div>
                 );

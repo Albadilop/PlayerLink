@@ -477,7 +477,7 @@ export const MatchUserDetails: React.FC = () => {
             )}
 
             <div className="games-content-area">
-              <div className="row mt-3 gap-2 d-flez justify-content-center gamesbigbox p-2">
+              <div className="row gap-2 d-flex justify-content-center gamesbigbox px-2 pb-2 profile-tab-cards">
                 {sortedGames.length > 0 ? (
                   <>
                     {paginationData.currentGames.map((el, i) => (

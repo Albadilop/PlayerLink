@@ -108,7 +108,17 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
   };
 
   return (
-    <div className="info-section container">
+    <div className="info-section container profile-info-tab-root">
+      <div className="row justify-content-between align-items-center mb-0 profile-tab-toolbar">
+        <div className="col-auto">
+          <h3 className="m-0 d-flex align-items-center gap-2 flex-wrap profile-tab-title">
+            <span className="d-flex align-items-center gap-2">
+              <i className="fa-solid fa-user section-title-icon" aria-hidden />
+              Info
+            </span>
+          </h3>
+        </div>
+      </div>
       {/* Personal Information Section */}
       <div className="info-section-group">
         <div className="row g-3">
@@ -427,9 +437,15 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
                     className={f === "steam_id" ? "fa-brands fa-steam" : "fa-brands fa-discord"}
                   ></i>
                   {f === "steam_id" ? "Steam Friend ID" : "Discord"}
-                  <span className="tooltip-wrapper ">
-                    <i className="fa-solid fa-circle-info discord-info-icon "></i>
-                    <span className="tooltip-text">
+                  <span className="tooltip-wrapper">
+                    <button
+                      type="button"
+                      className="discord-info-tooltip-trigger"
+                      aria-label="How your matches use Discord and Steam"
+                    >
+                      <i className="fa-solid fa-circle-info discord-info-icon" aria-hidden />
+                    </button>
+                    <span className="tooltip-text" role="tooltip">
                       <strong>Connect with your matches</strong>
                       The Discord or Steam info in your profile will be used by your matches to
                       reach out to you.
