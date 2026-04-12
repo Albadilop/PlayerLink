@@ -576,7 +576,7 @@ const SettingsView: React.FC = () => {
 
       {/* Matching Preferences */}
       {settings && (
-        <div className="settings-category">
+        <div className="settings-category settings-category--matching">
           <h3>Matching Preferences</h3>
           <div className="settings-item">
             <label>Enable Discovery</label>
@@ -776,7 +776,7 @@ const SettingsView: React.FC = () => {
           </div>
           <div className="settings-input-group">
             <label>Min Hours Played:</label>
-            <div style={{ display: "flex", alignItems: "flex-end", gap: "0.5rem", flex: 1 }}>
+            <div className="settings-matching-hours-row">
               <div style={{ flex: 1 }}>
                 <input
                   type="number"
@@ -930,7 +930,7 @@ const SettingsView: React.FC = () => {
 
       {/* Gaming Preferences */}
       {settings && (
-        <div className="settings-category">
+        <div className="settings-category settings-category--gaming">
           <h3>Gaming</h3>
           <div className="settings-item">
             <label>Steam Sync Enabled</label>
@@ -939,7 +939,7 @@ const SettingsView: React.FC = () => {
               onChange={(val) => handleToggle("gaming", "steam_sync_enabled", val)}
             />
           </div>
-          <div className="settings-input-group">
+          <div className="settings-input-group settings-input-group--gaming-sync">
             <label>Sync Frequency:</label>
             <select
               value={settings.gaming.steam_sync_frequency || "manual"}
@@ -1012,9 +1012,9 @@ const SettingsView: React.FC = () => {
       </div>
 
       {/* App Preferences */}
-      <div className="settings-category">
+      <div className="settings-category settings-category--application">
         <h3>Application</h3>
-        <div className="settings-input-group">
+        <div className="settings-input-group settings-input-group--application-theme">
           <label>Theme</label>
           <select
             value={theme}
