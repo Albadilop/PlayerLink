@@ -20,6 +20,7 @@ import { useTheme } from "../../hooks/useTheme";
 import { useAppSounds } from "../../hooks/useAppSounds";
 import { useAppAnimations } from "../../hooks/useAppAnimations";
 import { useToast } from "../../hooks/useToast";
+import { notificationService } from "../../services/notificationService";
 
 interface EmailForm {
   actualEmail: string;
@@ -106,6 +107,14 @@ const SettingsView: React.FC = () => {
         // Only show error if it's not a connection error (to avoid blocking UI)
         if (data.message.includes("Could not connect")) {
           console.warn("Backend not available, using default settings");
+          const fallbackNotifications = {
+            email_match_notifications: true,
+            email_like_notifications: true,
+            email_review_notifications: true,
+            email_weekly_summary: false,
+            app_sound_notifications: true,
+            app_push_notifications: true,
+          };
           // Create default settings object for UI
           setSettings({
             id: 0,
@@ -123,14 +132,7 @@ const SettingsView: React.FC = () => {
               show_steam_id: true,
               show_discord: true,
             },
-            notifications: {
-              email_match_notifications: true,
-              email_like_notifications: true,
-              email_review_notifications: true,
-              email_weekly_summary: false,
-              app_sound_notifications: true,
-              app_push_notifications: true,
-            },
+            notifications: fallbackNotifications,
             gaming: {
               steam_sync_enabled: false,
               steam_sync_frequency: "manual",
@@ -141,11 +143,13 @@ const SettingsView: React.FC = () => {
               read_receipts_enabled: true,
             },
           });
+          notificationService.syncFromPreferences(fallbackNotifications);
         } else {
           setSettingsError(data.message);
         }
       } else {
         setSettings(data);
+        notificationService.syncFromPreferences(data.notifications);
       }
     } catch (error) {
       console.error("Error loading settings:", error);
@@ -229,6 +233,7 @@ const SettingsView: React.FC = () => {
       if (resp.ok && resp.data) {
         // Use the server response directly - it should contain all saved values
         setSettings(resp.data);
+        notificationService.syncFromPreferences(resp.data.notifications);
         setSettingsSuccess("Settings updated successfully");
         showToast("Settings updated successfully", "success");
         playSound("success");
@@ -1032,6 +1037,7 @@ const SettingsView: React.FC = () => {
       )}
 
       {/* Social Preferences */}
+      {/*
       {settings && (
         <div className="settings-category">
           <h3>Social</h3>
@@ -1054,6 +1060,7 @@ const SettingsView: React.FC = () => {
           </div>
         </div>
       )}
+      */}
 
       {/* Blocked Users */}
       <div className="settings-category">

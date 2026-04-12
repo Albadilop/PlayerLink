@@ -2,6 +2,7 @@ import "../../pages/Privateviews/Search-mate.css";
 import React, { useEffect, useState } from "react";
 import { SearchMatchCard } from "../../components/SearchMatchCard/SearchMatchCard";
 import useGlobalReducer from "../../hooks/useGlobalReducer";
+import { useAppSounds } from "../../hooks/useAppSounds";
 import searchMatchServices from "../../services/searchMatchServices";
 import { ItsMatch } from "../../components/ItsMatch/ItsMatch";
 import { useNavigate } from "react-router-dom";
@@ -10,6 +11,7 @@ import logoApp from "../../assets/img/logos/logo-app.png";
 
 export const SearchMate: React.FC = () => {
   const { store, dispatch } = useGlobalReducer();
+  const { playSound } = useAppSounds();
   const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
@@ -108,6 +110,7 @@ export const SearchMate: React.FC = () => {
           likeResponse && typeof likeResponse === "object" && "match" in likeResponse;
 
         if (hasMatch) {
+          playSound("match");
           // ¡Es un match! Usar el perfil completo que ya tenemos
           const matchUserInfo = {
             user_id: likedProfile.user_id,

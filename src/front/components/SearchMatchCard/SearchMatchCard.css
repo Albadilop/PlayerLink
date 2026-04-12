@@ -4,7 +4,8 @@
   color: #00f0ff;
   width: 480px;
   max-width: 95vw;
-  min-height: 520px;
+  /* Altura mínima alineada con perfil “completo” (juegos + idiomas + preferencias) */
+  min-height: 700px;
   height: auto;
   border-radius: 24px;
   padding: 20px;
@@ -147,6 +148,21 @@
   flex-shrink: 0;
 }
 
+/* Espacio fijo para hasta 3 filas de juegos + mensaje vacío */
+.search-match-info-section--games {
+  min-height: 178px;
+}
+
+.search-match-info-section--preferences {
+  min-height: 90px;
+  margin-bottom: 4px;
+  padding: 6px 8px;
+}
+
+.search-match-info-section--preferences .search-match-section-header {
+  margin-bottom: 4px;
+}
+
 .search-match-info-section:hover {
   background: rgba(0, 240, 255, 0.05);
   border-color: rgba(0, 240, 255, 0.2);
@@ -247,6 +263,17 @@
   gap: 0.5rem 0.75rem;
   margin: 0.5rem 0;
   width: 100%;
+  min-height: 52px;
+}
+
+.search-match-badge--placeholder {
+  opacity: 0.55;
+  border-style: dashed;
+}
+
+.search-match-placeholder-label {
+  font-style: italic;
+  color: #888;
 }
 
 .search-match-badge {
@@ -442,7 +469,7 @@
     width: 100%;
     padding: 18px;
     border-radius: 20px;
-    min-height: 0;
+    min-height: min(720px, calc(100vh - 140px));
     height: auto;
     overflow: visible;
   }

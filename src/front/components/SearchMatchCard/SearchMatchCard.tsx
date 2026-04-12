@@ -1,6 +1,7 @@
 import "./SearchMatchCard.css";
 import React, { useState } from "react";
 import { getPhotoAsset, defaultPhoto } from "../../constants/photoAssets";
+import { useAppSounds } from "../../hooks/useAppSounds";
 import type { Profile } from "../../types";
 
 interface SearchMatchCardProps {
@@ -11,12 +12,14 @@ interface SearchMatchCardProps {
 
 export const SearchMatchCard: React.FC<SearchMatchCardProps> = ({ profile, onLike, onDislike }) => {
   const [animationClass, setAnimationClass] = useState<string>("");
+  const { playSound } = useAppSounds();
 
   const selectPhoto = (): string => {
     return getPhotoAsset(profile.photo ?? "") || defaultPhoto;
   };
 
   const handleLike = () => {
+    playSound("swipeRight");
     setAnimationClass("slide-out-right");
     setTimeout(() => {
       setAnimationClass("");
@@ -25,6 +28,7 @@ export const SearchMatchCard: React.FC<SearchMatchCardProps> = ({ profile, onLik
   };
 
   const handleDislike = () => {
+    playSound("swipeLeft");
     setAnimationClass("slide-out-left");
     setTimeout(() => {
       setAnimationClass("");
@@ -84,7 +88,7 @@ export const SearchMatchCard: React.FC<SearchMatchCardProps> = ({ profile, onLik
         </h1>
 
         {/* Top Games — primero (después del nick) */}
-        <div className="search-match-info-section">
+        <div className="search-match-info-section search-match-info-section--games">
           <div className="search-match-section-header">
             <i className="fa-solid fa-gamepad icon-games" />
             Top Games
@@ -104,9 +108,9 @@ export const SearchMatchCard: React.FC<SearchMatchCardProps> = ({ profile, onLik
           )}
         </div>
 
-        {/* Quick Info Badges */}
+        {/* Quick Info Badges — contenedor con altura mínima para alinear tarjetas */}
         <div className="search-match-quick-info">
-          {formattedLanguages && (
+          {formattedLanguages ? (
             <span className="search-match-badge search-match-badge--languages">
               <span className="d-flex align-items-center">
                 <i className="me-2 fa-solid fa-language icon-language" />
@@ -114,19 +118,31 @@ export const SearchMatchCard: React.FC<SearchMatchCardProps> = ({ profile, onLik
                 {formattedLanguages}
               </span>
             </span>
+          ) : (
+            <span className="search-match-badge search-match-badge--languages search-match-badge--placeholder">
+              <span className="d-flex align-items-center">
+                <i className="me-2 fa-solid fa-language icon-language" />
+                <span className="search-match-placeholder-label">Languages not set</span>
+              </span>
+            </span>
           )}
         </div>
 
-        {/* Preferences Section */}
-        {formattedPreferences && (
-          <div className="search-match-info-section">
-            <div className="search-match-section-header">
-              <i className="fa-solid fa-heart icon-preferences" />
-              Preferences
-            </div>
-            <p className="preferences-text">{formattedPreferences}</p>
+        {/* Preferences — siempre visible para mantener la misma altura de tarjeta */}
+        <div className="search-match-info-section search-match-info-section--preferences">
+          <div className="search-match-section-header">
+            <i className="fa-solid fa-heart icon-preferences" />
+            Preferences
           </div>
-        )}
+          {formattedPreferences ? (
+            <p className="preferences-text">{formattedPreferences}</p>
+          ) : (
+            <p className="no-data-text">
+              <i className="fa-solid fa-ghost me-2" />
+              No preferences listed
+            </p>
+          )}
+        </div>
 
         {/* Action Buttons */}
         <div className="search-match-buttons">

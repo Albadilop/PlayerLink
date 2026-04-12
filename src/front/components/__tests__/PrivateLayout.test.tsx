@@ -12,6 +12,21 @@ jest.mock("../Private/Private-sidebar", () => ({
   Sidebar: ({ activePath }: { activePath: string }) => <aside>Sidebar - {activePath}</aside>,
 }));
 
+jest.mock("../../services/notificationService", () => ({
+  notificationService: {
+    loadSettings: jest.fn().mockResolvedValue(undefined),
+  },
+}));
+
+jest.mock("../../hooks/useProfileCompletion", () => ({
+  useProfileCompletion: () => ({
+    isComplete: true,
+    missingFields: [] as string[],
+    completionPercentage: 100,
+    validationResult: { isComplete: true, missingFields: [], completionPercentage: 100 },
+  }),
+}));
+
 describe("PrivateLayout", () => {
   it("renders layout with navbar and sidebar", () => {
     render(

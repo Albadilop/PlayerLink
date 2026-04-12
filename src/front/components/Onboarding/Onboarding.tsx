@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
+import Select from "react-select";
 import { useNavigate } from "react-router-dom";
 import useGlobalReducer from "../../hooks/useGlobalReducer";
 import { getFieldLabel } from "../../utils/profileValidation";
@@ -8,6 +9,8 @@ import apiClient from "../../services/apiClient";
 import { GENDER_OPTIONS, DEFAULT_VALUES, PROFILE_FIELD_LIMITS } from "../../constants";
 import { clampProfileLocation } from "../../utils/profileValidation";
 import { AddGameModal, type GameFormData } from "../Modals/AddGameModal";
+import { profileInfoSelectStyles } from "../../utils/profileInfoSelectStyles";
+import "../Profile/ProfileInfoTab.css";
 import "./Onboarding.css";
 
 interface OnboardingState {
@@ -141,6 +144,11 @@ export const Onboarding: React.FC = () => {
   const gameOptions = useMemo(
     () => availableGames.map((name) => ({ value: name, label: name })),
     [availableGames]
+  );
+
+  const genderSelectOptions = useMemo(
+    () => GENDER_OPTIONS.map((g) => ({ value: g, label: g })),
+    []
   );
 
   // Save profile field
@@ -552,17 +560,19 @@ export const Onboarding: React.FC = () => {
                 <label className={displayMissingFields.includes("gender") ? "required" : ""}>
                   Gender
                 </label>
-                <select
-                  value={formState.gender}
-                  onChange={(e) => handleInputChange("gender", e.target.value)}
-                  className={displayMissingFields.includes("gender") ? "error" : ""}
-                >
-                  {GENDER_OPTIONS.map((gender) => (
-                    <option key={gender} value={gender}>
-                      {gender}
-                    </option>
-                  ))}
-                </select>
+                <Select
+                  className={`info-field-select${displayMissingFields.includes("gender") ? " onboarding-select--error" : ""}`}
+                  classNamePrefix="info-select"
+                  options={genderSelectOptions}
+                  value={genderSelectOptions.find((opt) => opt.value === formState.gender) || null}
+                  onChange={(selected) =>
+                    handleInputChange("gender", selected?.value ?? DEFAULT_VALUES.GENDER_UNDEFINED)
+                  }
+                  placeholder="Select gender"
+                  isSearchable={false}
+                  menuPortalTarget={document.body}
+                  styles={profileInfoSelectStyles}
+                />
                 {displayMissingFields.includes("gender") && (
                   <span className="field-error">Please select a gender</span>
                 )}
