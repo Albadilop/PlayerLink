@@ -244,10 +244,65 @@
   color: #ffa500;
 }
 
+/* Matching preferences: age min/max row (wraps/stack on narrow screens) */
+.settings-matching-age-range {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-wrap: wrap;
+  gap: 1rem;
+  width: 100%;
+}
+
+.settings-matching-age-field {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+  flex: 1 1 160px;
+  min-width: 0;
+}
+
 @media (max-width: 600px) {
   .settings-section {
     flex-direction: column;
     gap: 10px;
+  }
+
+  .settings-container {
+    padding: 16px 12px;
+  }
+
+  .settings-category {
+    padding: 16px 12px;
+    overflow-x: hidden;
+  }
+
+  /* Stack label above control so matching (and other) rows fit on phone */
+  .settings-input-group {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .settings-input-group > label {
+    min-width: 0;
+  }
+
+  .settings-input-group .settings-btn {
+    width: 100%;
+    box-sizing: border-box;
+    white-space: normal;
+    line-height: 1.35;
+  }
+
+  .settings-input-group--matching-age .settings-matching-age-range {
+    flex-direction: column;
+    flex-wrap: nowrap;
+  }
+
+  .settings-matching-age-field {
+    flex: 1 1 auto;
+    width: 100%;
   }
 
   .modal-box {

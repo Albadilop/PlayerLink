@@ -585,10 +585,10 @@ const SettingsView: React.FC = () => {
               onChange={(val) => handleToggle("matching", "discovery_enabled", val)}
             />
           </div>
-          <div className="settings-input-group">
+          <div className="settings-input-group settings-input-group--matching-age">
             <label>Age Range:</label>
-            <div style={{ flex: 1, display: "flex", gap: "1rem" }}>
-              <div style={{ display: "flex", alignItems: "flex-end", gap: "0.5rem", flex: 1 }}>
+            <div className="settings-matching-age-range">
+              <div className="settings-matching-age-field">
                 <div style={{ flex: 1 }}>
                   <label
                     style={{
@@ -655,7 +655,7 @@ const SettingsView: React.FC = () => {
                   </button>
                 </div>
               </div>
-              <div style={{ display: "flex", alignItems: "flex-end", gap: "0.5rem", flex: 1 }}>
+              <div className="settings-matching-age-field">
                 <div style={{ flex: 1 }}>
                   <label
                     style={{
