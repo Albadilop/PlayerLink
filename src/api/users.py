@@ -12,8 +12,9 @@ from flask_jwt_extended import (
     jwt_required,
 )
 from werkzeug.security import generate_password_hash, check_password_hash
-from sqlalchemy import select, or_, func
-from api.models import db, User
+from sqlalchemy import delete as sql_delete, func, or_, select
+
+from api.models import db, User, UserSettings
 from api.validators import (
     validate_email,
     validate_password_strength,
@@ -73,12 +74,20 @@ def get_single_user(user_id: int, _user: User) -> Tuple[Response, int]:
 
 
 @users_bp.route('/users/<int:user_id>', methods=['DELETE'])
+@apply_rate_limit_if_available("5 per hour")
 @jwt_required()
 @handle_errors
 @require_user_exists('user_id')
 @require_ownership
-def delete_user(user_id: int, _user: User) -> Tuple[Response, int]:
-    """Delete a user account"""
+@validate_json(['currentPassword'])
+def delete_user(user_id: int, _user: User, _data: dict) -> Tuple[Response, int]:
+    """Delete a user account (requires current password)."""
+    if not check_password_hash(_user.password, _data.get('currentPassword') or ''):
+        return base.error_response('Contraseña actual incorrecta', 401)
+
+    # Remove settings row first (SQLite / older FKs without ON DELETE CASCADE).
+    db.session.execute(sql_delete(UserSettings).where(UserSettings.user_id == user_id))
+
     db.session.delete(_user)
     db.session.commit()
     return base.success_response(f'user {user_id} deleted', status_code=200)

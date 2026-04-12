@@ -80,6 +80,9 @@ const SettingsView: React.FC = () => {
   const [showUnblockModal, setShowUnblockModal] = useState<boolean>(false);
   const [userToUnblock, setUserToUnblock] = useState<number | null>(null);
 
+  const [deleteAccountPassword, setDeleteAccountPassword] = useState<string>("");
+  const [errorDeleteAccount, setErrorDeleteAccount] = useState<string>("");
+
   // App preferences (stored in localStorage)
   const { theme, setTheme } = useTheme();
   const { soundsEnabled, setSoundsEnabled, playSound } = useAppSounds();
@@ -441,22 +444,34 @@ const SettingsView: React.FC = () => {
   };
 
   const deleteAccount = async (userId: string | number | undefined) => {
+    setErrorDeleteAccount("");
     if (!userId) return;
     const userIdNum = typeof userId === "string" ? parseInt(userId, 10) : userId;
     if (isNaN(userIdNum)) return;
 
-    const resp = await userServices.deleteAccount(userIdNum);
-    if (!resp.ok) {
-      alert(resp.error || "Failed to delete account");
+    if (!deleteAccountPassword.trim()) {
+      setErrorDeleteAccount("Please enter your account password to confirm.");
       return;
     }
 
-    alert("Account deleted successfully");
+    const resp = await userServices.deleteAccount(userIdNum, deleteAccountPassword);
+    if (!resp.ok) {
+      const err = (resp.error || "").toLowerCase();
+      if (resp.error?.includes("Contraseña") || err.includes("password")) {
+        setErrorDeleteAccount("Incorrect password.");
+      } else {
+        showToast(resp.error || "Failed to delete account", "error");
+      }
+      return;
+    }
+
+    showToast("Account deleted successfully", "success");
+    setDeleteAccountPassword("");
     setTimeout(() => {
       setShowDeleteModal(false);
       dispatch({ type: "logout" });
       navigate("/");
-    }, 3000);
+    }, 1500);
   };
 
   const submitPasswordChange = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -1105,9 +1120,19 @@ const SettingsView: React.FC = () => {
       {/* Delete Account */}
       <div className="settings-warning">
         <h3>Delete Account</h3>
-        <p>If you delete your account, all your data will be permanently erased after 30 days.</p>
+        <p>
+          If you delete your account, your profile and app data are removed immediately. This cannot
+          be undone.
+        </p>
         <div className="warning-buttons">
-          <button className="delete-btn" onClick={() => setShowDeleteModal(true)}>
+          <button
+            className="delete-btn"
+            onClick={() => {
+              setDeleteAccountPassword("");
+              setErrorDeleteAccount("");
+              setShowDeleteModal(true);
+            }}
+          >
             Delete Account
           </button>
         </div>
@@ -1239,10 +1264,29 @@ const SettingsView: React.FC = () => {
           <div className="modal-box small">
             <h3>Are you sure?</h3>
             <p>
-              This action cannot be undone. All your data will be permanently deleted after 30 days.
+              This action cannot be undone. Your account and associated data will be deleted
+              immediately.
             </p>
+            <input
+              type="password"
+              placeholder="Account password (required)"
+              value={deleteAccountPassword}
+              onChange={(e) => setDeleteAccountPassword(e.target.value)}
+              autoComplete="current-password"
+              style={{ width: "100%", marginTop: "12px", padding: "8px", boxSizing: "border-box" }}
+            />
+            {errorDeleteAccount && <h6 className="text-danger mt-2">{errorDeleteAccount}</h6>}
             <div className="modal-actions">
-              <button onClick={() => setShowDeleteModal(false)}>Cancel</button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setDeleteAccountPassword("");
+                  setErrorDeleteAccount("");
+                }}
+              >
+                Cancel
+              </button>
               <button className="confirm-btn" onClick={() => deleteAccount(store.user?.id)}>
                 Delete Account
               </button>

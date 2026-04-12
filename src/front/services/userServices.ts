@@ -20,7 +20,7 @@ interface UserServices {
     payload: { email: string; currentPassword: string }
   ) => Promise<ApiResponse<{ pending_email?: string; msg?: string }>>;
   confirmEmailChange: (token: string) => Promise<ApiResponse<{ email?: string; msg?: string }>>;
-  deleteAccount: (userId: number) => Promise<ApiResponse<unknown>>;
+  deleteAccount: (userId: number, currentPassword: string) => Promise<ApiResponse<unknown>>;
   changeUserPassword: (
     user_id: number,
     newPassword: string,
@@ -237,8 +237,10 @@ const userServices: UserServices = {
     };
   },
 
-  deleteAccount: async (userId: number): Promise<ApiResponse<unknown>> => {
-    const response = await apiClient.delete(`/api/users/${userId}`, true);
+  deleteAccount: async (userId: number, currentPassword: string): Promise<ApiResponse<unknown>> => {
+    const response = await apiClient.delete(`/api/users/${userId}`, true, {
+      currentPassword,
+    });
     return {
       ok: response.ok,
       data: response.data,

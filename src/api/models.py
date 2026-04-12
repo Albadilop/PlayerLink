@@ -268,7 +268,8 @@ class UserSettings(db.Model):
     """User settings and preferences"""
     __tablename__ = 'user_settings'
     id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey('users.id'), unique=True, nullable=False)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey('users.id', ondelete='CASCADE'), unique=True, nullable=False)
     
     # Matching Preferences
     min_age_preference: Mapped[int] = mapped_column(Integer, nullable=True)
