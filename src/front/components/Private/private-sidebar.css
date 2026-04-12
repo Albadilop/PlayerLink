@@ -277,6 +277,10 @@
 }
 
 @media (max-width: 480px) {
+  .sidebar-toggle {
+    top: 8px; /* navbar 60px de alto: centrar ~44px de alto del botón */
+  }
+
   .sidebar {
     width: 260px;
     min-width: 260px;

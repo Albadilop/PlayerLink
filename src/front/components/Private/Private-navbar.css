@@ -302,8 +302,10 @@
 
 /* ===== MOBILE RESPONSIVE ===== */
 @media screen and (max-width: 768px) {
+  /* Dejar hueco para .sidebar-toggle (fixed, 44×44, left 15px) y que no tape el logo */
   .private-navbar {
     padding: 0 1rem;
+    padding-left: calc(15px + 44px + 0.75rem);
   }
 
   .navbar-center {
@@ -337,6 +339,7 @@
   .private-navbar {
     height: 60px;
     padding: 0 0.8rem;
+    padding-left: calc(15px + 44px + 0.5rem);
   }
 
   .navbar-logo {
