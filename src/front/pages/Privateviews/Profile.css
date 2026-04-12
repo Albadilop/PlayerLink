@@ -867,3 +867,42 @@
   opacity: 1;
   visibility: visible;
 }
+
+/* Games / Comments: misma altura de barra (título solo en h3; acciones a la derecha) */
+.profile-tab-toolbar {
+  align-items: center !important;
+  min-height: 52px;
+}
+
+.profile-tab-toolbar .profile-tab-title {
+  margin: 0;
+  line-height: 1.25;
+  font-family: "Orbitron", "Segoe UI", sans-serif;
+  font-size: 1.75rem;
+  font-weight: 500;
+  color: #fff;
+  text-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
+}
+
+.profile-tab-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+/* Misma altura visual que Edit Profile en Info (ProfileInfoTab .edit-btn) */
+.profile-tab-toolbar-actions .btn-add-game {
+  flex-shrink: 0;
+  padding: 0.65rem 1.5rem;
+  font-size: 0.9rem;
+  border-radius: 10px;
+  line-height: 1.25;
+  box-sizing: border-box;
+}
+
+/* Lista bajo el título: mismo margen superior en Games y Comments */
+.profile-tab-cards {
+  margin-top: 10px;
+}

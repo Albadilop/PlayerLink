@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import { createPortal } from "react-dom";
 import type { Game } from "../../types";
 import { selectMedal, formatHours } from "../../utils/profileHelpers";
 import { GameImage } from "../GameImage";
@@ -24,6 +25,8 @@ export interface ProfileGamesTabProps {
   availableGames: string[];
   gameOptions: SelectOption[];
   loading: boolean;
+  /** Solo lectura (p. ej. perfil de un match): mismas tarjetas y paginación, sin añadir/editar/borrar. */
+  readOnly?: boolean;
   onAddGame: (game: GameFormData) => Promise<void>;
   onDeleteGame: (gameId: number) => Promise<void>;
   onUpdateGame: (gameId: number, hours: number) => Promise<void>;
@@ -34,6 +37,7 @@ export const ProfileGamesTab: React.FC<ProfileGamesTabProps> = ({
   availableGames: _availableGames,
   gameOptions,
   loading: _loading,
+  readOnly = false,
   onAddGame,
   onDeleteGame,
   onUpdateGame,
@@ -46,6 +50,8 @@ export const ProfileGamesTab: React.FC<ProfileGamesTabProps> = ({
   const [currentPage, setCurrentPage] = useState(1);
   const [showGameForm, setShowGameForm] = useState(false);
   const [showMedalInfo, setShowMedalInfo] = useState<string | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: number; title: string } | null>(null);
+  const [deletePending, setDeletePending] = useState(false);
 
   const handleChange = React.useCallback((field: keyof GameFormData, value: string | number) => {
     setGame((prev) => ({ ...prev, [field]: value }));
@@ -118,6 +124,48 @@ export const ProfileGamesTab: React.FC<ProfileGamesTabProps> = ({
     setGame({ ...game, hours_played: currentHours });
     setErrorCeroHours("");
   };
+
+  const openDeleteConfirm = (gameId: number, gameTitle: string) => {
+    const title = (gameTitle || "").trim() || "this game";
+    setDeleteConfirm({ id: gameId, title });
+  };
+
+  const closeDeleteConfirm = () => {
+    if (deletePending) return;
+    setDeleteConfirm(null);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteConfirm) return;
+    setDeletePending(true);
+    try {
+      await onDeleteGame(deleteConfirm.id);
+      setDeleteConfirm(null);
+    } finally {
+      setDeletePending(false);
+    }
+  };
+
+  /** Mismas flechas / estilos que AddGameModal + onboarding (Onboarding.css). */
+  const MAX_GAME_HOURS = 2147483647;
+  const bumpHoursPlayed = React.useCallback((delta: 1 | -1) => {
+    setGame((prev) => {
+      const raw = prev.hours_played;
+      const current = raw === "" || raw === undefined || raw === null ? 0 : Math.floor(Number(raw));
+      let next = current + delta;
+      if (next < 1) next = 1;
+      if (next > MAX_GAME_HOURS) next = MAX_GAME_HOURS;
+      return { ...prev, hours_played: next };
+    });
+    setErrorCeroHours("");
+  }, []);
+
+  const hoursForSpinner = (() => {
+    const raw = game.hours_played;
+    if (raw === "" || raw === undefined || raw === null) return 0;
+    const n = Math.floor(Number(raw));
+    return Number.isFinite(n) ? n : 0;
+  })();
 
   // Ordenar juegos por horas (de mayor a menor)
   const sortedGames = useMemo(() => {
@@ -202,288 +250,408 @@ export const ProfileGamesTab: React.FC<ProfileGamesTabProps> = ({
   };
 
   return (
-    <div className="container info-section">
-      <div className="row justify-content-between align-items-center mb-3">
-        <div className="col-auto">
-          <h3 className="m-0 d-flex align-items-center gap-2 flex-wrap">
-            <span className="d-flex align-items-center gap-2">
-              <i className="fa-solid fa-gamepad section-title-icon"></i>
-              Games
-            </span>
-            <span className="medal-badges-container">
-              <span
-                className="medal-badge medal-badge-gold"
-                onClick={() => setShowMedalInfo(showMedalInfo === "gold" ? null : "gold")}
-                style={{ cursor: "pointer" }}
-              >
-                <i className="fa-solid fa-medal"></i>
-                <span className="medal-badge-text">Gold</span>
+    <>
+      <div className="container info-section">
+        <div className="row justify-content-between align-items-center mb-3 profile-tab-toolbar">
+          <div className="col-auto">
+            <h3 className="m-0 d-flex align-items-center gap-2 flex-wrap profile-tab-title">
+              <span className="d-flex align-items-center gap-2">
+                <i className="fa-solid fa-gamepad section-title-icon"></i>
+                Games
               </span>
-              <span
-                className="medal-badge medal-badge-silver"
-                onClick={() => setShowMedalInfo(showMedalInfo === "silver" ? null : "silver")}
-                style={{ cursor: "pointer" }}
-              >
-                <i className="fa-solid fa-medal"></i>
-                <span className="medal-badge-text">Silver</span>
+              <span className="medal-badges-container">
+                <span
+                  className="ms-2 medal-badge medal-badge-gold"
+                  onClick={() => setShowMedalInfo(showMedalInfo === "gold" ? null : "gold")}
+                  style={{ cursor: "pointer" }}
+                >
+                  <i className="fa-solid fa-medal"></i>
+                  <span className="medal-badge-text">Gold</span>
+                </span>
+                <span
+                  className="medal-badge medal-badge-silver"
+                  onClick={() => setShowMedalInfo(showMedalInfo === "silver" ? null : "silver")}
+                  style={{ cursor: "pointer" }}
+                >
+                  <i className="fa-solid fa-medal"></i>
+                  <span className="medal-badge-text">Silver</span>
+                </span>
+                <span
+                  className="medal-badge medal-badge-bronze"
+                  onClick={() => setShowMedalInfo(showMedalInfo === "bronze" ? null : "bronze")}
+                  style={{ cursor: "pointer" }}
+                >
+                  <i className="fa-solid fa-medal"></i>
+                  <span className="medal-badge-text">Bronze</span>
+                </span>
               </span>
-              <span
-                className="medal-badge medal-badge-bronze"
-                onClick={() => setShowMedalInfo(showMedalInfo === "bronze" ? null : "bronze")}
-                style={{ cursor: "pointer" }}
-              >
-                <i className="fa-solid fa-medal"></i>
-                <span className="medal-badge-text">Bronze</span>
-              </span>
-            </span>
-          </h3>
-        </div>
-        <div className="col-auto">
-          <button type="button" className="btn-add-game" onClick={() => setShowGameForm(true)}>
-            Add a new game
-          </button>
-        </div>
-      </div>
-
-      {/* Medal Info Modal */}
-      {showMedalInfo && (
-        <div className="modal-overlay" onClick={() => setShowMedalInfo(null)}>
-          <div className="modal-content medal-info-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header medal-info-header">
-              <div className="medal-info-title-wrapper">
-                <i
-                  className={`fa-solid fa-medal medal-info-icon ${
-                    showMedalInfo === "gold"
-                      ? "medal-info-gold"
-                      : showMedalInfo === "silver"
-                        ? "medal-info-silver"
-                        : "medal-info-bronze"
-                  }`}
-                ></i>
-                <h3 className="medal-info-title">
-                  {showMedalInfo === "gold"
-                    ? "Gold Medal"
-                    : showMedalInfo === "silver"
-                      ? "Silver Medal"
-                      : "Bronze Medal"}
-                </h3>
-              </div>
-              <button
-                type="button"
-                className="modal-close medal-info-close"
-                onClick={() => setShowMedalInfo(null)}
-              >
-                <i className="fa-solid fa-times" />
-              </button>
-            </div>
-            <div className="modal-body medal-info-body">
-              <div className="medal-info-content">
-                <p className="medal-info-description">
-                  {showMedalInfo === "gold" ? (
-                    <>
-                      <strong>Gold Medal</strong> is awarded to players who have played{" "}
-                      <strong className="medal-info-hours">2500 hours or more</strong> in a single
-                      game.
-                    </>
-                  ) : showMedalInfo === "silver" ? (
-                    <>
-                      <strong>Silver Medal</strong> is awarded to players who have played between{" "}
-                      <strong className="medal-info-hours">500 and 2499 hours</strong> in a single
-                      game.
-                    </>
-                  ) : (
-                    <>
-                      <strong>Bronze Medal</strong> is awarded to players who have played between{" "}
-                      <strong className="medal-info-hours">0 and 499 hours</strong> in a single
-                      game.
-                    </>
-                  )}
-                </p>
-                <div className="medal-info-range">
-                  <span className="medal-info-label">Hours Range:</span>
-                  <span className="medal-info-value">
-                    {showMedalInfo === "gold"
-                      ? "2500+ hours"
-                      : showMedalInfo === "silver"
-                        ? "500 - 2499 hours"
-                        : "0 - 499 hours"}
-                  </span>
-                </div>
-              </div>
-            </div>
+            </h3>
           </div>
-        </div>
-      )}
-
-      {/* Game Form Modal */}
-      <AddGameModal
-        isOpen={showGameForm}
-        game={game}
-        gameOptions={gameOptions}
-        errorRepeatedGame={errorRepeatedGame}
-        errorHoursPlayed={errorHoursPlayed}
-        onGameChange={handleChange}
-        onHoursChange={(hours) => handleChange("hours_played", hours)}
-        onAdd={handleAdd}
-        onCancel={() => {
-          setShowGameForm(false);
-          setErrorRepeatedGame("");
-          setErrorHoursPlayed("");
-        }}
-      />
-
-      <div className="games-content-area">
-        <div className="row mt-3 gap-2 d-flez justify-content-center gamesbigbox p-2">
-          {games.length > 0 ? (
-            <>
-              {paginationData.currentGames.map((el, i) => (
-                <div key={i} className="game-card">
-                  <div className="game-card-content">
-                    <div className="game-info">
-                      <div className="game-title-section">
-                        <GameImage
-                          gameTitle={el.gameTitle}
-                          gameImage={el.gameImage}
-                          className="game-image"
-                          alt={el.gameTitle}
-                          rawgApiKey={import.meta.env.VITE_RAWG_KEY || null}
-                        />
-                        <h5 className="game-title">{el.gameTitle}</h5>
-                      </div>
-                    </div>
-
-                    {idOfGameBeingEdited === el.id ? (
-                      <form className="game-edit-form" onSubmit={(e) => handleSubmit(e, el.id)}>
-                        <div className="edit-form-content">
-                          {errorCeroHours && <div className="error-message">{errorCeroHours}</div>}
-                          <div className="edit-input-group">
-                            <input
-                              className="input-hours"
-                              type="number"
-                              name="hours_played"
-                              min="1"
-                              max="999999"
-                              value={game.hours_played}
-                              onChange={(e) => setGame({ ...game, hours_played: e.target.value })}
-                              placeholder="Hours"
-                              autoFocus
-                            />
-                            <div className="edit-actions">
-                              <button
-                                type="submit"
-                                className="btn-action btn-save"
-                                title="Save changes"
-                              >
-                                <i className="fa-solid fa-floppy-disk"></i>
-                              </button>
-                              <button
-                                type="button"
-                                className="btn-action btn-cancel"
-                                onClick={() => setIdOfGameBeingEdited(0)}
-                                title="Cancel"
-                              >
-                                <i className="fa-solid fa-xmark"></i>
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      </form>
-                    ) : (
-                      <div className="game-stats">
-                        <div className="hours-display">
-                          <img
-                            src={selectMedal(el.gameHoursPlayed)}
-                            alt="Medal"
-                            className="game-medal"
-                          />
-                          <span className="hours-text">{formatHours(el.gameHoursPlayed)}</span>
-                        </div>
-                        <div className="game-actions">
-                          <button
-                            className="btn-action btn-edit"
-                            onClick={() => handleStartEdit(el.id, el.gameHoursPlayed)}
-                            title="Edit hours"
-                          >
-                            <i className="fa-solid fa-pencil"></i>
-                          </button>
-                          <button
-                            className="btn-action btn-delete"
-                            onClick={() => onDeleteGame(el.id)}
-                            title="Delete game"
-                          >
-                            <i className="fa-solid fa-trash"></i>
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </>
-          ) : (
-            <div className="empty-state">
-              <div className="empty-state-icon">
-                <i className="fa-solid fa-gamepad"></i>
-              </div>
-              <h3 className="empty-state-title">No games yet</h3>
-              <p className="empty-state-message">
-                Start building your gaming profile by adding your favorite games!
-              </p>
-              <button
-                type="button"
-                className="btn-add-first-game"
-                onClick={() => setShowGameForm(true)}
-              >
-                <i className="fa-solid fa-plus"></i> Add Your First Game
+          {!readOnly && (
+            <div className="col-auto profile-tab-toolbar-actions">
+              <button type="button" className="btn-add-game" onClick={() => setShowGameForm(true)}>
+                ADD A NEW GAME
               </button>
             </div>
           )}
         </div>
-      </div>
-      {/* Controles de paginación - al final de la tarjeta */}
-      {games.length > 0 && paginationData.totalPages > 1 && (
-        <div className="pagination-container">
-          <button
-            className="pagination-btn"
-            onClick={handlePrevious}
-            disabled={currentPage === 1}
-            aria-label="Previous page"
-          >
-            <i className="fa-solid fa-chevron-left"></i> Previous
-          </button>
 
-          <div className="pagination-numbers">
-            {getPageNumbers().map((page, index) => {
-              if (page === "...") {
-                return (
-                  <span key={`ellipsis-${index}`} className="pagination-ellipsis">
-                    ...
-                  </span>
-                );
-              }
-              return (
+        {/* Medal Info Modal */}
+        {showMedalInfo && (
+          <div className="modal-overlay" onClick={() => setShowMedalInfo(null)}>
+            <div className="modal-content medal-info-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header medal-info-header">
+                <div className="medal-info-title-wrapper">
+                  <i
+                    className={`fa-solid fa-medal medal-info-icon ${
+                      showMedalInfo === "gold"
+                        ? "medal-info-gold"
+                        : showMedalInfo === "silver"
+                          ? "medal-info-silver"
+                          : "medal-info-bronze"
+                    }`}
+                  ></i>
+                  <h3 className="medal-info-title">
+                    {showMedalInfo === "gold"
+                      ? "Gold Medal"
+                      : showMedalInfo === "silver"
+                        ? "Silver Medal"
+                        : "Bronze Medal"}
+                  </h3>
+                </div>
                 <button
-                  key={page}
-                  className={`pagination-number ${currentPage === page ? "active" : ""}`}
-                  onClick={() => handlePageClick(page as number)}
-                  aria-label={`Go to page ${page}`}
+                  type="button"
+                  className="modal-close medal-info-close"
+                  onClick={() => setShowMedalInfo(null)}
                 >
-                  {page}
+                  <i className="fa-solid fa-times" />
                 </button>
-              );
-            })}
+              </div>
+              <div className="modal-body medal-info-body">
+                <div className="medal-info-content">
+                  <p className="medal-info-description">
+                    {showMedalInfo === "gold" ? (
+                      <>
+                        <strong>Gold Medal</strong> is awarded to players who have played{" "}
+                        <strong className="medal-info-hours">2500 hours or more</strong> in a single
+                        game.
+                      </>
+                    ) : showMedalInfo === "silver" ? (
+                      <>
+                        <strong>Silver Medal</strong> is awarded to players who have played between{" "}
+                        <strong className="medal-info-hours">500 and 2499 hours</strong> in a single
+                        game.
+                      </>
+                    ) : (
+                      <>
+                        <strong>Bronze Medal</strong> is awarded to players who have played between{" "}
+                        <strong className="medal-info-hours">0 and 499 hours</strong> in a single
+                        game.
+                      </>
+                    )}
+                  </p>
+                  <div className="medal-info-range">
+                    <span className="medal-info-label">Hours Range:</span>
+                    <span className="medal-info-value">
+                      {showMedalInfo === "gold"
+                        ? "2500+ hours"
+                        : showMedalInfo === "silver"
+                          ? "500 - 2499 hours"
+                          : "0 - 499 hours"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
+        )}
 
-          <button
-            className="pagination-btn"
-            onClick={handleNext}
-            disabled={currentPage === paginationData.totalPages}
-            aria-label="Next page"
-          >
-            Next <i className="fa-solid fa-chevron-right"></i>
-          </button>
+        {/* Game Form Modal */}
+        {!readOnly && (
+          <AddGameModal
+            isOpen={showGameForm}
+            game={game}
+            gameOptions={gameOptions}
+            errorRepeatedGame={errorRepeatedGame}
+            errorHoursPlayed={errorHoursPlayed}
+            onGameChange={handleChange}
+            onHoursChange={(hours) => handleChange("hours_played", hours)}
+            onAdd={handleAdd}
+            onCancel={() => {
+              setShowGameForm(false);
+              setErrorRepeatedGame("");
+              setErrorHoursPlayed("");
+            }}
+          />
+        )}
+
+        <div className="games-content-area">
+          <div className="row gap-2 d-flex justify-content-center gamesbigbox px-2 pb-2 profile-tab-cards">
+            {games.length > 0 ? (
+              <>
+                {paginationData.currentGames.map((el, i) => (
+                  <div key={i} className="game-card">
+                    <div className="game-card-content">
+                      <div className="game-info">
+                        <div className="game-title-section">
+                          <GameImage
+                            gameTitle={el.gameTitle}
+                            gameImage={el.gameImage}
+                            className="game-image"
+                            alt={el.gameTitle}
+                            rawgApiKey={import.meta.env.VITE_RAWG_KEY || null}
+                          />
+                          <h5 className="game-title">{el.gameTitle}</h5>
+                        </div>
+                      </div>
+
+                      <div className="game-card-side">
+                        {readOnly ? (
+                          <div className="game-stats">
+                            <div className="hours-display">
+                              <img
+                                src={selectMedal(el.gameHoursPlayed)}
+                                alt="Medal"
+                                className="game-medal"
+                              />
+                              <span className="hours-text">{formatHours(el.gameHoursPlayed)}</span>
+                            </div>
+                          </div>
+                        ) : idOfGameBeingEdited === el.id ? (
+                          <form className="game-edit-form" onSubmit={(e) => handleSubmit(e, el.id)}>
+                            <div className="edit-form-content">
+                              {errorCeroHours && (
+                                <div className="error-message">{errorCeroHours}</div>
+                              )}
+                              <div className="edit-input-group">
+                                <div className="onboarding-game-input-container game-edit-hours-wrap">
+                                  <input
+                                    type="number"
+                                    className="onboarding-game-input hours-input"
+                                    name="hours_played"
+                                    min={1}
+                                    max={MAX_GAME_HOURS}
+                                    value={game.hours_played === "" ? "" : game.hours_played}
+                                    onChange={(e) =>
+                                      setGame({ ...game, hours_played: e.target.value })
+                                    }
+                                    placeholder="Hours"
+                                    autoFocus
+                                  />
+                                  <div className="hours-spinner-buttons">
+                                    <button
+                                      type="button"
+                                      className="hours-spinner-btn hours-spinner-up"
+                                      onClick={() => bumpHoursPlayed(1)}
+                                      disabled={hoursForSpinner >= MAX_GAME_HOURS}
+                                      aria-label="Increase hours"
+                                    >
+                                      <i className="fa-solid fa-chevron-up" />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className="hours-spinner-btn hours-spinner-down"
+                                      onClick={() => bumpHoursPlayed(-1)}
+                                      disabled={hoursForSpinner <= 1}
+                                      aria-label="Decrease hours"
+                                    >
+                                      <i className="fa-solid fa-chevron-down" />
+                                    </button>
+                                  </div>
+                                </div>
+                                <div className="edit-actions">
+                                  <button
+                                    type="submit"
+                                    className="btn-action btn-save"
+                                    title="Save changes"
+                                  >
+                                    <i className="fa-solid fa-floppy-disk"></i>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="btn-action btn-cancel"
+                                    onClick={() => setIdOfGameBeingEdited(0)}
+                                    title="Cancel"
+                                  >
+                                    <i className="fa-solid fa-xmark"></i>
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </form>
+                        ) : (
+                          <div className="game-stats">
+                            <div className="hours-display">
+                              <img
+                                src={selectMedal(el.gameHoursPlayed)}
+                                alt="Medal"
+                                className="game-medal"
+                              />
+                              <span className="hours-text">{formatHours(el.gameHoursPlayed)}</span>
+                            </div>
+                            <div className="game-actions">
+                              <button
+                                className="btn-action btn-edit"
+                                onClick={() => handleStartEdit(el.id, el.gameHoursPlayed)}
+                                title="Edit hours"
+                              >
+                                <i className="fa-solid fa-pencil"></i>
+                              </button>
+                              <button
+                                className="btn-action btn-delete"
+                                type="button"
+                                onClick={() => openDeleteConfirm(el.id, el.gameTitle)}
+                                title="Delete game"
+                              >
+                                <i className="fa-solid fa-trash"></i>
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </>
+            ) : readOnly ? (
+              <div className="empty-state">
+                <div className="empty-state-icon">
+                  <i className="fa-solid fa-gamepad"></i>
+                </div>
+                <p className="empty-state-text">No games available yet</p>
+              </div>
+            ) : (
+              <div className="empty-state">
+                <div className="empty-state-icon">
+                  <i className="fa-solid fa-gamepad"></i>
+                </div>
+                <h3 className="empty-state-title">No games yet</h3>
+                <p className="empty-state-message">
+                  Start building your gaming profile by adding your favorite games!
+                </p>
+                <button
+                  type="button"
+                  className="btn-add-first-game"
+                  onClick={() => setShowGameForm(true)}
+                >
+                  <i className="fa-solid fa-plus"></i> Add Your First Game
+                </button>
+              </div>
+            )}
+          </div>
         </div>
-      )}
-    </div>
+        {/* Controles de paginación - al final de la tarjeta */}
+        {games.length > 0 && paginationData.totalPages > 1 && (
+          <div className="pagination-container">
+            <button
+              className="pagination-btn"
+              onClick={handlePrevious}
+              disabled={currentPage === 1}
+              aria-label="Previous page"
+            >
+              <i className="fa-solid fa-chevron-left"></i> Previous
+            </button>
+
+            <div className="pagination-numbers">
+              {getPageNumbers().map((page, index) => {
+                if (page === "...") {
+                  return (
+                    <span key={`ellipsis-${index}`} className="pagination-ellipsis">
+                      ...
+                    </span>
+                  );
+                }
+                return (
+                  <button
+                    key={page}
+                    className={`pagination-number ${currentPage === page ? "active" : ""}`}
+                    onClick={() => handlePageClick(page as number)}
+                    aria-label={`Go to page ${page}`}
+                  >
+                    {page}
+                  </button>
+                );
+              })}
+            </div>
+
+            <button
+              className="pagination-btn"
+              onClick={handleNext}
+              disabled={currentPage === paginationData.totalPages}
+              aria-label="Next page"
+            >
+              Next <i className="fa-solid fa-chevron-right"></i>
+            </button>
+          </div>
+        )}
+      </div>
+
+      {!readOnly &&
+        deleteConfirm &&
+        createPortal(
+          <div className="modal-overlay" onClick={closeDeleteConfirm}>
+            <div
+              className="modal-content onboarding-game-modal delete-game-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="delete-game-dialog-title"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="modal-header onboarding-game-header">
+                <div className="onboarding-game-title-wrapper">
+                  <i className="fa-solid fa-trash-can delete-game-modal-icon" aria-hidden />
+                  <h3 id="delete-game-dialog-title" className="onboarding-game-title">
+                    Remove game
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  className="modal-close onboarding-game-close"
+                  onClick={closeDeleteConfirm}
+                  disabled={deletePending}
+                  aria-label="Close"
+                >
+                  <i className="fa-solid fa-times" />
+                </button>
+              </div>
+              <div className="modal-body onboarding-game-body">
+                <p className="delete-game-modal-text">
+                  Remove <strong>{deleteConfirm.title}</strong> from your profile?
+                </p>
+                <p className="delete-game-modal-warning">This cannot be undone.</p>
+              </div>
+              <div className="modal-footer onboarding-game-footer delete-game-modal-footer">
+                <button
+                  type="button"
+                  className="btn onboarding-game-btn-cancel"
+                  onClick={closeDeleteConfirm}
+                  disabled={deletePending}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="btn onboarding-game-btn-delete-confirm"
+                  onClick={() => void handleConfirmDelete()}
+                  disabled={deletePending}
+                >
+                  {deletePending ? (
+                    <>
+                      <i className="fa-solid fa-spinner fa-spin" aria-hidden />
+                      Removing…
+                    </>
+                  ) : (
+                    <>
+                      <i className="fa-solid fa-trash-can" aria-hidden />
+                      Remove
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
+    </>
   );
 };

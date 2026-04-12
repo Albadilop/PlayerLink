@@ -1,7 +1,8 @@
 import React from "react";
 import Select from "react-select";
-import { GENDER_OPTIONS } from "../../constants";
+import { DEFAULT_VALUES, GENDER_OPTIONS, PROFILE_FIELD_LIMITS } from "../../constants";
 import { formatPreferences, parsePreferences } from "../../utils/formatters";
+import { profileInfoSelectStyles } from "../../utils/profileInfoSelectStyles";
 import { GamingPreferencesModal } from "../ProfileModals/GamingPreferencesModal";
 import { LanguageModal } from "../ProfileModals/LanguageModal";
 import "./ProfileInfoTab.css";
@@ -26,8 +27,8 @@ export interface ProfileInfoTabProps {
   showGamingPreferencesModal: boolean;
   showLanguageModal: boolean;
   onInputChange: (field: string, value: string | number) => void;
-  onGamingPreferencesChange: (preferences: string[]) => void;
-  onLanguagesChange: (languages: string[]) => void;
+  onGamingPreferencesChange: React.Dispatch<React.SetStateAction<string[]>>;
+  onLanguagesChange: React.Dispatch<React.SetStateAction<string[]>>;
   onShowGamingPreferencesModal: (show: boolean) => void;
   onShowLanguageModal: (show: boolean) => void;
   onSave?: () => void;
@@ -64,6 +65,34 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
   onSave,
   onCancel,
 }) => {
+  const t = (v: string | undefined | null) => (v ?? "").trim();
+
+  const emptyName = t(profile.name).length < 1;
+  const emptyNick = t(profile.nick_name).length < 1;
+  const emptyAge = !profile.age || profile.age < 1;
+  const gTrim = t(profile.gender);
+  const emptyGender =
+    gTrim.length < 1 ||
+    gTrim.toLowerCase() === "undefined" ||
+    gTrim.toLowerCase() === DEFAULT_VALUES.GENDER_UNDEFINED.toLowerCase() ||
+    gTrim === DEFAULT_VALUES.GENDER;
+  const emptyZodiac = t(profile.zodiac).length < 1;
+  const emptyLocation = t(profile.location).length < 2;
+  const emptyDiscord = t(profile.discord).length < 1;
+  const emptySteam = t(profile.steam_id).length < 1;
+  const emptyPreferences = isEditing
+    ? selectedGamingPreferences.length === 0
+    : !t(profile.preferences) || parsePreferences(profile.preferences).length === 0;
+  const emptyLanguages = isEditing
+    ? selectedLanguages.length === 0
+    : !t(profile.languages) || parsePreferences(profile.languages).length === 0;
+
+  const freeze = (isEmpty: boolean) => (isEmpty ? " info-field-card--frozen" : "");
+
+  /** Modo lectura: sin placeholder dentro del recuadro si no hay dato. */
+  const displayValue = (text: string) =>
+    t(text) ? <div className="info-field-value">{text.trim()}</div> : null;
+
   const genders = [...GENDER_OPTIONS];
 
   // Convertir opciones a formato React Select
@@ -81,12 +110,36 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
   };
 
   return (
-    <div className="info-section container">
+    <div className="info-section container profile-info-tab-root">
+      <div className="row justify-content-between align-items-center mb-0 profile-tab-toolbar">
+        <div className="col-auto">
+          <h3 className="m-0 d-flex align-items-center gap-2 flex-wrap profile-tab-title">
+            <span className="d-flex align-items-center gap-2">
+              <i className="fa-solid fa-user section-title-icon" aria-hidden />
+              Info
+            </span>
+          </h3>
+        </div>
+        {onSave && (
+          <div className="col-auto profile-tab-toolbar-actions info-section-actions info-section-actions--toolbar">
+            <button className="edit-btn" type="button" onClick={onSave}>
+              <i className={isEditing ? "fa-solid fa-save" : "fa-solid fa-edit"}></i>
+              {isEditing ? "Save Changes" : "Edit Profile"}
+            </button>
+            {isEditing && onCancel && (
+              <button type="button" className="cancel-btn" onClick={onCancel}>
+                <i className="fa-solid fa-times" aria-hidden />
+                <span className="cancel-btn-label">Cancel</span>
+              </button>
+            )}
+          </div>
+        )}
+      </div>
       {/* Personal Information Section */}
       <div className="info-section-group">
         <div className="row g-3">
-          <div className="col-md-6">
-            <div className="info-field-card">
+          <div className="col-12 col-md-4">
+            <div className={`info-field-card${freeze(emptyName)}`}>
               <label className="info-field-label">
                 <i className="fa-solid fa-id-card"></i> Name
               </label>
@@ -99,12 +152,12 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
                   className="info-field-input"
                 />
               ) : (
-                <div className="info-field-value">{profile.name || "—"}</div>
+                displayValue(profile.name)
               )}
             </div>
           </div>
-          <div className="col-md-6">
-            <div className="info-field-card">
+          <div className="col-12 col-md-4">
+            <div className={`info-field-card${freeze(emptyNick)}`}>
               <label className="info-field-label">
                 <i className="fa-solid fa-signature"></i> Nickname
               </label>
@@ -117,7 +170,26 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
                   className="info-field-input"
                 />
               ) : (
-                <div className="info-field-value">{profile.nick_name || "—"}</div>
+                displayValue(profile.nick_name)
+              )}
+            </div>
+          </div>
+          <div className="col-12 col-md-4">
+            <div className={`info-field-card${freeze(emptyLocation)}`}>
+              <label className="info-field-label">
+                <i className="fa-solid fa-location-dot" /> Location
+              </label>
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={profile.location}
+                  onChange={(e) => onInputChange("location", e.target.value)}
+                  maxLength={PROFILE_FIELD_LIMITS.LOCATION_MAX}
+                  className="info-field-input"
+                  placeholder="City or country"
+                />
+              ) : (
+                displayValue(profile.location)
               )}
             </div>
           </div>
@@ -128,7 +200,7 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
       <div className="info-section-group">
         <div className="row g-3">
           <div className="col-md-2">
-            <div className="info-field-card age-input-wrapper">
+            <div className={`info-field-card age-input-wrapper${freeze(emptyAge)}`}>
               <label className="info-field-label">
                 <i className="fa-solid fa-cake-candles"></i> Age
               </label>
@@ -169,13 +241,13 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
                     </button>
                   </div>
                 </div>
-              ) : (
-                <div className="info-field-value">{profile.age || "—"}</div>
-              )}
+              ) : !emptyAge ? (
+                <div className="info-field-value">{profile.age}</div>
+              ) : null}
             </div>
           </div>
           <div className="col-md-4">
-            <div className="info-field-card">
+            <div className={`info-field-card${freeze(emptyGender)}`}>
               <label className="info-field-label">
                 <i className="fa-solid fa-venus-mars"></i> Gender
               </label>
@@ -188,99 +260,15 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
                   onChange={(selected) => onInputChange("gender", selected?.value || "")}
                   isSearchable={false}
                   menuPortalTarget={document.body}
-                  styles={{
-                    menuPortal: (base) => ({ ...base, zIndex: 9999 }),
-                    menu: (base) => ({
-                      ...base,
-                      background: "linear-gradient(145deg, #0e0e1a, #1a1a2f)",
-                      border: "2px solid #7f00ff",
-                      borderRadius: "10px",
-                      boxShadow:
-                        "0 10px 30px rgba(127, 0, 255, 0.4), 0 0 20px rgba(0, 240, 255, 0.2), inset 0 0 20px rgba(127, 0, 255, 0.1)",
-                      marginTop: "0.5rem",
-                      overflow: "hidden",
-                    }),
-                    menuList: (base) => ({
-                      ...base,
-                      padding: "0.5rem",
-                      maxHeight: "300px",
-                    }),
-                    option: (base, state) => ({
-                      ...base,
-                      backgroundColor: state.isSelected
-                        ? "rgba(127, 0, 255, 0.3)"
-                        : state.isFocused
-                          ? "rgba(0, 240, 255, 0.15)"
-                          : "transparent",
-                      background: state.isSelected
-                        ? "linear-gradient(90deg, rgba(127, 0, 255, 0.3), rgba(0, 240, 255, 0.3))"
-                        : undefined,
-                      color: state.isSelected || state.isFocused ? "#00f0ff" : "#ffffff",
-                      padding: "0.75rem 1rem",
-                      cursor: "pointer",
-                      borderRadius: "6px",
-                      margin: "0.25rem 0",
-                      fontWeight: state.isSelected ? 600 : 400,
-                      textShadow: state.isFocused ? "0 0 5px rgba(0, 240, 255, 0.5)" : "none",
-                      "&:hover": {
-                        backgroundColor: "rgba(0, 240, 255, 0.1)",
-                        color: "#00f0ff",
-                      },
-                    }),
-                    control: (base, state) => ({
-                      ...base,
-                      backgroundColor: state.isFocused
-                        ? "rgba(0, 0, 0, 0.5)"
-                        : "rgba(0, 0, 0, 0.4)",
-                      border: "2px solid",
-                      borderColor: state.isFocused
-                        ? "#00f0ff"
-                        : state.isHovered
-                          ? "#8f00ff"
-                          : "rgba(0, 240, 255, 0.3)",
-                      borderRadius: "10px",
-                      boxShadow: state.isFocused
-                        ? "inset 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 15px rgba(0, 240, 255, 0.3), 0 0 25px rgba(0, 240, 255, 0.2), inset 0 0 10px rgba(0, 240, 255, 0.05)"
-                        : state.isHovered
-                          ? "inset 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 15px rgba(143, 0, 255, 0.3)"
-                          : "inset 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 10px rgba(0, 240, 255, 0.2)",
-                      minHeight: "40px",
-                      cursor: "pointer",
-                    }),
-                    placeholder: (base) => ({
-                      ...base,
-                      color: "rgba(255, 255, 255, 0.4)",
-                    }),
-                    singleValue: (base) => ({
-                      ...base,
-                      color: "#ffffff",
-                      fontWeight: 500,
-                    }),
-                    input: (base) => ({
-                      ...base,
-                      color: "#ffffff",
-                      caretColor: "#00f0ff",
-                    }),
-                    indicatorSeparator: (base) => ({
-                      ...base,
-                      backgroundColor: "rgba(127, 0, 255, 0.3)",
-                    }),
-                    dropdownIndicator: (base) => ({
-                      ...base,
-                      color: "#7f00ff",
-                      "&:hover": {
-                        color: "#00f0ff",
-                      },
-                    }),
-                  }}
+                  styles={profileInfoSelectStyles}
                 />
-              ) : (
-                <div className="info-field-value">{profile.gender || "—"}</div>
-              )}
+              ) : !emptyGender ? (
+                <div className="info-field-value">{profile.gender}</div>
+              ) : null}
             </div>
           </div>
           <div className="col-md-6">
-            <div className="info-field-card">
+            <div className={`info-field-card${freeze(emptyZodiac)}`}>
               <label className="info-field-label">
                 <i className="fa-solid fa-star-and-crescent"></i> Zodiac
               </label>
@@ -293,94 +281,10 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
                   onChange={(selected) => onInputChange("zodiac", selected?.value || "")}
                   isSearchable={false}
                   menuPortalTarget={document.body}
-                  styles={{
-                    menuPortal: (base) => ({ ...base, zIndex: 9999 }),
-                    menu: (base) => ({
-                      ...base,
-                      background: "linear-gradient(145deg, #0e0e1a, #1a1a2f)",
-                      border: "2px solid #7f00ff",
-                      borderRadius: "10px",
-                      boxShadow:
-                        "0 10px 30px rgba(127, 0, 255, 0.4), 0 0 20px rgba(0, 240, 255, 0.2), inset 0 0 20px rgba(127, 0, 255, 0.1)",
-                      marginTop: "0.5rem",
-                      overflow: "hidden",
-                    }),
-                    menuList: (base) => ({
-                      ...base,
-                      padding: "0.5rem",
-                      maxHeight: "300px",
-                    }),
-                    option: (base, state) => ({
-                      ...base,
-                      backgroundColor: state.isSelected
-                        ? "rgba(127, 0, 255, 0.3)"
-                        : state.isFocused
-                          ? "rgba(0, 240, 255, 0.15)"
-                          : "transparent",
-                      background: state.isSelected
-                        ? "linear-gradient(90deg, rgba(127, 0, 255, 0.3), rgba(0, 240, 255, 0.3))"
-                        : undefined,
-                      color: state.isSelected || state.isFocused ? "#00f0ff" : "#ffffff",
-                      padding: "0.75rem 1rem",
-                      cursor: "pointer",
-                      borderRadius: "6px",
-                      margin: "0.25rem 0",
-                      fontWeight: state.isSelected ? 600 : 400,
-                      textShadow: state.isFocused ? "0 0 5px rgba(0, 240, 255, 0.5)" : "none",
-                      "&:hover": {
-                        backgroundColor: "rgba(0, 240, 255, 0.1)",
-                        color: "#00f0ff",
-                      },
-                    }),
-                    control: (base, state) => ({
-                      ...base,
-                      backgroundColor: state.isFocused
-                        ? "rgba(0, 0, 0, 0.5)"
-                        : "rgba(0, 0, 0, 0.4)",
-                      border: "2px solid",
-                      borderColor: state.isFocused
-                        ? "#00f0ff"
-                        : state.isHovered
-                          ? "#8f00ff"
-                          : "rgba(0, 240, 255, 0.3)",
-                      borderRadius: "10px",
-                      boxShadow: state.isFocused
-                        ? "inset 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 15px rgba(0, 240, 255, 0.3), 0 0 25px rgba(0, 240, 255, 0.2), inset 0 0 10px rgba(0, 240, 255, 0.05)"
-                        : state.isHovered
-                          ? "inset 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 15px rgba(143, 0, 255, 0.3)"
-                          : "inset 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 10px rgba(0, 240, 255, 0.2)",
-                      minHeight: "40px",
-                      cursor: "pointer",
-                    }),
-                    placeholder: (base) => ({
-                      ...base,
-                      color: "rgba(255, 255, 255, 0.4)",
-                    }),
-                    singleValue: (base) => ({
-                      ...base,
-                      color: "#ffffff",
-                      fontWeight: 500,
-                    }),
-                    input: (base) => ({
-                      ...base,
-                      color: "#ffffff",
-                      caretColor: "#00f0ff",
-                    }),
-                    indicatorSeparator: (base) => ({
-                      ...base,
-                      backgroundColor: "rgba(127, 0, 255, 0.3)",
-                    }),
-                    dropdownIndicator: (base) => ({
-                      ...base,
-                      color: "#7f00ff",
-                      "&:hover": {
-                        color: "#00f0ff",
-                      },
-                    }),
-                  }}
+                  styles={profileInfoSelectStyles}
                 />
               ) : (
-                <div className="info-field-value">{profile.zodiac || "—"}</div>
+                displayValue(profile.zodiac)
               )}
             </div>
           </div>
@@ -392,15 +296,23 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
         <div className="row g-3">
           {(["discord", "steam_id"] as const).map((f, i) => (
             <div key={i} className="col-md-6">
-              <div className="info-field-card">
+              <div
+                className={`info-field-card${freeze(f === "discord" ? emptyDiscord : emptySteam)}`}
+              >
                 <label className="info-field-label ">
                   <i
                     className={f === "steam_id" ? "fa-brands fa-steam" : "fa-brands fa-discord"}
                   ></i>
                   {f === "steam_id" ? "Steam Friend ID" : "Discord"}
-                  <span className="tooltip-wrapper ">
-                    <i className="fa-solid fa-circle-info discord-info-icon "></i>
-                    <span className="tooltip-text">
+                  <span className="tooltip-wrapper">
+                    <button
+                      type="button"
+                      className="discord-info-tooltip-trigger"
+                      aria-label="How your matches use Discord and Steam"
+                    >
+                      <i className="fa-solid fa-circle-info discord-info-icon" aria-hidden />
+                    </button>
+                    <span className="tooltip-text" role="tooltip">
                       <strong>Connect with your matches</strong>
                       The Discord or Steam info in your profile will be used by your matches to
                       reach out to you.
@@ -416,7 +328,7 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
                     className="info-field-input"
                   />
                 ) : (
-                  <div className="info-field-value">{profile[f] || "—"}</div>
+                  displayValue(profile[f])
                 )}
               </div>
             </div>
@@ -428,7 +340,7 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
       <div className="info-section-group">
         <div className="row g-3">
           <div className="col-md-6">
-            <div className="info-field-card gaming-prefs-box">
+            <div className={`info-field-card gaming-prefs-box${freeze(emptyPreferences)}`}>
               <label className="info-field-label">
                 <i className="fa-solid fa-gamepad"></i> Gaming Preferences
               </label>
@@ -449,9 +361,7 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
                           </span>
                         ))}
                       </div>
-                    ) : (
-                      <div className="info-field-value">No preferences selected yet.</div>
-                    )}
+                    ) : null}
                   </div>
 
                   {showGamingPreferencesModal && (
@@ -473,15 +383,13 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
                         </span>
                       ))}
                     </div>
-                  ) : (
-                    <div className="info-field-value">No preferences selected yet.</div>
-                  )}
+                  ) : null}
                 </>
               )}
             </div>
           </div>
           <div className="col-md-6">
-            <div className="info-field-card">
+            <div className={`info-field-card${freeze(emptyLanguages)}`}>
               <label className="info-field-label">
                 <i className="fa-solid fa-language"></i> Languages
               </label>
@@ -499,9 +407,7 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
                           </span>
                         ))}
                       </div>
-                    ) : (
-                      <div className="info-field-value">No languages selected.</div>
-                    )}
+                    ) : null}
                   </div>
 
                   {showLanguageModal && (
@@ -523,31 +429,13 @@ export const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
                         </span>
                       ))}
                     </div>
-                  ) : (
-                    <div className="info-field-value">No languages selected.</div>
-                  )}
+                  ) : null}
                 </>
               )}
             </div>
           </div>
         </div>
       </div>
-
-      {/* Edit Button */}
-      {onSave && (
-        <div className="info-section-actions">
-          <button className="edit-btn" onClick={onSave}>
-            <i className={isEditing ? "fa-solid fa-save" : "fa-solid fa-edit"}></i>
-            {isEditing ? "Save Changes" : "Edit Profile"}
-          </button>
-          {isEditing && onCancel && (
-            <button type="button" className="cancel-btn" onClick={onCancel}>
-              <i className="fa-solid fa-times" aria-hidden />
-              <span className="cancel-btn-label">Cancel</span>
-            </button>
-          )}
-        </div>
-      )}
     </div>
   );
 };

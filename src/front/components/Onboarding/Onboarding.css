@@ -249,6 +249,12 @@
   box-shadow: 0 0 10px rgba(255, 107, 107, 0.3) !important;
 }
 
+/* Gender react-select (mismo estilo que perfil): borde de error al validar */
+.onboarding-form .info-field-select.onboarding-select--error .info-select__control {
+  border-color: #ff6b6b !important;
+  box-shadow: 0 0 10px rgba(255, 107, 107, 0.35) !important;
+}
+
 .field-error {
   display: block;
   color: #ff6b6b;

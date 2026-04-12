@@ -1,7 +1,7 @@
 import "./SearchMatchCard.css";
-import React, { useEffect, useState } from "react";
-import searchMatchServices from "../../services/searchMatchServices";
+import React, { useState } from "react";
 import { getPhotoAsset, defaultPhoto } from "../../constants/photoAssets";
+import { useAppSounds } from "../../hooks/useAppSounds";
 import type { Profile } from "../../types";
 
 interface SearchMatchCardProps {
@@ -12,26 +12,14 @@ interface SearchMatchCardProps {
 
 export const SearchMatchCard: React.FC<SearchMatchCardProps> = ({ profile, onLike, onDislike }) => {
   const [animationClass, setAnimationClass] = useState<string>("");
-  const [avgStars, setAvgStars] = useState<number>(0);
+  const { playSound } = useAppSounds();
 
   const selectPhoto = (): string => {
-    return getPhotoAsset(profile.photo) || defaultPhoto;
+    return getPhotoAsset(profile.photo ?? "") || defaultPhoto;
   };
 
-  useEffect(() => {
-    if (!profile?.id) return;
-    const getAvgStars = async () => {
-      try {
-        const average = await searchMatchServices.getStarsByUser(profile.id);
-        setAvgStars(Number(average));
-      } catch (err) {
-        console.error(err);
-      }
-    };
-    getAvgStars();
-  }, [profile]);
-
   const handleLike = () => {
+    playSound("swipeRight");
     setAnimationClass("slide-out-right");
     setTimeout(() => {
       setAnimationClass("");
@@ -40,6 +28,7 @@ export const SearchMatchCard: React.FC<SearchMatchCardProps> = ({ profile, onLik
   };
 
   const handleDislike = () => {
+    playSound("swipeLeft");
     setAnimationClass("slide-out-left");
     setTimeout(() => {
       setAnimationClass("");
@@ -87,40 +76,19 @@ export const SearchMatchCard: React.FC<SearchMatchCardProps> = ({ profile, onLik
         </div>
 
         {/* Nickname */}
-        <h1 className="text-center search-match-name">{profile?.nick_name || "Unknown Player"}</h1>
+        <h1 className="text-center search-match-name">
+          {profile?.nick_name || "Unknown Player"}
 
-        {/* Stars Rating */}
-        <div className="search-match-stars-container">
-          {[...Array(5)].map((_, i) => (
-            <i
-              key={i}
-              className={`fa-star search-match-stars ${
-                i < Math.round(avgStars) ? "fa-solid" : "fa-regular"
-              }`}
-            />
-          ))}
-        </div>
-
-        {/* Quick Info Badges */}
-        <div className="search-match-quick-info">
           {profile?.location && (
-            <span className="search-match-badge">
+            <span className="search-match-badge search-match-badge--location ms-3">
               <i className="fa-solid fa-location-dot icon-location" />
               {profile.location}
             </span>
           )}
-          {formattedLanguages && (
-            <span className="search-match-badge">
-              <i className="fa-solid fa-language icon-language" />
-              {formattedLanguages}
-            </span>
-          )}
-        </div>
+        </h1>
 
-        <hr className="search-match-line" />
-
-        {/* Games Section */}
-        <div className="search-match-info-section">
+        {/* Top Games — primero (después del nick) */}
+        <div className="search-match-info-section search-match-info-section--games">
           <div className="search-match-section-header">
             <i className="fa-solid fa-gamepad icon-games" />
             Top Games
@@ -140,18 +108,41 @@ export const SearchMatchCard: React.FC<SearchMatchCardProps> = ({ profile, onLik
           )}
         </div>
 
-        {/* Preferences Section */}
-        {formattedPreferences && (
-          <div className="search-match-info-section">
-            <div className="search-match-section-header">
-              <i className="fa-solid fa-heart icon-preferences" />
-              Preferences
-            </div>
-            <p className="preferences-text">{formattedPreferences}</p>
-          </div>
-        )}
+        {/* Quick Info Badges — contenedor con altura mínima para alinear tarjetas */}
+        <div className="search-match-quick-info">
+          {formattedLanguages ? (
+            <span className="search-match-badge search-match-badge--languages">
+              <span className="d-flex align-items-center">
+                <i className="me-2 fa-solid fa-language icon-language" />
 
-        <hr className="search-match-last-line" />
+                {formattedLanguages}
+              </span>
+            </span>
+          ) : (
+            <span className="search-match-badge search-match-badge--languages search-match-badge--placeholder">
+              <span className="d-flex align-items-center">
+                <i className="me-2 fa-solid fa-language icon-language" />
+                <span className="search-match-placeholder-label">Languages not set</span>
+              </span>
+            </span>
+          )}
+        </div>
+
+        {/* Preferences — siempre visible para mantener la misma altura de tarjeta */}
+        <div className="search-match-info-section search-match-info-section--preferences">
+          <div className="search-match-section-header">
+            <i className="fa-solid fa-heart icon-preferences" />
+            Preferences
+          </div>
+          {formattedPreferences ? (
+            <p className="preferences-text">{formattedPreferences}</p>
+          ) : (
+            <p className="no-data-text">
+              <i className="fa-solid fa-ghost me-2" />
+              No preferences listed
+            </p>
+          )}
+        </div>
 
         {/* Action Buttons */}
         <div className="search-match-buttons">

@@ -1,28 +1,32 @@
-/* ProfileReviewsTab styles */
-.review-card {
-  margin-bottom: 0.75rem;
-  padding: 0;
-  background: transparent;
-  border: none;
+/* ProfileReviewsTab — título con icono como Games */
+.section-title-icon {
+  color: #00f0ff;
+  font-size: 1.2rem;
+}
+
+/* Título Comments: tipografía = .profile-tab-toolbar .profile-tab-title en Profile.css */
+
+/* Lista de tarjetas como gamesbigbox */
+.reviews-cards-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
   width: 100%;
 }
 
-.review-container {
-  color: #fff;
-  padding: 1.2rem;
+/* Tarjeta por comentario (misma familia visual que .game-card) */
+.review-tile-card {
   background: rgba(0, 0, 0, 0.55);
   border: 1px solid rgba(0, 240, 255, 0.2);
   border-radius: 12px;
+  padding: 12px;
   transition: all 0.3s ease;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
   position: relative;
   overflow: hidden;
-  min-height: 90px;
+  width: 100%;
 }
 
-.review-container::after {
+.review-tile-card::after {
   content: "";
   position: absolute;
   top: 0;
@@ -31,17 +35,27 @@
   height: 100%;
   background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.1), transparent);
   transition: left 0.5s ease;
+  pointer-events: none;
 }
 
-.review-card:hover .review-container {
+.review-tile-card:hover {
   background: rgba(0, 0, 0, 0.65);
   border-color: rgba(0, 240, 255, 0.4);
   box-shadow: 0 4px 15px rgba(0, 240, 255, 0.15);
   transform: translateY(-2px);
 }
 
-.review-card:hover .review-container::after {
+.review-tile-card:hover::after {
   left: 100%;
+}
+
+.review-tile-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  position: relative;
+  z-index: 1;
+  color: #fff;
 }
 
 .review-header {
@@ -163,14 +177,18 @@
   gap: 8px;
   margin-top: 0.75rem;
   padding-top: 0.75rem;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   flex-shrink: 0;
   position: relative;
   z-index: 10;
   border-top: 1px solid rgba(0, 240, 255, 0.2);
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .pagination-btn {
+  flex: 0 0 auto;
   padding: 0.6rem 1.2rem;
   background: linear-gradient(135deg, #8f00ff, #6b00cc);
   border: 2px solid rgba(0, 240, 255, 0.3);
@@ -180,12 +198,20 @@
   font-size: 0.85rem;
   font-weight: 600;
   transition: all 0.3s ease;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  justify-content: center;
+  gap: 0.4rem;
   box-shadow: 0 0 15px rgba(143, 0, 255, 0.3);
   position: relative;
-  z-index: 1;
+  z-index: 2;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.pagination-btn--prev {
+  padding-left: 0.65rem;
+  padding-right: 0.75rem;
 }
 
 .pagination-btn:hover:not(:disabled) {
@@ -208,7 +234,25 @@
 .pagination-numbers {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 5px;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  flex-wrap: nowrap;
+  padding: 2px 0;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+.pagination-numbers::-webkit-scrollbar {
+  height: 4px;
+}
+
+.pagination-numbers::-webkit-scrollbar-thumb {
+  background: rgba(0, 240, 255, 0.35);
+  border-radius: 4px;
 }
 
 .pagination-number {

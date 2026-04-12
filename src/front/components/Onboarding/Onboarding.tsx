@@ -1,12 +1,16 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
+import Select from "react-select";
 import { useNavigate } from "react-router-dom";
 import useGlobalReducer from "../../hooks/useGlobalReducer";
 import { getFieldLabel } from "../../utils/profileValidation";
 import userServices from "../../services/userServices";
 import gameServices from "../../services/gameServices";
 import apiClient from "../../services/apiClient";
-import { GENDER_OPTIONS, DEFAULT_VALUES } from "../../constants";
+import { GENDER_OPTIONS, DEFAULT_VALUES, PROFILE_FIELD_LIMITS } from "../../constants";
+import { clampProfileLocation } from "../../utils/profileValidation";
 import { AddGameModal, type GameFormData } from "../Modals/AddGameModal";
+import { profileInfoSelectStyles } from "../../utils/profileInfoSelectStyles";
+import "../Profile/ProfileInfoTab.css";
 import "./Onboarding.css";
 
 interface OnboardingState {
@@ -43,7 +47,7 @@ export const Onboarding: React.FC = () => {
     nick_name: store.user?.profile?.nick_name?.trim() || "",
     age: store.user?.profile?.age || 0,
     gender: store.user?.profile?.gender?.trim() || DEFAULT_VALUES.GENDER_UNDEFINED,
-    location: store.user?.profile?.location?.trim() || "",
+    location: clampProfileLocation(store.user?.profile?.location?.trim() || ""),
   });
 
   // Hidratar desde el store una sola vez por par (user id, profile id). Tras el autoguardado,
@@ -61,7 +65,7 @@ export const Onboarding: React.FC = () => {
       nick_name: profile.nick_name?.trim() || "",
       age: profile.age || 0,
       gender: profile.gender?.trim() || DEFAULT_VALUES.GENDER_UNDEFINED,
-      location: profile.location?.trim() || "",
+      location: clampProfileLocation(profile.location?.trim() || ""),
     });
     hydratedFormKeyRef.current = key;
   }, [store.user?.id, store.user?.profile]);
@@ -142,6 +146,11 @@ export const Onboarding: React.FC = () => {
     [availableGames]
   );
 
+  const genderSelectOptions = useMemo(
+    () => GENDER_OPTIONS.map((g) => ({ value: g, label: g })),
+    []
+  );
+
   // Save profile field
   const saveField = useCallback(
     async (field: string, value: string | number) => {
@@ -164,7 +173,10 @@ export const Onboarding: React.FC = () => {
           }
         } else {
           // Handle string fields - save empty string if cleared
-          const stringValue = String(value).trim();
+          let stringValue = String(value).trim();
+          if (field === "location") {
+            stringValue = clampProfileLocation(stringValue);
+          }
           // Save empty string if field is cleared, so backend knows it's incomplete
           updateData[field] = stringValue || "";
         }
@@ -196,7 +208,9 @@ export const Onboarding: React.FC = () => {
   // Handle input change with auto-save
   const handleInputChange = useCallback(
     (field: keyof OnboardingState, value: string | number) => {
-      setFormState((prev) => ({ ...prev, [field]: value }));
+      const next: string | number =
+        field === "location" && typeof value === "string" ? clampProfileLocation(value) : value;
+      setFormState((prev) => ({ ...prev, [field]: next }));
 
       // Clear previous timeout for this field
       if (saveTimeoutsRef.current[field]) {
@@ -205,7 +219,7 @@ export const Onboarding: React.FC = () => {
 
       // Auto-save after a short delay
       saveTimeoutsRef.current[field] = setTimeout(() => {
-        saveField(field, value);
+        saveField(field, next);
         delete saveTimeoutsRef.current[field];
       }, 800);
     },
@@ -546,17 +560,19 @@ export const Onboarding: React.FC = () => {
                 <label className={displayMissingFields.includes("gender") ? "required" : ""}>
                   Gender
                 </label>
-                <select
-                  value={formState.gender}
-                  onChange={(e) => handleInputChange("gender", e.target.value)}
-                  className={displayMissingFields.includes("gender") ? "error" : ""}
-                >
-                  {GENDER_OPTIONS.map((gender) => (
-                    <option key={gender} value={gender}>
-                      {gender}
-                    </option>
-                  ))}
-                </select>
+                <Select
+                  className={`info-field-select${displayMissingFields.includes("gender") ? " onboarding-select--error" : ""}`}
+                  classNamePrefix="info-select"
+                  options={genderSelectOptions}
+                  value={genderSelectOptions.find((opt) => opt.value === formState.gender) || null}
+                  onChange={(selected) =>
+                    handleInputChange("gender", selected?.value ?? DEFAULT_VALUES.GENDER_UNDEFINED)
+                  }
+                  placeholder="Select gender"
+                  isSearchable={false}
+                  menuPortalTarget={document.body}
+                  styles={profileInfoSelectStyles}
+                />
                 {displayMissingFields.includes("gender") && (
                   <span className="field-error">Please select a gender</span>
                 )}
@@ -573,7 +589,7 @@ export const Onboarding: React.FC = () => {
                 value={formState.location}
                 onChange={(e) => handleInputChange("location", e.target.value)}
                 placeholder="Your city or country"
-                maxLength={50}
+                maxLength={PROFILE_FIELD_LIMITS.LOCATION_MAX}
                 className={displayMissingFields.includes("location") ? "error" : ""}
               />
               {displayMissingFields.includes("location") && (

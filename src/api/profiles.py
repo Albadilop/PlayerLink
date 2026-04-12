@@ -22,6 +22,15 @@ from typing import Tuple
 profiles_bp = Blueprint('profiles', __name__)
 base = BaseEndpoint()
 
+MAX_PROFILE_LOCATION_LENGTH = 24
+
+
+def _truncate_profile_location(value: object) -> str:
+    if value is None:
+        return ''
+    s = value if isinstance(value, str) else str(value)
+    return s[:MAX_PROFILE_LOCATION_LENGTH]
+
 
 def is_profile_complete(profile: Profile) -> tuple[bool, list[str]]:
     """
@@ -32,7 +41,7 @@ def is_profile_complete(profile: Profile) -> tuple[bool, list[str]]:
     - nick_name (minimum 2 characters)
     - age (must be >= 18)
     - gender (minimum 2 characters)
-    - location (minimum 2 characters)
+    - location (minimum 2 characters, maximum 24 characters)
     - At least 1 game in games list
     
     Returns:
@@ -139,7 +148,7 @@ def post_profile(user_id: int, _user: User, _data: dict) -> Tuple[Response, int]
         name=_data.get('name') or 'Undefinied',
         preferences=_data.get('preferences') or 'Undefinied',
         zodiac=_data.get('zodiac') or 'Undefinied',
-        location=_data.get('location') or 'Undefinied',
+        location=_truncate_profile_location(_data.get('location') or 'Undefinied'),
         nick_name=_data.get('nick_name') or 'Undefinied',
         bio=_data.get('bio') or 'Undefinied',
         language=_data.get('language') or 'Undefinied',
@@ -173,7 +182,7 @@ def put_profile(user_id: int, _user: User, _profile: Profile, _data: dict) -> Tu
     if 'name' in _data:
         _profile.name = _data['name']
     if 'location' in _data:
-        _profile.location = _data['location']
+        _profile.location = _truncate_profile_location(_data['location'])
     if 'nick_name' in _data:
         _profile.nick_name = _data['nick_name']
     if 'bio' in _data:

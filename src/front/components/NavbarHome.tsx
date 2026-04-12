@@ -91,7 +91,7 @@ export const NavbarHome: React.FC = () => {
 
   const handleStartClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     // Si el usuario ya está autenticado, navegar directamente sin abrir el modal
-    if (store.user && store.user !== "undefined") {
+    if (store.user) {
       e.preventDefault();
       e.stopPropagation();
       // Cerrar el modal si está abierto

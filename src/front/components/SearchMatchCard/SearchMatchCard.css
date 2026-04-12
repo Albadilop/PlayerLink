@@ -4,10 +4,12 @@
   color: #00f0ff;
   width: 480px;
   max-width: 95vw;
-  height: 800px;
+  /* Altura mínima alineada con perfil “completo” (juegos + idiomas + preferencias) */
+  min-height: 700px;
+  height: auto;
   border-radius: 24px;
   padding: 20px;
-  overflow: hidden;
+  overflow: visible;
   display: flex;
   flex-direction: column;
 
@@ -117,32 +119,6 @@
   margin: 0.5rem 0;
 }
 
-/* ===== STARS RATING ===== */
-.search-match-stars-container {
-  display: flex;
-  justify-content: center;
-  gap: 4px;
-  margin: 0.6rem 0 1rem;
-}
-
-.search-match-stars {
-  font-size: 1.1rem;
-  color: #ffc107;
-  transition: all 0.2s ease;
-}
-
-.search-match-stars.fa-solid {
-  text-shadow: 0 0 10px rgba(255, 193, 7, 0.6);
-}
-
-.search-match-stars.fa-regular {
-  color: rgba(255, 193, 7, 0.35);
-}
-
-.search-match-stars:hover {
-  transform: scale(1.2);
-}
-
 /* ===== DIVIDER LINES ===== */
 .search-match-line {
   border: none;
@@ -169,6 +145,22 @@
   margin-bottom: 10px;
   border: 1px solid rgba(0, 240, 255, 0.1);
   transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+/* Espacio fijo para hasta 3 filas de juegos + mensaje vacío */
+.search-match-info-section--games {
+  min-height: 178px;
+}
+
+.search-match-info-section--preferences {
+  min-height: 90px;
+  margin-bottom: 4px;
+  padding: 6px 8px;
+}
+
+.search-match-info-section--preferences .search-match-section-header {
+  margin-bottom: 4px;
 }
 
 .search-match-info-section:hover {
@@ -262,13 +254,26 @@
   flex-shrink: 0;
 }
 
-/* ===== QUICK INFO ROW ===== */
+/* ===== QUICK INFO — ubicación en una línea; idiomas debajo a ancho completo sin cortar ===== */
 .search-match-quick-info {
   display: flex;
-  justify-content: center;
-  gap: 1rem;
   flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
   margin: 0.5rem 0;
+  width: 100%;
+  min-height: 52px;
+}
+
+.search-match-badge--placeholder {
+  opacity: 0.55;
+  border-style: dashed;
+}
+
+.search-match-placeholder-label {
+  font-style: italic;
+  color: #888;
 }
 
 .search-match-badge {
@@ -282,6 +287,32 @@
   font-size: 0.85rem;
   color: #c0c0c0;
   transition: all 0.2s ease;
+}
+
+.search-match-badge--location {
+  flex: 0 1 auto;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.search-match-badge--languages {
+  flex: 1 0 100%;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  justify-content: center;
+  text-align: center;
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  flex-wrap: wrap;
+  row-gap: 0.25rem;
+}
+
+.search-match-badge--languages i {
+  flex-shrink: 0;
 }
 
 .search-match-badge:hover {
@@ -416,8 +447,12 @@
 .preferences-text {
   color: #c0c0c0;
   font-size: 0.9rem;
-  text-align: center;
-  line-height: 1.5;
+  text-align: left;
+  line-height: 1.55;
+  margin: 0;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 /* ===== NO DATA STATES ===== */
@@ -434,6 +469,9 @@
     width: 100%;
     padding: 18px;
     border-radius: 20px;
+    min-height: min(720px, calc(100vh - 140px));
+    height: auto;
+    overflow: visible;
   }
 
   .search-match-avatar-wrapper {
@@ -443,10 +481,6 @@
 
   .search-match-name {
     font-size: 1.3rem;
-  }
-
-  .search-match-stars {
-    font-size: 1rem;
   }
 
   .search-match-quick-info {

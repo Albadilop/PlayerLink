@@ -3,12 +3,21 @@ import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Sidebar } from "./Private-sidebar";
 import { PrivateNavbar } from "./Private-navbar";
 import { useProfileCompletion } from "../../hooks/useProfileCompletion";
+import useGlobalReducer from "../../hooks/useGlobalReducer";
+import { notificationService } from "../../services/notificationService";
 import "../Private/private-layout.css";
 
 export const PrivateLayout: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { store } = useGlobalReducer();
   const { isComplete } = useProfileCompletion();
+
+  useEffect(() => {
+    if (store.user?.id) {
+      void notificationService.loadSettings(store.user.id);
+    }
+  }, [store.user?.id]);
 
   useEffect(() => {
     const currentPath = location.pathname;

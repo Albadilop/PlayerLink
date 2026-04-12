@@ -3,7 +3,7 @@
 SQLite: FK change omitted; the API deletes UserSettings explicitly before deleting User.
 
 Revision ID: cascade_user_settings_delete
-Revises: pending_email_users
+Revises: profile_location_59
 Create Date: 2026-04-12
 
 """
@@ -11,7 +11,7 @@ from alembic import op
 import sqlalchemy as sa
 
 revision = "cascade_user_settings_delete"
-down_revision = "pending_email_users"
+down_revision = "profile_location_59"
 branch_labels = None
 depends_on = None
 
