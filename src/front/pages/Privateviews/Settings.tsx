@@ -477,7 +477,9 @@ const SettingsView: React.FC = () => {
         return;
       }
 
-      setCorrectPassword("Password changed successfully");
+      setCorrectPassword(
+        "Password changed successfully. You will receive a confirmation email at your account address."
+      );
       setTimeout(() => {
         closeChangePasswordModal();
         dispatch({ type: "logout" });

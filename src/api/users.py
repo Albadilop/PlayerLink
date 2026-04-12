@@ -1,6 +1,8 @@
 """
 User management endpoints
 """
+import logging
+
 from flask import Blueprint, request, jsonify, Response
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -17,7 +19,10 @@ from api.validators import (
 )
 from api.base import BaseEndpoint
 from api.rate_limiter import apply_rate_limit_if_available
+from api.mail.mailer import send_password_changed_notification
 from typing import Tuple
+
+logger = logging.getLogger(__name__)
 
 users_bp = Blueprint('users', __name__)
 base = BaseEndpoint()
@@ -145,6 +150,14 @@ def users_password(user_id: int, _user: User, _data: dict) -> Tuple[Response, in
 
     _user.password = generate_password_hash(_data['password'])
     db.session.commit()
+
+    notify = send_password_changed_notification(_user.email)
+    if not notify.get('success'):
+        logger.warning(
+            'Password updated for user %s but confirmation email failed: %s',
+            _user.id,
+            notify.get('msg'),
+        )
 
     return base.success_response('Contraseña actualizada correctamente', status_code=200)
 

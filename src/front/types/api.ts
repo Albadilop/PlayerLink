@@ -130,8 +130,8 @@ export interface ChatResponse {
 
 export interface CheckMailResponse {
   success: boolean;
-  message: string;
-  token?: string;
+  msg?: string;
+  message?: string;
 }
 
 export interface UpdatePasswordResponse {

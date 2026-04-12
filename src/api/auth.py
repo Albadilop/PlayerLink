@@ -1,11 +1,13 @@
 """
 Authentication endpoints: register, login, password reset, token validation
 """
+import logging
+
 from flask import Blueprint, request, jsonify, Response
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
 from datetime import timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
-from sqlalchemy import select
+from sqlalchemy import select, func
 from api.models import db, User, Profile
 from api.validators import (
     validate_email,
@@ -15,8 +17,10 @@ from api.validators import (
 )
 from api.base import BaseEndpoint
 from api.rate_limiter import apply_rate_limit_if_available
-from api.mail.mailer import send_email
+from api.mail.mailer import send_email, send_password_changed_notification
 from typing import Tuple
+
+logger = logging.getLogger(__name__)
 
 auth_bp = Blueprint('auth', __name__)
 base = BaseEndpoint()
@@ -111,19 +115,29 @@ def check_jwt() -> Tuple[Response, int]:
     return jsonify({'success': True, 'user': user.serialize()}), 200
 
 
+_RESET_MSG = (
+    'If an account exists for that email, you will receive reset instructions shortly.'
+)
+
+
 @auth_bp.route("/check_mail", methods=['POST'])
-@apply_rate_limit_if_available("3 per hour")
+@apply_rate_limit_if_available("20 per hour")
 @handle_errors
 @validate_json(['email'])
 def check_mail(_data: dict) -> Tuple[Response, int] | Response:
-    """Send password reset email"""
-    # buscamos el correo en la base de datos y almacenamos el resultado en la variable user
-    user = db.session.execute(select(User).where(User.email == _data['email'])).scalar_one_or_none()
-    # Use generic message to prevent email enumeration
+    """Send password reset email (misma respuesta genérica si el correo no está registrado)."""
+    raw = (_data.get('email') or '').strip()
+    if not validate_email(raw):
+        return base.error_response('Invalid email format', 400)
+
+    email_norm = raw.lower()
+    user = db.session.execute(
+        select(User).where(func.lower(User.email) == email_norm)
+    ).scalar_one_or_none()
+
     if not user:
-        return jsonify({'success': False, 'msg': 'If this email exists, a password reset link has been sent'}), 200
-    # creamos el token que se va a enviar y necesario para la recuperacion de la contraseña
-    # Token for password reset expires in 1 hour
+        return jsonify({'success': True, 'msg': _RESET_MSG}), 200
+
     token = create_access_token(
         identity=str(user.id),
         expires_delta=timedelta(hours=1)
@@ -131,9 +145,19 @@ def check_mail(_data: dict) -> Tuple[Response, int] | Response:
     if not token:
         return base.error_response('token not found', 404)
 
-    result = send_email(_data['email'], token)
-    print(result)
-    return jsonify({'success': True, 'token': token, 'email': result}), 200
+    # Enviar al correo guardado en BD (mayúsculas/minúsculas canónicas del usuario).
+    result = send_email(user.email, token)
+    if isinstance(result, dict) and not result.get('success'):
+        logger.error("check_mail SMTP failed: %s", result.get('msg'))
+        return jsonify({
+            'success': False,
+            'msg': (
+                'No se pudo enviar el correo. Comprueba MAIL_USERNAME/MAIL_DEFAULT_SENDER, '
+                'MAIL_PASSWORD (contraseña de aplicación en Gmail) y reinicia el servidor.'
+            ),
+        }), 502
+
+    return jsonify({'success': True, 'msg': _RESET_MSG}), 200
 
 
 @auth_bp.route('/password_update', methods=['PUT'])
@@ -162,6 +186,15 @@ def password_update(_data: dict) -> Tuple[Response, int]:
     user.password = hashed_password
     # alacenamos los cambios
     db.session.commit()
+
+    notify = send_password_changed_notification(user.email)
+    if not notify.get('success'):
+        logger.warning(
+            'password_update for user %s but confirmation email failed: %s',
+            user.id,
+            notify.get('msg'),
+        )
+
     return jsonify({'success': True, 'msg': 'Contraseña actualizada exitosamente, intente iniciar sesion'}), 200
 
 

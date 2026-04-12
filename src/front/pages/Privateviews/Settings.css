@@ -630,11 +630,13 @@
 .settings-age-input::-webkit-inner-spin-button,
 .settings-age-input::-webkit-outer-spin-button {
   -webkit-appearance: none;
+  appearance: none;
   margin: 0;
 }
 
 .settings-age-input[type="number"] {
   -moz-appearance: textfield;
+  appearance: textfield;
 }
 
 .settings-spinner-buttons {

@@ -76,3 +76,30 @@ class TestLogin:
         })
         assert response.status_code == 401
 
+
+class TestCheckMail:
+    def test_unknown_email_returns_200_generic(self, client):
+        r = client.post("/api/check_mail", json={"email": "doesnotexist12345@example.com"})
+        assert r.status_code == 200
+        data = r.get_json()
+        assert data.get("success") is True
+        assert "msg" in data
+
+    def test_invalid_email_format(self, client):
+        r = client.post("/api/check_mail", json={"email": "not-an-email"})
+        assert r.status_code == 400
+
+    def test_known_email_case_insensitive(self, client, sample_user, monkeypatch):
+        calls = []
+
+        def fake_send(address, token):
+            calls.append((address, token))
+            return {"success": True, "msg": "ok"}
+
+        monkeypatch.setattr("api.auth.send_email", fake_send)
+        r = client.post("/api/check_mail", json={"email": "TEST@EXAMPLE.COM"})
+        assert r.status_code == 200
+        assert r.get_json().get("success") is True
+        assert len(calls) == 1
+        assert calls[0][0] == "test@example.com"
+
