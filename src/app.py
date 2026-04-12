@@ -7,6 +7,16 @@ from dotenv import load_dotenv
 
 _app_logger = logging.getLogger(__name__)
 
+
+def _redacted_database_uri(uri: str) -> str:
+    try:
+        from sqlalchemy.engine.url import make_url
+
+        return make_url(uri).render_as_string(hide_password=True)
+    except Exception:
+        return "<URL no interpretable>"
+
+
 # Cargar .env desde la raíz del repo (no depender del cwd de Flask / IDE).
 _project_root = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 load_dotenv(os.path.join(_project_root, ".env"))
@@ -77,13 +87,23 @@ limiter = Limiter(
 )
 
 
-# database condiguration
-db_url = os.getenv("DATABASE_URL")
-if db_url is not None:
+# database configuration (vacío o solo espacios = sin URL, mismo criterio que ausente)
+db_url = (os.getenv("DATABASE_URL") or "").strip() or None
+if db_url:
     app.config['SQLALCHEMY_DATABASE_URI'] = db_url.replace(
         "postgres://", "postgresql://")
 else:
     app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:////tmp/test.db"
+    _app_logger.warning(
+        "DATABASE_URL no está definida (o está vacía) tras cargar .env/.env.local; "
+        "se usa sqlite en /tmp/test.db. Para Postgres/Supabase define DATABASE_URL "
+        "en la raíz del proyecto y ejecuta `flask db upgrade` con el mismo FLASK_APP y .env."
+    )
+
+_app_logger.info(
+    "SQLAlchemy (sin contraseña): %s",
+    _redacted_database_uri(app.config["SQLALCHEMY_DATABASE_URI"]),
+)
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 MIGRATE = Migrate(app, db, compare_type=True)

@@ -127,6 +127,16 @@ def validate_json(required_fields: Optional[list[str]] = None):
     return decorator
 
 
+# Mensaje unificado para el cliente cuando la BD no tiene columnas/tablas del código actual.
+_SCHEMA_MISMATCH_CLIENT_MSG = (
+    'El esquema de la base de datos no coincide con el código (falta una columna o tabla). '
+    'En la raíz del proyecto, con el mismo .env/.env.local que usa `flask run`, ejecuta: '
+    'flask db upgrade. Para ver la BD que usa la app (sin contraseña): flask show-db-url. '
+    'Si `flask db upgrade` falla por DNS o el host de la base, en Supabase usa la URI del '
+    '«Session pooler» (Connect → Session), no solo la conexión directa a db.*.'
+)
+
+
 def _db_error_suggests_outdated_schema(message: str) -> bool:
     """Missing column/table after deploy — often fixed with `flask db upgrade`."""
     m = message.lower()
@@ -156,13 +166,7 @@ def handle_errors(f: Callable) -> Callable:
             raw_msg = str(e)
             msg = raw_msg.lower()
             if _db_error_suggests_outdated_schema(raw_msg):
-                return jsonify({
-                    'error': (
-                        'El esquema de la base de datos no coincide con el código '
-                        '(suele faltar una columna nueva). Ejecuta: flask db upgrade '
-                        'con DATABASE_URL apuntando a esta misma base.'
-                    ),
-                }), 503
+                return jsonify({'error': _SCHEMA_MISMATCH_CLIENT_MSG}), 503
             err_text = (
                 'No se pudo conectar con la base de datos. '
                 'Comprueba DATABASE_URL y que el proyecto Supabase siga activo.'
@@ -191,12 +195,7 @@ def handle_errors(f: Callable) -> Callable:
 
             logging.error(f'Database programming error in {f.__name__}: {str(e)}', exc_info=True)
             if _db_error_suggests_outdated_schema(str(e)):
-                return jsonify({
-                    'error': (
-                        'El esquema de la base de datos no coincide con el código. '
-                        'Ejecuta: flask db upgrade con DATABASE_URL apuntando a esta misma base.'
-                    ),
-                }), 503
+                return jsonify({'error': _SCHEMA_MISMATCH_CLIENT_MSG}), 503
             return jsonify({
                 'error': 'Error al consultar la base de datos. Revisa el registro del servidor.',
             }), 500

@@ -6,8 +6,11 @@ Nunca expongas SUPABASE_SERVICE_ROLE_KEY al front ni la commits.
 """
 from __future__ import annotations
 
+import logging
 import os
-from typing import Any, Optional, Tuple
+from typing import Any, List, Optional, Tuple
+
+logger = logging.getLogger(__name__)
 
 _admin_client: Optional[Any] = None
 
@@ -65,6 +68,148 @@ def fetch_supabase_user_from_jwt(access_token: str) -> Optional[Tuple[str, str]]
     if not email or not auth_uid:
         return None
     return (auth_uid, email)
+
+
+def _normalize_list_users_batch(batch: Any) -> List[Any]:
+    if batch is None:
+        return []
+    if isinstance(batch, list):
+        return batch
+    users = getattr(batch, "users", None)
+    if isinstance(users, list):
+        return users
+    return []
+
+
+def find_supabase_auth_id_by_email(email: str) -> Optional[str]:
+    """
+    Busca auth.users por email (comparación case-insensitive) paginando list_users.
+    Coste O(n) en número de usuarios Auth; usar solo para enlazar cuentas poco frecuentes
+    o cuando SUPABASE_AUTO_LINK_ON_LOGIN / export lo requieran.
+    """
+    admin = get_supabase_admin()
+    if not admin or not (email or "").strip():
+        return None
+    email_norm = email.strip().lower()
+    try:
+        list_users = admin.auth.admin.list_users
+    except Exception as e:
+        logger.debug("find_supabase_auth_id_by_email: no list_users: %s", e)
+        return None
+    max_pages = int((os.getenv("SUPABASE_AUTH_EMAIL_LOOKUP_MAX_PAGES") or "10").strip() or "10")
+    per_page = 100
+    for page in range(1, max_pages + 1):
+        try:
+            batch = list_users(page=page, per_page=per_page)
+        except Exception as e:
+            logger.warning("find_supabase_auth_id_by_email: list_users page %s failed: %s", page, e)
+            return None
+        users = _normalize_list_users_batch(batch)
+        if not users:
+            return None
+        for au in users:
+            em = (getattr(au, "email", None) or "").strip().lower()
+            if em == email_norm:
+                uid = getattr(au, "id", None)
+                if uid:
+                    return str(uid).strip()
+        if len(users) < per_page:
+            return None
+    return None
+
+
+def _auth_user_to_export_dict(auth_user: Any) -> dict[str, Any]:
+    """Subconjunto seguro para export GDPR (sin tokens de sesión)."""
+    out: dict[str, Any] = {}
+    if auth_user is None:
+        return out
+    if hasattr(auth_user, "model_dump"):
+        raw = auth_user.model_dump()
+        for k in (
+            "id",
+            "email",
+            "phone",
+            "created_at",
+            "last_sign_in_at",
+            "confirmed_at",
+            "email_confirmed_at",
+            "user_metadata",
+            "app_metadata",
+            "is_anonymous",
+        ):
+            if k in raw and raw[k] is not None:
+                out[k] = raw[k]
+        identities = raw.get("identities") or []
+    else:
+        for k in (
+            "id",
+            "email",
+            "phone",
+            "created_at",
+            "last_sign_in_at",
+            "confirmed_at",
+            "email_confirmed_at",
+            "user_metadata",
+            "app_metadata",
+            "is_anonymous",
+        ):
+            val = getattr(auth_user, k, None)
+            if val is not None:
+                out[k] = val
+        identities = getattr(auth_user, "identities", None) or []
+
+    safe_idents: list[dict[str, Any]] = []
+    for ident in identities:
+        if ident is None:
+            continue
+        if isinstance(ident, dict):
+            id_row = ident
+        elif hasattr(ident, "model_dump"):
+            id_row = ident.model_dump()
+        else:
+            id_row = {
+                "id": getattr(ident, "id", None),
+                "provider": getattr(ident, "provider", None),
+                "created_at": getattr(ident, "created_at", None),
+                "updated_at": getattr(ident, "updated_at", None),
+                "identity_data": getattr(ident, "identity_data", None) or {},
+            }
+        if not isinstance(id_row, dict):
+            continue
+        id_copy = {k: v for k, v in id_row.items() if k != "identity_data"}
+        id_raw = id_row.get("identity_data") if isinstance(id_row.get("identity_data"), dict) else {}
+        id_copy["identity_data"] = {
+            k: v
+            for k, v in id_raw.items()
+            if "token" not in k.lower() and "secret" not in k.lower() and "access" not in k.lower()
+        }
+        safe_idents.append(id_copy)
+    if safe_idents:
+        out["identities"] = safe_idents
+    return out
+
+
+def fetch_supabase_auth_export_for_uid(auth_uid: str) -> dict[str, Any]:
+    """
+    Devuelve dict listo para JSON de export, o {"error": "..."} si falla.
+    """
+    admin = get_supabase_admin()
+    uid = (auth_uid or "").strip()
+    if not admin:
+        return {"error": "Supabase admin client not configured (SUPABASE_URL / SERVICE_ROLE_KEY)."}
+    if not uid:
+        return {"error": "Missing supabase_auth_id."}
+    try:
+        resp = admin.auth.admin.get_user_by_id(uid)
+    except Exception as e:
+        logger.info("fetch_supabase_auth_export_for_uid failed: %s", e)
+        return {"error": str(e)}
+    auth_user = getattr(resp, "user", None) or resp
+    try:
+        return _auth_user_to_export_dict(auth_user)
+    except Exception as e:
+        logger.warning("fetch_supabase_auth_export_for_uid serialize failed: %s", e)
+        return {"error": str(e)}
 
 
 def supabase_status_payload() -> dict:

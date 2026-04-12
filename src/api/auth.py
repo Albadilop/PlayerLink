@@ -2,6 +2,7 @@
 Authentication endpoints: register, login, password reset, token validation
 """
 import logging
+import os
 
 from flask import Blueprint, request, jsonify, Response
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
@@ -18,6 +19,7 @@ from api.validators import (
 from api.base import BaseEndpoint
 from api.rate_limiter import apply_rate_limit_if_available
 from api.mail.mailer import send_email, send_password_changed_notification
+from api.supabase_admin import find_supabase_auth_id_by_email, is_supabase_admin_configured
 from typing import Tuple
 
 logger = logging.getLogger(__name__)
@@ -90,6 +92,20 @@ def login(_data: dict) -> Tuple[Response, int] | Response:
     # Always check password hash even if user doesn't exist to prevent timing attacks
     if not user or not check_password_hash(user.password, _data['password']):
         return base.error_response('Email o contraseña incorrectos', 401)
+
+    if (
+        is_supabase_admin_configured()
+        and not user.supabase_auth_id
+        and os.getenv("SUPABASE_AUTO_LINK_ON_LOGIN", "").strip().lower() in ("1", "true", "yes")
+    ):
+        sid = find_supabase_auth_id_by_email(user.email)
+        if sid:
+            user.supabase_auth_id = sid
+            try:
+                db.session.commit()
+            except Exception as ex:
+                logger.debug("login: could not persist supabase_auth_id: %s", ex)
+                db.session.rollback()
 
     # Token expires in 24 hours
     token = create_access_token(

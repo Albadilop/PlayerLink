@@ -1133,8 +1133,9 @@ const SettingsView: React.FC = () => {
           Download all your data in JSON format (GDPR compliant)
         </p>
         <p className="settings-incomplete-note" style={{ marginTop: "8px" }}>
-          Export covers this app&apos;s database only; data held only in external auth (e.g.
-          Supabase) may not be included.
+          The JSON always includes this app&apos;s database. When the server has Supabase Admin
+          configured, the export also adds <code>supabase_auth</code> (Auth snapshot) if your
+          account is linked or can be matched by email. Storage-only assets are not listed here.
         </p>
       </div>
 

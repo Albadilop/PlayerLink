@@ -14,6 +14,8 @@ class User(db.Model):
         String(120), unique=True, nullable=False)
     # Nuevo correo pendiente de confirmación por enlace (ver PUT /users_email).
     pending_email: Mapped[Optional[str]] = mapped_column(String(120), nullable=True)
+    # UUID de auth.users (Supabase); ver migración f3_supabase_auth_id y export GDPR.
+    supabase_auth_id: Mapped[Optional[str]] = mapped_column(String(36), unique=True, nullable=True)
     password: Mapped[str] = mapped_column(String(250), nullable=False)
 
     # Relaciones
@@ -68,6 +70,7 @@ class User(db.Model):
             "id": self.id,
             "email": self.email,
             "pending_email": self.pending_email,
+            "supabase_auth_id": self.supabase_auth_id,
             # No serializar password por seguridad
             "profile": self.profile.serialize() if self.profile else None
         }
