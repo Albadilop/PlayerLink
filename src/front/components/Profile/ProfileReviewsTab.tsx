@@ -132,7 +132,7 @@ export const ProfileReviewsTab: React.FC<ProfileReviewsTabProps> = ({
               data-bs-toggle="modal"
               data-bs-target="#commentModal"
             >
-              Leave a new comment
+              Leave a comment
             </button>
           </div>
         )}
@@ -181,7 +181,7 @@ export const ProfileReviewsTab: React.FC<ProfileReviewsTabProps> = ({
                       </div>
                       <div className="review-comment-line">
                         <i
-                          className="fa-solid fa-comment-dots review-comment-line-icon"
+                          className="me-2 fa-solid fa-comment-dots review-comment-line-icon"
                           aria-hidden
                         />
                         <span className="review-comment-line-text">{review.comment}</span>

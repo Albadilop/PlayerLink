@@ -97,51 +97,54 @@ export const MatchUserDetails: React.FC = () => {
   useEffect(() => {
     if (!store.user) {
       navigate("/");
+    }
+  }, [navigate, store.user]);
+
+  /** Solo al cambiar la ruta o el usuario logueado (id), no en cada cambio de referencia de `store.user` (evita desmontar la vista y cerrar el modal de comentarios). */
+  useEffect(() => {
+    if (!store.user?.id || !id) return;
+
+    const userId = parseInt(id, 10);
+    if (Number.isNaN(userId)) {
+      setIsLoading(false);
       return;
     }
 
-    if (id) {
-      setIsLoading(true);
-      dispatch({ type: "getItsMatchInfo", payload: null });
-      dispatch({ type: "matchReviewsReceived", payload: null });
+    setIsLoading(true);
+    dispatch({ type: "getItsMatchInfo", payload: null });
+    dispatch({ type: "matchReviewsReceived", payload: null });
 
-      const userId = parseInt(id, 10);
+    userServices
+      .getUserInfoById(userId)
+      .then((userData) => {
+        if (!(userData instanceof Error)) {
+          dispatch({ type: "getItsMatchInfo", payload: userData });
+        } else {
+          console.error("Error loading user info:", userData);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to load user info:", err);
+      });
 
-      // Cargar datos del usuario y reviews por separado para mejor manejo de errores
-      userServices
-        .getUserInfoById(userId)
-        .then((userData) => {
-          if (!(userData instanceof Error)) {
-            dispatch({ type: "getItsMatchInfo", payload: userData });
+    setTimeout(() => {
+      reviewServices
+        .getAllReviewsReceived(userId)
+        .then((reviewsData) => {
+          if (reviewsData instanceof Error) {
+            console.error("Error loading reviews:", reviewsData);
+            dispatch({ type: "matchReviewsReceived", payload: { reviews_received: [] } });
           } else {
-            console.error("Error loading user info:", userData);
+            dispatch({ type: "matchReviewsReceived", payload: reviewsData });
           }
         })
         .catch((err) => {
-          console.error("Failed to load user info:", err);
-        });
-
-      // Cargar reviews por separado con un pequeño delay para evitar problemas de timing
-      setTimeout(() => {
-        reviewServices
-          .getAllReviewsReceived(userId)
-          .then((reviewsData) => {
-            // Verificar que reviewsData no sea un Error
-            if (reviewsData instanceof Error) {
-              console.error("Error loading reviews:", reviewsData);
-              dispatch({ type: "matchReviewsReceived", payload: { reviews_received: [] } });
-            } else {
-              dispatch({ type: "matchReviewsReceived", payload: reviewsData });
-            }
-          })
-          .catch((err) => {
-            console.error("Failed to load reviews:", err);
-            dispatch({ type: "matchReviewsReceived", payload: { reviews_received: [] } });
-          })
-          .finally(() => setIsLoading(false));
-      }, 100); // Pequeño delay para asegurar que el backend esté listo
-    }
-  }, [navigate, store.user, id, dispatch]);
+          console.error("Failed to load reviews:", err);
+          dispatch({ type: "matchReviewsReceived", payload: { reviews_received: [] } });
+        })
+        .finally(() => setIsLoading(false));
+    }, 100);
+  }, [id, store.user?.id, dispatch]);
 
   useEffect(() => {
     document.querySelectorAll('[data-bs-toggle="popover"]').forEach((el) => {
@@ -373,6 +376,8 @@ export const MatchUserDetails: React.FC = () => {
               tabIndex={-1}
               aria-labelledby="commentModalLabel"
               aria-hidden="true"
+              data-bs-backdrop="static"
+              data-bs-keyboard="false"
             >
               <div className="modal-dialog modal-dialog-centered">
                 <div className="modal-content onboarding-game-modal">
@@ -380,7 +385,7 @@ export const MatchUserDetails: React.FC = () => {
                     <div className="onboarding-game-title-wrapper">
                       <i className="fa-solid fa-comment onboarding-game-icon"></i>
                       <h3 className="onboarding-game-title" id="commentModalLabel">
-                        Leave a new comment
+                        Leave a comment
                       </h3>
                     </div>
                     <button
@@ -396,7 +401,7 @@ export const MatchUserDetails: React.FC = () => {
                     {/* Rating */}
                     <div className="form-group onboarding-game-group">
                       <label className="onboarding-game-label">
-                        <i className="fa-solid fa-star onboarding-game-label-icon"></i>
+                        <i className="fa-solid fa-star onboarding-game-label-icon  me-2"></i>
                         Rating
                       </label>
                       <div className="comment-rating-stars">
@@ -417,7 +422,7 @@ export const MatchUserDetails: React.FC = () => {
                     {/* Comment textarea */}
                     <div className="form-group onboarding-game-group">
                       <label className="onboarding-game-label" htmlFor="newComment">
-                        <i className="fa-solid fa-comment-dots onboarding-game-label-icon"></i>
+                        <i className="fa-solid fa-comment-dots onboarding-game-label-icon me-2"></i>
                         Comment
                       </label>
                       <textarea
@@ -449,20 +454,6 @@ export const MatchUserDetails: React.FC = () => {
                         >
                           {newComment.comment.length} / {REVIEW_FIELD_LIMITS.COMMENT_MAX}
                         </span>
-                        {newComment.comment.length >= REVIEW_FIELD_LIMITS.COMMENT_MAX && (
-                          <p className="match-comment-length-warning" role="alert">
-                            Has alcanzado el máximo de {REVIEW_FIELD_LIMITS.COMMENT_MAX} caracteres.
-                            Acorta el comentario si quieres cambiar el texto.
-                          </p>
-                        )}
-                        {newComment.comment.length >= REVIEW_FIELD_LIMITS.COMMENT_MAX - 10 &&
-                          newComment.comment.length < REVIEW_FIELD_LIMITS.COMMENT_MAX && (
-                            <p className="match-comment-length-notice">
-                              El comentario no puede superar {REVIEW_FIELD_LIMITS.COMMENT_MAX}{" "}
-                              caracteres; te quedan{" "}
-                              {REVIEW_FIELD_LIMITS.COMMENT_MAX - newComment.comment.length}.
-                            </p>
-                          )}
                       </div>
                     </div>
                   </div>
@@ -477,7 +468,7 @@ export const MatchUserDetails: React.FC = () => {
                       disabled={!newComment.comment.trim() || newComment.stars === 0}
                     >
                       <i className="fa-solid fa-check"></i>
-                      Save comment
+                      Save
                     </button>
                   </div>
                 </div>
